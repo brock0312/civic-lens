@@ -31,7 +31,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 CACHE = ROOT / "data" / "cache" / "transcripts"
 DB = ROOT / "data" / "civic.db"
 
-GROUP_HEAD = re.compile(r"^\s*(市政總質詢|(\S+)部門質詢)第\s*(\d+)\s*組\s*$")
+# 第 1 次定期大會有一份公報表頭誤植為「市政總質詢質詢第 7 組」
+GROUP_HEAD = re.compile(r"^\s*(市政總質詢(?:質詢)?|(\S+)部門質詢)第\s*(\d+)\s*組\s*$")
 LABEL = re.compile(r"^(\S[^：:]{0,39}?)(?:答覆)?[：:]+\s*$")  # 偶有半形冒號「徐議員立信:」
 ANNOTATION = re.compile(r"\s+註解\s*\[.*$")  # Word 註解殘留：「王議員閔生：   註解 [呂懿恬1]: ：」
 DATE_MARK = re.compile(r"─+\s*(\d+)\s*年\s*(\d+)\s*月\s*(\d+)\s*日\s*─+")

@@ -181,6 +181,23 @@ section.inter:first-of-type h3 { margin-top: 0; }
 .portals li { margin: 0 0 8px; }
 .portals p { margin: 4px 0 0; max-width: 40em; }
 
+/* 質詢摘要：原生 details，無動畫 */
+.sess { border-top: 1px solid var(--line); }
+.sess:last-of-type { border-bottom: 1px solid var(--line); }
+.sess > summary { cursor: pointer; padding: 12px 0; min-height: 44px; }
+.sess-title { font-weight: 700; }
+.sess-title .muted { font-weight: 400; }
+.disclaimer { display: block; font-size: 0.875rem; color: var(--muted); margin-left: 1.1em; }
+.sess[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.issues { list-style: none; padding: 0; margin: 0; }
+.issues > li { padding: 4px 0 12px; }
+.issues h3 { margin: 12px 0 6px; }
+.issue { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: 4px 12px; margin: 0; font-size: 0.9375rem; }
+.issue dt { color: var(--muted); }
+.issue dd { margin: 0; }
+.issue p { margin: 0 0 4px; max-width: 40em; }
+.srcs { font-size: 0.875rem; color: var(--ink-2); margin-bottom: 16px; }
+
 /* 腳註 */
 .notes ul { list-style: none; padding: 0; margin: 0; font-size: 0.875rem; color: var(--ink-2); }
 .notes li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); padding: 3px 0; }

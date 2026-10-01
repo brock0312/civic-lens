@@ -322,6 +322,69 @@ function interpellationRows(list) {
   }).join('');
 }
 
+// ---------- 質詢摘要（NotebookLM，依公報速記錄） ----------
+
+// 文字經使用者確認，照抄；每個會期區塊與頁尾各顯示一次
+export const SUMMARY_DISCLAIMER = '質詢摘要為AI產出，僅供參考用途，詳細事實以原質詢速記錄與影片為準';
+// 不能寫「缺席」或「沒有質詢」：可能是請假或改書面質詢
+export const NO_SPEECH = '本會期公報速記錄中未見其口頭質詢發言';
+
+// 只顯示至少有一條可連結引文的議題（批次已過濾，這裡再擋一次）
+const issuesOf = (d) => (d?.issues || []).filter((i) => i?.topic && (i.citations || []).some((c) => safeUrl(c.source_url)));
+
+function citeLinks(citations) {
+  const seen = new Set();
+  return citations.filter((c) => safeUrl(c.source_url) && !seen.has(c.source_url) && seen.add(c.source_url))
+    .map((c) => ext(safeUrl(c.source_url), c.page ? `速記錄第 <span class="num">${esc(c.page)}</span> 頁` : '速記錄')).join('、');
+}
+
+function issueItem(i) {
+  return `<li><h3>${esc(i.topic)}</h3>
+    <dl class="issue">
+      <dt>議員</dt><dd>${(i.councilor_points || []).map((p) => `<p>${esc(p)}</p>`).join('')}</dd>
+      ${i.response_removed ? '' : `<dt>市府回應</dt><dd><p>${i.response ? esc(i.response) : '<span class="muted">速記錄節錄中未見市府回應</span>'}</p></dd>`}
+      <dt>引文</dt><dd>${citeLinks(i.citations)}</dd>
+    </dl></li>`;
+}
+
+// 影片：同日期、同組別（含質詢類別與部門）的口頭質詢影片 fact
+function videoFor(v, src, videos) {
+  return videos.find((f) => f.date === v.date && f.data?.group === v.group
+    && f.data?.doc_type === src.doc_type && (f.data?.dept || null) === (src.dept || null));
+}
+
+function sourceItem(src, videos) {
+  const pages = src.transcript_pages || [];
+  const where = pages.length ? `速記錄 公報第 <span class="num">${esc(pages[0])}</span>${pages.length > 1 ? `–<span class="num">${esc(pages.at(-1))}</span>` : ''} 頁` : '速記錄';
+  const tu = safeUrl(src.transcript_page_url) || safeUrl(src.transcript_url);
+  const vids = (src.videos || []).map((v) => videoFor(v, src, videos)).filter((f) => f && safeUrl(f.source_url))
+    .map((f) => ext(safeUrl(f.source_url), `影片（${esc(f.date)}）`));
+  return `<li>${esc(src.heading)}（${(src.dates || []).map(esc).join('、')}）：${[tu ? ext(tu, where) : where, ...vids].join('、')}</li>`;
+}
+
+function sessionBlock(f, videos) {
+  const d = f.data || {};
+  const noSpeech = d.status === 'no_speech';
+  const issues = issuesOf(d);
+  if (!noSpeech && !issues.length) return '';
+  const body = noSpeech ? `<p class="status" role="note">${NO_SPEECH}</p>` : `<ol class="issues">${issues.map(issueItem).join('')}</ol>`;
+  return `<details class="sess"><summary><span class="sess-title">${esc(d.session || '')}${noSpeech ? '' : `<span class="muted">，<span class="num">${issues.length}</span> 個議題</span>`}</span>
+      <span class="disclaimer">${SUMMARY_DISCLAIMER}</span></summary>
+    ${body}
+    <h3>原質詢出處</h3>
+    <ul class="plain srcs">${(d.sources || []).map((s) => sourceItem(s, videos)).join('')}</ul></details>`;
+}
+
+// 人物頁「質詢摘要」：依會期由新到舊，每個會期一個原生 <details>
+export function summarySection(summaries, videos = []) {
+  const sorted = [...summaries].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  const blocks = sorted.map((f) => sessionBlock(f, videos)).filter(Boolean);
+  if (!blocks.length) return '';
+  return `<section aria-labelledby="k-summary"><h2 id="k-summary">質詢摘要</h2>
+    <p class="count">依會期由新到舊。由 NotebookLM 根據臺北市議會公報速記錄整理，引文連結至速記錄原文頁面。</p>
+    ${blocks.join('')}</section>`;
+}
+
 const pct = (r) => `${(r * 100).toFixed(1)}%`;
 const bar = (ratio) => `<span class="bar" aria-hidden="true"><span style="width:${(ratio * 100).toFixed(1)}%"></span></span>`;
 // 公報學經歷每項前有「•」，改用清單呈現時拿掉，其餘文字不動
@@ -473,6 +536,7 @@ async function renderPerson(main, ctx, id) {
     ${criminalRecordSection(facts)}
     ${office ? `<section aria-labelledby="k-office"><h2 id="k-office">任職</h2><ul class="roster office">${office}</ul></section>` : ''}
     ${bulletin}
+    ${summarySection(facts.summary || [], videos)}
     ${inter}
     ${offices.length || inters.length ? '' : `<p class="empty">${NO_RECORD}</p>`}
     ${notes.render()}`;

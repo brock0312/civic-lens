@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { councilDistrictFor, taipeiVillages, townsOf, fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel } from './app.js';
+import { councilDistrictFor, taipeiVillages, townsOf, fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH } from './app.js';
 
 const EXPECTED = {
   北投區: '01', 士林區: '01', 內湖區: '02', 南港區: '02', 松山區: '03', 信義區: '03',
@@ -233,4 +233,62 @@ test('criminal-record section discloses that verification starts from third-part
   assert.match(html, /沒有涵蓋所有候選人/);
   assert.match(html, /「尚未收錄」不代表查無判決/);
   assert.doesNotMatch(html, /前科資訊/);
+});
+
+const VIEWER = 'https://gaz.tcc.gov.tw/pdf/viewer.html?id=AAA';
+const src = { heading: '交通部門質詢第8組', doc_type: '部門質詢', dept: '交通', group: 8, dates: ['2025-05-22'], transcript_url: VIEWER, transcript_page_url: `${VIEWER}#page=3`, transcript_pages: [560, 566], videos: [{ date: '2025-05-22', group: 9 }] };
+const cite = { source_url: `${VIEWER}#page=4`, page: 562, cited_text: '原文' };
+const summary = (session, date, data) => ({ date, data: { session, sources: [src], status: 'ok', issues: [], ...data } });
+
+test('summarySection shows the disclaimer on every session block', () => {
+  const html = summarySection([
+    summary('第14屆第4次定期大會', '2024-12-01', { issues: [{ topic: '議題甲', councilor_points: ['詢問'], response: '說明', citations: [cite] }] }),
+    summary('第14屆第5次定期大會', '2025-06-10', { status: 'no_speech' }),
+  ]);
+  assert.equal(html.split(SUMMARY_DISCLAIMER).length - 1, 2);
+  assert.equal(html.split('<details').length - 1, 2);
+  assert.ok(html.indexOf('第5次') < html.indexOf('第4次'), 'newest session first');
+});
+
+test('summarySection shows the no_speech wording without implying absence', () => {
+  const html = summarySection([summary('第14屆第5次定期大會', '2025-06-10', { status: 'no_speech' })]);
+  assert.ok(html.includes(NO_SPEECH));
+  assert.equal(NO_SPEECH, '本會期公報速記錄中未見其口頭質詢發言');
+  assert.ok(!/缺席|沒有質詢/.test(html));
+});
+
+test('summarySection skips issues without a linkable citation and sessions left empty', () => {
+  const html = summarySection([summary('第14屆第5次定期大會', '2025-06-10', { issues: [
+    { topic: '有引文', councilor_points: ['詢問'], response: null, citations: [cite] },
+    { topic: '空引文', councilor_points: ['詢問'], response: null, citations: [] },
+    { topic: '壞連結', councilor_points: ['詢問'], response: null, citations: [{ source_url: 'javascript:x', page: 1 }] },
+  ] })]);
+  assert.ok(html.includes('有引文') && html.includes('速記錄第 <span class="num">562</span> 頁'));
+  assert.ok(!html.includes('空引文') && !html.includes('壞連結'));
+  assert.equal(summarySection([summary('第14屆第5次定期大會', '2025-06-10', { issues: [{ topic: '空', citations: [] }] })]), '');
+});
+
+test('summarySection omits the response row when a cross-session response was removed', () => {
+  const html = summarySection([summary('第14屆第5次定期大會', '2025-06-10', { issues: [
+    { topic: '回應已移除', councilor_points: ['詢問'], response: null, response_removed: true, citations: [cite] },
+  ] })]);
+  assert.ok(html.includes('回應已移除'));
+  assert.ok(!html.includes('市府回應') && !html.includes('未見市府回應'));
+  const kept = summarySection([summary('第14屆第5次定期大會', '2025-06-10', { issues: [
+    { topic: '無回應', councilor_points: ['詢問'], response: null, response_removed: false, citations: [cite] },
+  ] })]);
+  assert.ok(kept.includes('速記錄節錄中未見市府回應'));
+});
+
+test('summarySection links the transcript and the video of the same date and group', () => {
+  const video = { date: '2025-05-22', source_url: 'https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=v', data: { group: 9, doc_type: '部門質詢', dept: '交通' } };
+  const other = { ...video, source_url: 'https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=wrong', data: { ...video.data, group: 8 } };
+  const html = summarySection([summary('第14屆第5次定期大會', '2025-06-10', { status: 'no_speech' })], [other, video]);
+  assert.ok(html.includes(`href="${VIEWER}#page=3"`));
+  assert.ok(html.includes('id=v"') && !html.includes('id=wrong'));
+});
+
+test('footer carries the summary disclaimer once', () => {
+  const page = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+  assert.equal(page.split(SUMMARY_DISCLAIMER).length - 1, 1);
 });

@@ -42,7 +42,10 @@ def get(url):
 
 
 ITEM = re.compile(r'gaz_viewer\.html\?dataIndex=(\d+)[^"]*"[^>]*title="另開視窗至:([^"]+)".*?起始頁：(\d+)', re.S)
-TITLE = re.compile(r"第\s*14\s*屆第(\d+)次定期大會(?:(市政總質詢)|(\S+?)部門)第(\d+)組")
+# 第 1、2 次定期大會的清單標題沒有「第14屆第N次定期大會」前綴；清單本身已依會期查詢，所以前綴可省略
+TITLE = re.compile(r"(?:第\s*14\s*屆第(\d+)次定期大會)?(?:(市政總質詢)|(\S+?)部門)第(\d+)組")
+# 市府書面答覆／答復（兩種寫法都有）與「繼續辦理情形彙編」不是速記錄
+NOT_TRANSCRIPT = ("書面答覆", "書面答復", "彙編")
 
 
 def parse_list(page):
@@ -53,7 +56,7 @@ def parse_list(page):
     out = []
     for idx, title, start in ITEM.findall(page):
         title = html.unescape(title).strip()
-        if "書面答覆" in title:  # 市府書面答覆資料不是速記錄，不收
+        if any(k in title for k in NOT_TRANSCRIPT):
             continue
         t = TITLE.search(title)
         if not t:
@@ -96,6 +99,9 @@ def resolve(item, page):
 
 
 def run(session):
+    # 擋掉打錯的參數（例如誤把 demo 當會期），以免對議會網站發出無意義的請求
+    if not re.fullmatch(r"0[1-8]", session):
+        raise SystemExit(f"會期必須是 01–08，收到：{session!r}")
     out_dir = CACHE / f"14-{session}"
     out_dir.mkdir(parents=True, exist_ok=True)
     index_path = out_dir / "index.json"
