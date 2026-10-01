@@ -11,9 +11,11 @@
   3. 每個議題至少 1 條引文。
   4. 人名：只能是該議員本人，或其段落裡出現過的官員（以全屆議員名單＋全會期官員發言標籤比對；
      中央官員、民眾等其他人名無法自動偵測，要人工看）。
+  5. 引文相關性（relevance）：議題最相關的引文與議員訴求幾乎沒有共同用字時，整個議題移除。
 """
 import bisect
 import json
+import math
 import pathlib
 import re
 import sys
@@ -214,7 +216,35 @@ def response_elsewhere(response, docs, seg_text, spans):
     return out
 
 
-def filter_citations(summary, seg_text=None, spans=None):
+# 引文相關性：NotebookLM 偶爾把無關或只有寒暄的段落當成議員訴求的引文（第 5 次會期第二輪審閱抓到 8 個議題）。
+RELEVANCE_MIN = 8.2  # 議題最相關的一條引文，與訴求共有雙字組的 IDF 總和下限
+
+
+def bigram_idf(texts):
+    """會期全部發言段落 → 雙字組 IDF 函式（log(段落數 / (1 + 出現段落數))，不小於 0）。"""
+    texts = list(texts)
+    df = {}
+    for t in texts:
+        for b in bigrams(t):
+            df[b] = df.get(b, 0) + 1
+    return lambda b: max(math.log(len(texts) / (1 + df.get(b, 0))), 0)
+
+
+def relevance(issue, citations, idf):
+    """議員訴求（議題名稱＋議員欄位）與每條引文本文（去掉頁碼標記與發言人標籤）共有雙字組的 IDF 總和，取最高的一條。
+
+    ponytail: 字面重疊的啟發式，IDF 讓「謝謝」「這個」「局長」這類寒暄、附和詞自動趨近 0，不另列停用詞。
+    上限：抓不到「引文用字和訴求相同、但內容不支持訴求」的議題（第 5 次會期的李柏毅人口對策委員會，分數 29），
+    也會誤殺改寫幅度大的正常議題；門檻依第 5 次會期 8 個人工確認的薄弱議題（抓到 7 個）與 88 個審閱通過的議題（誤殺 0）調出，
+    最近的反例只高 0.1（汪志冰土地登記錯置 8.3），換會期要重看分布。要更準得改成逐條引文的語意判斷。"""
+    claim = bigrams(issue["topic"] + "".join(issue["councilor_points"]))
+    def score(c):  # noqa: E306
+        body = re.sub(r"^\s*[^：:\n]{2,20}[：:]", "", PAGE_MARK.sub("", c["cited_text"]).strip())
+        return sum(idf(b) for b in bigrams(body) & claim)
+    return max((score(c) for c in citations), default=0)
+
+
+def filter_citations(summary, seg_text=None, spans=None, idf=None):
     """量產後處理，回傳 (新摘要, 報告)；不改輸入。
       - 空引文不保留；無法定位的引文不輸出（沒有頁碼可連）；短答（is_short）不算佐證，也不輸出。
       - 市府回應的引文必須和議員訴求的有效引文出自同一份速記錄；有任何一條來自其他場次，整段回應移除
@@ -222,8 +252,9 @@ def filter_citations(summary, seg_text=None, spans=None):
         議員訴求沒有引文時以議題的引文代替。有給 seg_text、spans 時，回應裡有句子最像其他場次的發言（response_elsewhere）
         也整段移除。
       - 議員訴求的引文跨多份速記錄可以接受，只記進報告。
-      - 沒有有效引文的議題整個移除。議題全被移除時，新摘要的 issues 是空的，由呼叫端決定不輸出。"""
-    issues, removed, unlocated, short, responses, multi, empty = [], [], [], [], [], [], 0
+      - 沒有有效引文的議題整個移除。有給 idf（bigram_idf）時，有效引文與訴求的相關性（relevance）低於 RELEVANCE_MIN 的議題
+        也整個移除，記進 irrelevant_issues。議題全被移除時，新摘要的 issues 是空的，由呼叫端決定不輸出。"""
+    issues, removed, unlocated, short, responses, multi, irrelevant, empty = [], [], [], [], [], [], [], 0
     for issue in summary["issues"]:
         cites = [c for c in issue["citations"] if c["cited_text"].strip()]
         empty += len(issue["citations"]) - len(cites)
@@ -244,13 +275,18 @@ def filter_citations(summary, seg_text=None, spans=None):
         if not valid:  # 議題整個移除時，回應與跨場次只記在 removed_issues
             removed.append(issue["topic"])
             continue
+        score = relevance(issue, valid, idf) if idf else None
+        if score is not None and score < RELEVANCE_MIN:
+            irrelevant.append({"topic": issue["topic"], "score": round(score, 1)})
+            continue
         if dropped:
             responses.append(f"議題「{issue['topic']}」：{issue['response'][:60]}（{why}）")
         if len(claim_docs) > 1:
             multi.append(issue["topic"])
         issues.append({**issue, "response": response, "response_removed": dropped, "citations": valid})
     report = {"empty_citations": empty, "unlocated_citations": unlocated, "short_citations": short,
-              "removed_responses": responses, "multi_session_claims": multi, "removed_issues": removed}
+              "removed_responses": responses, "multi_session_claims": multi, "removed_issues": removed,
+              "irrelevant_issues": irrelevant}
     return {**summary, "issues": issues}, report
 
 
@@ -318,10 +354,11 @@ def build_summary(nlm, seg_text, seg_index):
     }
 
 
-def checked(summary, seg_text, seg_index, session_labels, identity):
+def checked(summary, seg_text, seg_index, session_labels, identity, idf=None):
     """過濾引文＋自動檢查 → 附上 check（problems 含被移除的議題與無法定位的引文）的新摘要。"""
-    s, f = filter_citations(summary, seg_text, seg_index["spans"])
+    s, f = filter_citations(summary, seg_text, seg_index["spans"], idf)
     problems = [f"議題「{t}」沒有可定位的引文，已移除" for t in f["removed_issues"]]
+    problems += [f"議題「{x['topic']}」的引文未佐證議員訴求（相關性 {x['score']}），已移除" for x in f["irrelevant_issues"]]
     problems += [f"引文無法定位，已移除（{u}）" for u in f["unlocated_citations"]]
     problems += [f"市府回應出自其他場次，整段回應已移除（{r}）" for r in f["removed_responses"]]
     problems += check(s, seg_text, seg_index, session_labels, identity)
@@ -369,14 +406,16 @@ def review_md(summaries):
 def run(session, out_dir, names):
     cache = CACHE / f"14-{session}"
     identity = load_identity()
-    session_labels = {t["speaker"] for _, p in load_docs(session) for t in p["turns"]}
+    docs = load_docs(session)
+    session_labels = {t["speaker"] for _, p in docs for t in p["turns"]}
+    idf = bigram_idf(t["text"] for _, p in docs for t in p["turns"])
     summaries = []
     for name in names:
         pid = identity[name]
         seg_text = (cache / f"seg_{pid}.txt").read_text()
         seg_index = json.loads((cache / f"seg_{pid}.json").read_text())
         nlm = json.loads((cache / f"nlm_{pid}.json").read_text())
-        s = checked(build_summary(nlm, seg_text, seg_index), seg_text, seg_index, session_labels, identity)
+        s = checked(build_summary(nlm, seg_text, seg_index), seg_text, seg_index, session_labels, identity, idf)
         summaries.append(s)
         print(name, "議題", len(s["issues"]), "問題", len(s["check"]["problems"]))
     out_dir = pathlib.Path(out_dir)

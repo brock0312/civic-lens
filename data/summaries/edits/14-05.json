@@ -1,0 +1,84 @@
+[
+ {
+  "person_id": "p32da79905a",
+  "name": "王孝維",
+  "issue_topic": "警政打擊犯罪維安與交通檢舉開單權衡",
+  "action": "drop_response_sentence",
+  "text": "，將持續兼顧打擊犯罪與秩序維護",
+  "reason": "原文第395–396頁局長沒有此表態，屬捏造",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ },
+ {
+  "person_id": "pd697b2a2b5",
+  "name": "鍾小平",
+  "issue_topic": "低收入戶資格審查與社工評估機制",
+  "action": "drop_issue",
+  "reason": "唯一引文無關，且場次錯誤",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ },
+ {
+  "person_id": "pc524c2d6ef",
+  "name": "李柏毅",
+  "issue_topic": "臺北市人口流失與人口對策委員會運作監督",
+  "action": "drop_issue",
+  "reason": "引文未佐證議員訴求",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ },
+ {
+  "person_id": "p772a0a5bf9",
+  "name": "林世宗",
+  "issue_topic": "關渡碼頭清淤與貨櫃市集租金檢討",
+  "action": "drop_issue",
+  "reason": "引文未佐證議員訴求",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ },
+ {
+  "person_id": "p32da79905a",
+  "name": "王孝維",
+  "issue_topic": "台北市政府投資富邦金控效益與監督",
+  "action": "drop_issue",
+  "reason": "引文未佐證議員訴求",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ },
+ {
+  "person_id": "p9ff03a516c",
+  "name": "林珍羽",
+  "issue_topic": "單身聯誼活動效益與AI科技配對機制導入",
+  "action": "drop_issue",
+  "reason": "引文未佐證議員訴求",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ },
+ {
+  "person_id": "p684c26bf24",
+  "name": "李傅中武",
+  "issue_topic": "原住民族文化推廣與政策支持",
+  "action": "drop_issue",
+  "reason": "引文未佐證議員訴求",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ },
+ {
+  "person_id": "p69fa47e9b2",
+  "name": "李建昌",
+  "issue_topic": "企業總部設點爭取與世壯運籌辦",
+  "action": "drop_issue",
+  "reason": "引文未佐證議員訴求",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ },
+ {
+  "person_id": "p3d9ce55419",
+  "name": "鍾佩玲",
+  "issue_topic": "大稻埕戲苑節目宣傳與購票系統改善",
+  "action": "drop_issue",
+  "reason": "引文未佐證議員訴求",
+  "reviewer": "Claude (orchestrator) + verifier",
+  "date": "2026-10-02"
+ }
+]

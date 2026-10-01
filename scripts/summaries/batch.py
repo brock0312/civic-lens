@@ -13,7 +13,8 @@
   - 一位議員失敗不中斷整批，記進報告；NotebookLM 登入失效（SystemExit）才整批停下。
   - 整個會期速記錄裡沒有本人發言的議員輸出 status 'no_speech'，不送 NotebookLM。
   - 過濾後沒有議題的摘要不輸出，列進報告。
-  - 輸出檔的 review 一律是 pending；人工審閱通過改成 approved 後，ETL（etl/sources/tcc_summaries.py）才會收。
+  - 人工修訂（data/summaries/edits/14-0N.json，apply_edits）在自動檢查前套用；有任何一筆對不上議題或句子，整個會期失敗、不輸出。
+  - 輸出檔的 review 一律是 pending（重建會蓋掉先前的 approved，要重新審閱）；人工審閱通過改成 approved 後，ETL（etl/sources/tcc_summaries.py）才會收。
 輸出：
   data/summaries/14-0N.json                    要 commit 的資料：摘要、引文（source_url、頁碼、cited_text）、出處清單
   data/cache/transcripts/14-0N/batch_report.json 檢查報告（失敗、被移除的議題、空引文數、自動檢查問題）
@@ -27,13 +28,47 @@ import traceback
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import fetch_transcripts  # noqa: E402
 import summarize  # noqa: E402
-from check_report import DISCLAIMER, build_summary, checked, review_md, sources_of  # noqa: E402
+from check_report import DISCLAIMER, bigram_idf, build_summary, checked, review_md, sources_of  # noqa: E402
 from segment import (  # noqa: E402
     CACHE, ROOT, build, known_names, load_docs, load_identity, resolve_group, session_label, video_groups,
 )
 
 SESSIONS = ["01", "02", "03", "04", "05"]  # 第 6–8 次公報速記錄還沒刊完
 OUT = ROOT / "data" / "summaries"
+EDITS = OUT / "edits"
+
+
+class EditMismatch(Exception):
+    """人工修訂對不上任何議題或句子：整個會期停下，以免修訂默默失效。"""
+
+
+def apply_edits(summary, edits):
+    """人工修訂 → 新摘要（不改輸入）。edits 每筆 {person_id, name, issue_topic, action, text?, reason, reviewer, date}：
+      - drop_issue：移除議題名稱等於 issue_topic 的議題。
+      - drop_response_sentence：從該議題的市府回應刪掉 text（逐字比對），刪完沒有文字時回應設為 None。
+    對不上（姓名、議題、句子）或 action 不認得時 raise EditMismatch。"""
+    issues = summary["issues"]
+    for e in edits:
+        if e["name"] != summary["name"]:
+            raise EditMismatch(f"修訂的姓名 {e['name']} 和 {e['person_id']} 的摘要（{summary['name']}）不符")
+        hit = [i for i in issues if i["topic"] == e["issue_topic"]]
+        if not hit:
+            raise EditMismatch(f"{e['name']} 沒有議題「{e['issue_topic']}」")
+        if e["action"] == "drop_issue":
+            issues = [i for i in issues if i["topic"] != e["issue_topic"]]
+        elif e["action"] == "drop_response_sentence":
+            if not e.get("text") or e["text"] not in (hit[0]["response"] or ""):
+                raise EditMismatch(f"{e['name']}「{e['issue_topic']}」的市府回應裡沒有「{e.get('text')}」")
+            issues = [{**i, "response": i["response"].replace(e["text"], "", 1).strip() or None}
+                      if i["topic"] == e["issue_topic"] else i for i in issues]
+        else:
+            raise EditMismatch(f"不認得的修訂 action：{e['action']}")
+    return {**summary, "issues": issues}
+
+
+def load_edits(tag):
+    path = EDITS / f"{tag}.json"
+    return json.loads(path.read_text()) if path.exists() else []
 
 
 def public_summary(s):
@@ -79,7 +114,10 @@ def process(session, name, ctx):
         seg_txt.write_text(text)
         seg_json.write_text(json.dumps(index, ensure_ascii=False, indent=1))
     index = json.loads(seg_json.read_text())
+    edits = [e for e in ctx["edits"] if e["person_id"] == pid]
     if not index["spans"]:
+        if edits:
+            raise EditMismatch(f"{name} 沒有發言（no_speech），修訂無處套用")
         return "no_speech", no_speech(index)
     if ctx["cached"]:
         if not (cache / f"nlm_{pid}.json").exists():
@@ -88,7 +126,8 @@ def process(session, name, ctx):
         ctx["state"] = summarize.summarize_one(session, name, pid, ctx["state"])
     nlm = json.loads((cache / f"nlm_{pid}.json").read_text())
     seg_text = seg_txt.read_text()
-    s = checked(build_summary(nlm, seg_text, index), seg_text, index, ctx["labels"], ctx["identity"])
+    s = checked(apply_edits(build_summary(nlm, seg_text, index), edits), seg_text, index, ctx["labels"], ctx["identity"],
+                ctx["idf"])
     return ("ok" if s["issues"] else "dropped"), s
 
 
@@ -101,13 +140,20 @@ def run_session(session, only=None, cached=False):
     scheduled = {n for _, p in docs for n in resolve_group(p, vgroups, known)[0]}
     names = sorted(scheduled & set(identity)) if only is None else only
     dates = [g["date"] for g in vgroups] or [t["date"] for _, p in docs for t in p["turns"] if t["date"]]
+    edits = load_edits(tag)
+    stray = {e["person_id"] for e in edits} - {identity[n] for n in names}
+    if only is None and stray:
+        raise EditMismatch(f"修訂的議員不在本會期名單：{sorted(stray)}")
     ctx = {"identity": identity, "docs": docs, "vgroups": vgroups, "state": summarize.load_state(session), "cached": cached,
-           "labels": {t["speaker"] for _, p in docs for t in p["turns"]}}
+           "labels": {t["speaker"] for _, p in docs for t in p["turns"]}, "edits": edits,
+           "idf": bigram_idf(t["text"] for _, p in docs for t in p["turns"])}
     records, internal, report = [], [], {"session": tag, "ok": [], "no_speech": [], "dropped": [], "failed": [],
                                          "filter": {}, "problems": {}}
     for k, name in enumerate(names, 1):
         try:
             status, rec = process(session, name, ctx)
+        except EditMismatch:
+            raise
         except Exception as e:  # noqa: BLE001  一位失敗不影響下一位；SystemExit（登入失效）照樣中止
             report["failed"].append({"name": name, "error": f"{type(e).__name__}: {e}"})
             print(f"[{tag} {k}/{len(names)}] {name}：失敗 {type(e).__name__}: {e}", flush=True)
@@ -127,7 +173,7 @@ def run_session(session, only=None, cached=False):
         print(f"[{tag} {k}/{len(names)}] {name}：{'ok' if status == 'ok' else '不輸出（過濾後沒有議題）'} "
               f"{len(rec['issues'])} 議題，空引文 {f['empty_citations']}、無法定位 {len(f['unlocated_citations'])}、"
               f"短答 {len(f['short_citations'])}、移除回應 {len(f['removed_responses'])}、"
-              f"移除議題 {len(f['removed_issues'])}、檢查問題 {len(rec['check']['problems'])}", flush=True)
+              f"移除議題 {len(f['removed_issues'])}、引文無關 {len(f['irrelevant_issues'])}、檢查問題 {len(rec['check']['problems'])}", flush=True)
     OUT.mkdir(parents=True, exist_ok=True)
     stamps = [r["generated_at"] for r in records if r["generated_at"]]
     (OUT / f"{tag}.json").write_text(json.dumps({
@@ -138,7 +184,8 @@ def run_session(session, only=None, cached=False):
     }, ensure_ascii=False, indent=1) + "\n")
     cache = CACHE / tag
     report["totals"] = {k: sum(len(f[k]) for f in report["filter"].values()) for k in (
-        "unlocated_citations", "short_citations", "removed_responses", "multi_session_claims", "removed_issues")}
+        "unlocated_citations", "short_citations", "removed_responses", "multi_session_claims", "removed_issues",
+        "irrelevant_issues")}
     (cache / "batch_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
     if internal:
         (cache / "review.md").write_text(review_md(internal))
