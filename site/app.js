@@ -1,33 +1,14 @@
 // civic-lens 靜態前端：hash routing，資料全部從相對路徑 data/ 讀取。
+import {
+  DEEP_COUNTIES, COUNCIL_SITES, KIND_LABEL, isoOf, townWord, countyOrder, townsOf, needsVillage,
+  councilDistrictFor, officeLabel, districtTitle, candidateOrder, districtSub,
+} from './geo.js';
 
-export const INDIGENOUS_DISTRICT = { plains: 'tpe-council-07', mountain: 'tpe-council-08' };
-export const MAYOR_DISTRICT = 'tpe-mayor';
-// ponytail: MVP 只開放議員與市長選區；立委有人物資料後再加 ly-tpe-*
-const SHOWN_DISTRICTS = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `tpe-council-0${n}`).concat(MAYOR_DISTRICT);
-
-const OFFICE_LABEL = { tpe_councilor: '臺北市議員', tpe_mayor: '臺北市長', legislator: '立法委員' };
-const INDIGENOUS_SUB = { [INDIGENOUS_DISTRICT.plains]: '具平地原住民身分的全市選民', [INDIGENOUS_DISTRICT.mountain]: '具山地原住民身分的全市選民' };
 const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['tcc.gov.tw', '臺北市議會']];
 export const INTERPELLATION_PAGE = 20;
 const NO_RECORD ='本站目前沒有此人的任內問政紀錄（收錄範圍：第14屆臺北市議員書面質詢與口頭質詢影片）';
-
-// ponytail: villages.json 已是全國資料，但首頁目前只做臺北；全國地圖上線時改為依縣市篩選
-// 只留有臺北議員選區對照的里（基隆也有中正、信義、中山等同名行政區）
-export function taipeiVillages(villages) {
-  return villages.filter((v) => v.districts.tpe_councilor);
-}
-
-// 行政區（依 villcode 順序，不重複）
-export function townsOf(villages) {
-  return [...new Set(villages.map((v) => v.town))];
-}
-
-// 行政區＋原住民身分 → 議員選區 id；無法判定時回傳 null
-export function councilDistrictFor(villages, town, indigenous) {
-  if (INDIGENOUS_DISTRICT[indigenous]) return INDIGENOUS_DISTRICT[indigenous];
-  const ids = new Set(villages.filter((v) => v.town === town).map((v) => v.districts.tpe_councilor));
-  return ids.size === 1 ? [...ids][0] : null;
-}
+// 非深度縣市：問政紀錄還沒建置，措辭不能讓人以為此人沒有問政
+export const noRecordNote = (county) => `${county.name}議會的問政紀錄仍在建置中，本站目前尚未收錄。`;
 
 // 政黨字串 → 黨徽相對路徑；只有「無」「無黨籍」用本站的「無」圖樣，查不到就回傳 null（只顯示文字）
 export function emblemFor(party, parties) {
@@ -181,25 +162,30 @@ async function loadParties() {
 const idOk = (id) => /^[\w-]+$/.test(id);
 
 async function boot() {
-  const [villages, parties, ...districts] = await Promise.all([
-    load('data/villages.json'),
-    loadParties(),
-    ...SHOWN_DISTRICTS.map((id) => load(`data/districts/${id}.json`)),
-  ]);
-  track(...villages.sources.map((s) => s.fetched_at));
-  for (const d of districts) track(d.fetched_at, ...d.people.map((p) => p.fetched_at));
-  return { villages: taipeiVillages(villages.villages), parties, districts: Object.fromEntries(districts.map((d) => [d.district_id, d])) };
+  const [data, parties] = await Promise.all([load('data/counties.json'), loadParties()]);
+  track(...data.counties.map((c) => c.fetched_at));
+  return { counties: new Map(data.counties.map((c) => [c.iso, c])), parties };
+}
+
+async function loadVillages(iso) {
+  const v = await load(`data/villages/${iso}.json`);
+  track(...v.sources.map((s) => s.fetched_at));
+  return v.villages;
+}
+
+// 選區名稱與名額一律從 counties.json 取；只開放議員與縣市長選區（立委有人物資料後再開）
+function districtMeta(ctx, id) {
+  const county = ctx.counties.get(isoOf(id));
+  const d = county?.districts.find((x) => x.district_id === id);
+  return d && /_(councilor|mayor)$/.test(d.office) ? { d, county } : null;
 }
 
 // ---------- 共用片段 ----------
 
-const shortName = (d) => d.name.replace(/^臺北市/, '');
-const districtTitle = (d) => (d.office === 'tpe_mayor' ? '臺北市長' : `${OFFICE_LABEL[d.office] || d.office} ${shortName(d)}`);
-
-function districtSub(d, villages) {
-  if (d.office === 'tpe_mayor') return `全市 ${townsOf(villages).length} 個行政區`;
-  if (INDIGENOUS_SUB[d.district_id]) return INDIGENOUS_SUB[d.district_id];
-  return townsOf(villages.filter((v) => v.districts.tpe_councilor === d.district_id)).join('、');
+function crumbs(...items) {
+  const li = items.map(([href, text], i) => (i === items.length - 1
+    ? `<li aria-current="page">${esc(text)}</li>` : `<li><a href="${esc(href)}">${esc(text)}</a></li>`)).join('');
+  return `<nav class="crumbs" aria-label="頁面位置"><ol>${li}</ol></nav>`;
 }
 
 function party(name, parties) {
@@ -213,22 +199,71 @@ const stat = (label, n, unit) => `<div><dt>${label}</dt><dd><span class="num">${
 
 // ---------- 頁面 ----------
 
-function resultRow(d, villages) {
+function resultRow(d, county, villages) {
   return `<li><a href="#/d/${esc(d.district_id)}">
-    <span class="result-title">${esc(districtTitle(d))}</span>
-    <span class="result-sub">${esc(districtSub(d, villages))}</span>
+    <span class="result-title">${esc(districtTitle(d, county))}</span>
+    <span class="result-sub">${esc(districtSub(d, villages, county))}</span>
     <span class="result-seats"><span class="num">${esc(d.seats)}</span> 席</span></a></li>`;
 }
 
-function renderHome(main, ctx) {
-  const towns = townsOf(ctx.villages);
+// 首頁：台灣地圖（滑鼠用，對輔助科技隱藏）＋縣市文字清單（主要導覽）
+async function renderHome(main, ctx) {
+  const counties = countyOrder([...ctx.counties.values()]);
   main.innerHTML = `
     <h1 tabindex="-1">查詢你的選區</h1>
-    <p class="lede">選擇戶籍所在的行政區，查看 2026 年臺北市議員與市長的候選人。</p>
+    <p class="lede">選擇戶籍所在的縣市，查看 2026 年縣市長與縣市議員的候選人。</p>
+    <div class="home">
+      <div class="map" aria-hidden="true"></div>
+      <nav aria-labelledby="county-h">
+        <h2 id="county-h">縣市</h2>
+        <ul class="counties">${counties.map((c) => `<li><a href="#/c/${esc(c.iso)}" data-iso="${esc(c.iso)}">${esc(c.name)}</a>${DEEP_COUNTIES.has(c.iso) ? '<span class="tag">含問政紀錄</span>' : ''}</li>`).join('')}</ul>
+        <p class="small muted">標示「含問政紀錄」的縣市另收錄議員的問政紀錄；其他縣市的深度資料建置中，目前提供 2026 候選人名單與選區。</p>
+      </nav>
+    </div>`;
+
+  let svg;
+  try {
+    svg = await (await fetch('assets/taiwan-counties.svg')).text();
+  } catch {
+    return; // 地圖只是輔助，載不到就只留清單
+  }
+  const map = main.querySelector('.map');
+  if (!map) return; // 已換頁
+  map.innerHTML = svg.replace(/^<\?xml[^>]*>\s*/, '');
+  for (const iso of DEEP_COUNTIES) map.querySelector(`#county-${iso}`)?.classList.add('deep');
+  map.addEventListener('click', (e) => {
+    const iso = e.target.closest('path[id^="county-"]')?.id.slice(7);
+    if (iso && ctx.counties.has(iso)) location.hash = `#/c/${iso}`;
+  });
+  // 清單的 hover／focus 同步在地圖上加深
+  const mark = (e, on) => map.querySelector(`#county-${e.target.dataset?.iso}`)?.classList.toggle('on', on);
+  const list = main.querySelector('.counties');
+  for (const [type, on] of [['mouseover', true], ['mouseout', false], ['focusin', true], ['focusout', false]]) {
+    list.addEventListener(type, (e) => mark(e, on));
+  }
+}
+
+// 縣市頁：鄉鎮市區 →（跨選區時）村里 → 原住民身分 → 議員選區與縣市長
+async function renderCounty(main, ctx, iso) {
+  const county = ctx.counties.get(iso);
+  if (!county) return renderNotFound(main, '縣市');
+  const villages = await loadVillages(iso);
+  const word = townWord(county);
+  const site = DEEP_COUNTIES.has(iso) ? '' : COUNCIL_SITES[iso];
+  main.innerHTML = `
+    ${crumbs(['#/', '全國'], ['', county.name])}
+    <h1 tabindex="-1">${esc(county.name)}</h1>
+    <p class="lede">選擇戶籍所在的${word}，查看 2026 年${esc(officeLabel(`${iso}_councilor`, county))}與${esc(officeLabel(`${iso}_mayor`, county))}的候選人。</p>
+    ${DEEP_COUNTIES.has(iso) ? '' : `<p class="status" role="note">深度資料建置中：目前只提供 2026 候選人名單與選區，${esc(county.name)}議會的問政紀錄仍在建置。${site ? `議會資訊可先查閱${ext(site, `${esc(county.name)}議會官網`)}。` : ''}</p>`}
     <form class="lookup" onsubmit="return false">
       <div class="field">
-        <label for="town">行政區</label>
-        <select id="town"><option value="">請選擇</option>${towns.map((t) => `<option>${esc(t)}</option>`).join('')}</select>
+        <label for="town">${word}</label>
+        <select id="town"><option value="">請選擇</option>${townsOf(villages).map((t) => `<option>${esc(t)}</option>`).join('')}</select>
+      </div>
+      <div class="field" id="vill-field" hidden>
+        <label for="vill">村里</label>
+        <select id="vill"></select>
+        <p class="small muted">這個${word}分屬不同議員選區，請選擇村里。</p>
       </div>
       <fieldset class="field">
         <legend>是否具原住民身分</legend>
@@ -241,16 +276,29 @@ function renderHome(main, ctx) {
     <section aria-labelledby="result-h" id="result" aria-live="polite"></section>`;
 
   const form = main.querySelector('form');
-  const update = () => {
+  const villField = main.querySelector('#vill-field');
+  const meta = (id) => county.districts.find((d) => d.district_id === id);
+  const update = (e) => {
     const town = form.town.value;
+    if (e?.target === form.town) {
+      const need = town && needsVillage(villages, iso, town);
+      villField.hidden = !need;
+      form.vill.innerHTML = need ? `<option value="">請選擇</option>${villages.filter((v) => v.town === town)
+        .map((v) => `<option value="${esc(v.villcode)}">${esc(v.village)}</option>`).join('')}` : '';
+    }
     const ind = form.ind.value;
-    const id = councilDistrictFor(ctx.villages, town, ind);
     const out = main.querySelector('#result');
-    if (!id) { out.innerHTML = ''; return; }
-    const where = ind === 'none' ? esc(town) : ind === 'plains' ? '平地原住民選民' : '山地原住民選民';
+    const villcode = villField.hidden ? '' : form.vill.value;
+    const hit = !villField.hidden && !villcode && ind === 'none' ? null : councilDistrictFor(villages, iso, { town, villcode, indigenous: ind });
+    if (!hit) { out.innerHTML = ''; return; }
+    const vill = villcode ? villages.find((v) => v.villcode === villcode)?.village || '' : '';
+    const where = ind === 'none' || hit.fallback ? esc(town + vill) : `${esc(town)}${KIND_LABEL[ind]}選民`;
+    const note = hit.fallback
+      ? `本縣市未設${KIND_LABEL[ind]}選舉區，依戶籍所在選區投票。`
+      : ind !== 'none' ? `具原住民身分的選民，議員投原住民選舉區，不投所在${word}的區域選舉區。` : '';
     out.innerHTML = `<h2 id="result-h">${where}的選區</h2>
-      <ul class="results">${resultRow(ctx.districts[id], ctx.villages)}${resultRow(ctx.districts[MAYOR_DISTRICT], ctx.villages)}</ul>
-      ${ind !== 'none' ? '<p class="small muted">具原住民身分的選民，市議員投原住民選舉區，不投所在行政區的選舉區。</p>' : ''}`;
+      <ul class="results">${resultRow(meta(hit.id), county, villages)}${resultRow(meta(`${iso}-mayor`), county, villages)}</ul>
+      ${note ? `<p class="small muted">${note}</p>` : ''}`;
   };
   form.addEventListener('change', update);
   update();
@@ -262,21 +310,32 @@ function rosterRow(p, fn, parties, incumbent) {
     <span class="meta">${incumbent ? '<span class="tag">現任</span>' : ''}${fn}</span></li>`;
 }
 
-function renderDistrict(main, ctx, id) {
-  const d = ctx.districts[id];
-  if (!d) return renderNotFound(main, '選區');
+async function renderDistrict(main, ctx, id) {
+  const m = districtMeta(ctx, id);
+  if (!m) return renderNotFound(main, '選區');
+  const { county } = m;
+  let d, villages;
+  try {
+    [d, villages] = await Promise.all([load(`data/districts/${id}.json`), loadVillages(county.iso)]);
+  } catch (e) {
+    if (e instanceof NotFound) return renderNotFound(main, '選區');
+    throw e;
+  }
+  track(d.fetched_at, ...d.people.map((p) => p.fetched_at));
   const notes = footnotes();
-  const cands = d.people.filter((p) => p.kind === 'candidacy').sort((a, b) => a.data.reg_no - b.data.reg_no);
+  const cands = candidateOrder(d.people.filter((p) => p.kind === 'candidacy'));
   const office = d.people.filter((p) => p.kind === 'office');
   const officeIds = new Set(office.map((p) => p.person_id));
   const registered = cands.some((p) => p.data.status === 'registered');
   const seatsFn = notes.ref(d.source_url, d.fetched_at, '應選名額公告');
   const candRows = cands.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '候選人登記名冊', p.data.publisher), ctx.parties, officeIds.has(p.person_id))).join('');
   const officeRows = office.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, officeSourceLabel(p.data.office)), ctx.parties, false)).join('');
+  const title = districtTitle(d, county);
 
   main.innerHTML = `
-    <h1 tabindex="-1">${esc(districtTitle(d))}</h1>
-    <p class="lede">${esc(districtSub(d, ctx.villages))}</p>
+    ${crumbs(['#/', '全國'], [`#/c/${county.iso}`, county.name], ['', title])}
+    <h1 tabindex="-1">${esc(title)}</h1>
+    <p class="lede">${esc(districtSub(d, villages, county))}</p>
     <dl class="stats">
       ${stat('應選', d.seats, ` 席${seatsFn}`)}
       ${stat('候選人', cands.length, ' 人')}
@@ -284,13 +343,15 @@ function renderDistrict(main, ctx, id) {
     </dl>
     <section aria-labelledby="cand-h">
       <h2 id="cand-h">2026 候選人</h2>
-      ${registered ? '<p class="status" role="note">名單依臺北市選委會 115-09-08 登記冊，尚未經審定；號次將於官方名單公告（市長 11/12、議員 11/17）後補上。</p>' : ''}
-      ${cands.length ? `<ol class="roster">${candRows}</ol><p class="small muted">依官方登記順序排列，非選票號次。</p>` : '<p class="muted">尚無候選人資料。</p>'}
+      ${registered ? `<p class="status" role="note">${REGISTERED_NOTE}</p>` : ''}
+      ${cands.length ? `<ol class="roster">${candRows}</ol><p class="small muted">依官方登記名冊順序排列，非選票號次。</p>` : '<p class="muted">尚無候選人資料。</p>'}
     </section>
     ${office.length ? `<section aria-labelledby="office-h"><h2 id="office-h">${incumbentHeading(d)}</h2>
       <ul class="roster">${officeRows}</ul></section>` : ''}
     ${notes.render()}`;
 }
+
+export const REGISTERED_NOTE = '名單依選舉委員會公告的候選人登記冊，尚未經審定；號次將於官方名單公告（縣市長 11/12、議員 11/17）後補上。';
 
 function videoRows(list) {
   return list.map((f) => {
@@ -505,19 +566,23 @@ async function renderPerson(main, ctx, id) {
   };
 
   const districtLink = (districtId) => {
-    const d = ctx.districts[districtId];
-    return d ? `<a href="#/d/${esc(d.district_id)}">${esc(districtTitle(d))}</a>` : esc(districtId);
+    const m = districtMeta(ctx, districtId);
+    return m ? `<a href="#/d/${esc(districtId)}">${esc(districtTitle(m.d, m.county))}</a>` : esc(districtId);
   };
+  const label = (office) => officeLabel(office, ctx.counties.get(String(office).split('_')[0]));
   const lead = candidacy[0] || offices[0];
+  const leadCounty = lead && ctx.counties.get(isoOf(lead.data.district_id));
+  const leadMeta = lead && districtMeta(ctx, lead.data.district_id);
+  const noRecord = !leadCounty || DEEP_COUNTIES.has(leadCounty.iso) ? NO_RECORD : noRecordNote(leadCounty);
 
   const cand = candidacy.map((f) => `<dl class="facts">
-      <dt>職位</dt><dd>${esc(OFFICE_LABEL[f.data.office] || f.data.office)}${notes.ref(f.source_url, f.fetched_at, '候選人登記名冊', f.data.publisher)}</dd>
+      <dt>職位</dt><dd>${esc(label(f.data.office))}${notes.ref(f.source_url, f.fetched_at, '候選人登記名冊', f.data.publisher)}</dd>
       <dt>選區</dt><dd>${districtLink(f.data.district_id)}</dd>
       <dt>政黨</dt><dd>${party(f.data.party, ctx.parties)}</dd>
       <dt>登記日期</dt><dd class="num">${esc(f.date || '')}</dd>
     </dl>`).join('');
 
-  const office = offices.map((f) => `<li><span class="name">${esc(f.data.title || OFFICE_LABEL[f.data.office] || '')}</span>
+  const office = offices.map((f) => `<li><span class="name">${esc(f.data.title || label(f.data.office))}</span>
       <span>${districtLink(f.data.district_id)}</span>
       <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office))}</span></li>`).join('');
 
@@ -529,6 +594,8 @@ async function renderPerson(main, ctx, id) {
       ${interSection('video', '口頭質詢（影片）', kinds.video)}</section>` : '';
 
   main.innerHTML = `
+    ${crumbs(['#/', '全國'], ...(leadCounty ? [[`#/c/${leadCounty.iso}`, leadCounty.name]] : []),
+      ...(leadMeta ? [[`#/d/${leadMeta.d.district_id}`, districtTitle(leadMeta.d, leadMeta.county)]] : []), ['', p.name])}
     <h1 tabindex="-1">${esc(p.name)}</h1>
     ${lead ? `<p class="byline">${party(lead.data.party, ctx.parties)}<span>${districtLink(lead.data.district_id)}</span></p>` : ''}
     ${summaryCard(facts, { offices, inters, written, videos, jump })}
@@ -538,7 +605,7 @@ async function renderPerson(main, ctx, id) {
     ${bulletin}
     ${summarySection(facts.summary || [], videos)}
     ${inter}
-    ${offices.length || inters.length ? '' : `<p class="empty">${NO_RECORD}</p>`}
+    ${offices.length || inters.length ? '' : `<p class="empty">${esc(noRecord)}</p>`}
     ${notes.render()}`;
 
   // hash 已用於路由，頁內錨點改成捲動加聚焦
@@ -600,7 +667,7 @@ function renderError(main, err) {
   console.warn(err);
   main.innerHTML = `<h1 tabindex="-1">資料載入失敗</h1>
     <p>目前無法讀取資料，請稍後重新整理頁面。若持續發生，可先查閱
-    <a href="https://election.gov.taipei/" target="_blank" rel="noopener">臺北市選舉委員會</a>的公告。</p>`;
+    <a href="https://www.cec.gov.tw/" target="_blank" rel="noopener">中央選舉委員會</a>的公告。</p>`;
 }
 
 // ---------- 路由 ----------
@@ -609,13 +676,14 @@ let ctxPromise;
 
 async function route(moveFocus) {
   const main = document.getElementById('main');
-  const [, type, id] = location.hash.match(/^#\/(d|p)\/(.+)$/) || [];
+  const [, type, id] = location.hash.match(/^#\/(c|d|p)\/(.+)$/) || [];
   try {
     const ctx = await (ctxPromise ||= boot());
     if (location.hash === '#/about/corrections') renderCorrections(main);
-    else if (!type) renderHome(main, ctx);
-    else if (!idOk(id)) renderNotFound(main, type === 'd' ? '選區' : '人物');
-    else if (type === 'd') renderDistrict(main, ctx, id);
+    else if (!type) renderHome(main, ctx); // 不等地圖載完，標題先可聚焦
+    else if (!idOk(id)) renderNotFound(main, { c: '縣市', d: '選區', p: '人物' }[type]);
+    else if (type === 'c') await renderCounty(main, ctx, id);
+    else if (type === 'd') await renderDistrict(main, ctx, id);
     else await renderPerson(main, ctx, id);
   } catch (err) {
     ctxPromise = null;

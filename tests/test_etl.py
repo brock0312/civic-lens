@@ -154,7 +154,7 @@ class TestEtl(unittest.TestCase):
             with self.assertRaises(ValueError):
                 export(conn, Path(tmp) / "out")
 
-    def test_export_writes_villages_json(self):
+    def test_export_writes_one_villages_file_per_county(self):
         with tempfile.TemporaryDirectory() as tmp:
             conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
             _add_district(conn, "tpe-council-01")
@@ -162,19 +162,29 @@ class TestEtl(unittest.TestCase):
                 "district_id": "ly-tpe-01", "office": "legislator", "name": "臺北市第01選區",
                 "seats": 1, "source_url": "http://ly", "fetched_at": "2024-01-01T00:00:00Z",
             }, ("district_id",))
+            _add_district(conn, "kee-council-01")
             for villcode, office, district_id, url in [
                 ("63000120002", "tpe_councilor", "tpe-council-01", "http://c"),
                 ("63000110027", "tpe_councilor", "tpe-council-01", "http://c"),
                 ("63000110027", "legislator", "ly-tpe-01", "http://ly"),
+                ("10017010001", "kee_councilor", "kee-council-01", "http://k"),
             ]:
                 upsert(conn, "village_district", {
                     "villcode": villcode, "office": office, "town": "士林區", "village": "德行里",
                     "district_id": district_id, "source_url": url, "fetched_at": "2024-01-01T00:00:00Z",
                 }, ("villcode", "office"))
 
+            (Path(tmp) / "out").mkdir()
+            (Path(tmp) / "out" / "villages.json").write_text("{}")  # 舊版全國單檔要被移除
+
             export(conn, Path(tmp) / "out")
 
-            out = json.loads((Path(tmp) / "out" / "villages.json").read_text(encoding="utf-8"))
+            self.assertFalse((Path(tmp) / "out" / "villages.json").exists())
+            self.assertEqual(sorted(p.name for p in (Path(tmp) / "out" / "villages").iterdir()), ["kee.json", "tpe.json"])
+            kee = json.loads((Path(tmp) / "out" / "villages" / "kee.json").read_text(encoding="utf-8"))
+            self.assertEqual([v["villcode"] for v in kee["villages"]], ["10017010001"])
+            self.assertEqual([s["source_url"] for s in kee["sources"]], ["http://k"])
+            out = json.loads((Path(tmp) / "out" / "villages" / "tpe.json").read_text(encoding="utf-8"))
             self.assertEqual([v["villcode"] for v in out["villages"]], ["63000110027", "63000120002"])
             self.assertEqual(
                 out["villages"][0]["districts"],

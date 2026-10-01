@@ -82,32 +82,38 @@ def export(conn, out_dir):
         people_sorted = sorted(district_out["people"], key=lambda e: (e["person_id"], e["kind"]))
         _write_json(districts_dir / f"{district_id}.json", {**district_out, "people": people_sorted})
 
-    villages = {}
-    sources = set()
+    # 村里依縣市拆檔：data/villages/<iso>.json，前端只載所選縣市
+    villages_dir = out_dir / "villages"
+    shutil.rmtree(villages_dir, ignore_errors=True)
+    villages_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "villages.json").unlink(missing_ok=True)  # 舊版的全國單檔
+    by_iso = {}
     for row in conn.execute(
         "SELECT villcode, office, town, village, district_id, source_url, fetched_at FROM village_district"
     ):
-        village = villages.setdefault(
+        county = by_iso.setdefault(_iso_of(row["district_id"]), {"villages": {}, "sources": set()})
+        village = county["villages"].setdefault(
             row["villcode"],
             {"villcode": row["villcode"], "town": row["town"], "village": row["village"], "districts": {}},
         )
         village["districts"][row["office"]] = row["district_id"]
-        sources.add((row["office"], row["source_url"], row["fetched_at"]))
-    _write_json(
-        out_dir / "villages.json",
-        {
-            "villages": [villages[k] for k in sorted(villages)],
-            "sources": [
-                {"office": o, "source_url": u, "fetched_at": f} for o, u, f in sorted(sources)
-            ],
-        },
-    )
+        county["sources"].add((row["office"], row["source_url"], row["fetched_at"]))
+    for iso, county in by_iso.items():
+        vs = county["villages"]
+        _write_json(
+            villages_dir / f"{iso}.json",
+            {
+                "villages": [vs[k] for k in sorted(vs)],
+                "sources": [
+                    {"office": o, "source_url": u, "fetched_at": f} for o, u, f in sorted(county["sources"])
+                ],
+            },
+        )
 
     districts_by_county = {}
     for district_id in sorted(districts):
         d = districts[district_id]
-        iso = district_id.split("-")[1] if district_id.startswith("ly-") else district_id.split("-")[0]
-        districts_by_county.setdefault(iso, []).append(
+        districts_by_county.setdefault(_iso_of(district_id), []).append(
             {k: d[k] for k in ("district_id", "office", "name", "seats")}
         )
     _write_json(
@@ -121,6 +127,10 @@ def export(conn, out_dir):
             ]
         },
     )
+
+
+def _iso_of(district_id):
+    return district_id.split("-")[1] if district_id.startswith("ly-") else district_id.split("-")[0]
 
 
 def _write_json(path, obj):

@@ -2,51 +2,122 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { councilDistrictFor, taipeiVillages, townsOf, fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE } from './app.js';
+import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
   北投區: '01', 士林區: '01', 內湖區: '02', 南港區: '02', 松山區: '03', 信義區: '03',
   中山區: '04', 大同區: '04', 中正區: '05', 萬華區: '05', 大安區: '06', 文山區: '06',
 };
 const fixture = [
-  { town: '士林區', districts: { tpe_councilor: 'tpe-council-01' } },
-  { town: '士林區', districts: { tpe_councilor: 'tpe-council-01' } },
-  { town: '大安區', districts: { tpe_councilor: 'tpe-council-06' } },
-  { town: '怪區', districts: { tpe_councilor: 'tpe-council-01' } },
-  { town: '怪區', districts: { tpe_councilor: 'tpe-council-02' } },
+  { villcode: '1', town: '士林區', districts: { tpe_councilor: 'tpe-council-01', tpe_councilor_plains: 'tpe-council-07', tpe_councilor_mountain: 'tpe-council-08' } },
+  { villcode: '2', town: '士林區', districts: { tpe_councilor: 'tpe-council-01', tpe_councilor_plains: 'tpe-council-07', tpe_councilor_mountain: 'tpe-council-08' } },
+  { villcode: '3', town: '大安區', districts: { tpe_councilor: 'tpe-council-06', tpe_councilor_plains: 'tpe-council-07', tpe_councilor_mountain: 'tpe-council-08' } },
 ];
+// 竹北市跨兩個議員選區；本縣只有山地原住民選區、沒有平地原住民選區（模擬嘉義縣的情形）
+const split = [
+  { villcode: '10004010001', town: '竹北市', village: '甲里', districts: { hsq_councilor: 'hsq-council-01', hsq_councilor_mountain: 'hsq-council-13' } },
+  { villcode: '10004010002', town: '竹北市', village: '乙里', districts: { hsq_councilor: 'hsq-council-02', hsq_councilor_mountain: 'hsq-council-13' } },
+  { villcode: '10004020001', town: '竹東鎮', village: '丙里', districts: { hsq_councilor: 'hsq-council-03', hsq_councilor_mountain: 'hsq-council-14' } },
+];
+const hsq = { iso: 'hsq', name: '新竹縣' };
+const tpe = { iso: 'tpe', name: '臺北市' };
 
 test('maps a town to its single councilor district', () => {
-  assert.equal(councilDistrictFor(fixture, '士林區', 'none'), 'tpe-council-01');
-  assert.equal(councilDistrictFor(fixture, '大安區', 'none'), 'tpe-council-06');
+  assert.deepEqual(councilDistrictFor(fixture, 'tpe', { town: '士林區' }), { id: 'tpe-council-01', fallback: false });
+  assert.deepEqual(councilDistrictFor(split, 'hsq', { town: '竹東鎮' }), { id: 'hsq-council-03', fallback: false });
 });
 
-test('indigenous voters map to 07/08 regardless of town', () => {
-  assert.equal(councilDistrictFor(fixture, '', 'plains'), 'tpe-council-07');
-  assert.equal(councilDistrictFor(fixture, '士林區', 'mountain'), 'tpe-council-08');
+test('a town split across districts needs a village before it resolves', () => {
+  assert.equal(needsVillage(split, 'hsq', '竹北市'), true);
+  assert.equal(needsVillage(split, 'hsq', '竹東鎮'), false);
+  assert.equal(councilDistrictFor(split, 'hsq', { town: '竹北市' }), null);
+  assert.deepEqual(councilDistrictFor(split, 'hsq', { town: '竹北市', villcode: '10004010002' }), { id: 'hsq-council-02', fallback: false });
 });
 
-test('returns null when town is empty, unknown or ambiguous', () => {
-  assert.equal(councilDistrictFor(fixture, '', 'none'), null);
-  assert.equal(councilDistrictFor(fixture, '不存在區', 'none'), null);
-  assert.equal(councilDistrictFor(fixture, '怪區', 'none'), null);
+test('indigenous voters use the indigenous district of their town when the county has one', () => {
+  assert.deepEqual(councilDistrictFor(fixture, 'tpe', { town: '大安區', indigenous: 'plains' }), { id: 'tpe-council-07', fallback: false });
+  assert.deepEqual(councilDistrictFor(split, 'hsq', { town: '竹北市', indigenous: 'mountain' }), { id: 'hsq-council-13', fallback: false });
+  assert.deepEqual(councilDistrictFor(split, 'hsq', { town: '竹東鎮', indigenous: 'mountain' }), { id: 'hsq-council-14', fallback: false });
+});
+
+test('indigenous voters fall back to the regional district when the county has no such district', () => {
+  assert.deepEqual(councilDistrictFor(split, 'hsq', { town: '竹東鎮', indigenous: 'plains' }), { id: 'hsq-council-03', fallback: true });
+  assert.equal(councilDistrictFor(split, 'hsq', { town: '竹北市', indigenous: 'plains' }), null, 'split town still needs a village');
+  assert.deepEqual(councilDistrictFor(split, 'hsq', { town: '竹北市', villcode: '10004010001', indigenous: 'plains' }), { id: 'hsq-council-01', fallback: true });
+});
+
+test('returns null when town is empty or unknown', () => {
+  assert.equal(councilDistrictFor(fixture, 'tpe', { town: '' }), null);
+  assert.equal(councilDistrictFor(fixture, 'tpe', { town: '不存在區', indigenous: 'plains' }), null);
 });
 
 test('townsOf keeps first-seen order without duplicates', () => {
-  assert.deepEqual(townsOf(fixture), ['士林區', '大安區', '怪區']);
+  assert.deepEqual(townsOf(fixture), ['士林區', '大安區']);
+});
+
+test('office labels and district titles derive from the county name', () => {
+  assert.equal(officeLabel('tpe_councilor', tpe), '臺北市議員');
+  assert.equal(officeLabel('hsq_mayor', hsq), '新竹縣長');
+  assert.equal(officeLabel('legislator', undefined), '立法委員');
+  assert.equal(districtTitle({ office: 'tpe_councilor', name: '臺北市第1選舉區' }, tpe), '臺北市議員 第1選舉區');
+  assert.equal(districtTitle({ office: 'hsq_councilor', name: '新竹縣第13選舉區（山地原住民）' }, hsq), '新竹縣議員 第13選舉區（山地原住民）');
+  assert.equal(districtTitle({ office: 'hsq_mayor', name: '新竹縣' }, hsq), '新竹縣長');
+});
+
+test('candidates sort by reg_no, else list_order, without mutating the input', () => {
+  const list = [{ data: { list_order: 3 } }, { data: { reg_no: 1 } }, { data: {} }, { data: { list_order: 2 } }];
+  assert.deepEqual(candidateOrder(list).map((p) => p.data.reg_no ?? p.data.list_order), [1, 2, 3, undefined]);
+  assert.equal(list[0].data.list_order, 3);
+});
+
+test('district subtitles: whole county, listed towns, and partial towns', () => {
+  assert.equal(districtSub({ district_id: 'tpe-council-07', office: 'tpe_councilor' }, fixture, tpe), '具平地原住民身分的全市選民');
+  assert.equal(districtSub({ district_id: 'hsq-council-14', office: 'hsq_councilor' }, split, hsq), '具山地原住民身分、戶籍在竹東鎮的選民');
+  assert.equal(districtSub({ district_id: 'hsq-council-01', office: 'hsq_councilor' }, split, hsq), '竹北市（部分）');
+  assert.equal(districtSub({ district_id: 'hsq-mayor', office: 'hsq_mayor' }, split, hsq), '全縣 2 個鄉鎮市');
+});
+
+test('isoOf reads the county from councilor, mayor and legislator ids', () => {
+  assert.equal(isoOf('hsz-council-03'), 'hsz');
+  assert.equal(isoOf('kin-mayor'), 'kin');
+  assert.equal(isoOf('ly-tao-02'), 'tao');
+});
+
+test('county list puts municipalities first and Kinmen and Lienchiang last', () => {
+  const got = countyOrder([{ iso: 'lie', moi_code: '09007' }, { iso: 'cyi', moi_code: '10020' }, { iso: 'tao', moi_code: '68000' }, { iso: 'tpe', moi_code: '63000' }]);
+  assert.deepEqual(got.map((c) => c.iso), ['tpe', 'tao', 'cyi', 'lie']);
+});
+
+test('non-deep counties get a neutral note, never implying the person did nothing', () => {
+  const note = noRecordNote(hsq);
+  assert.match(note, /新竹縣議會的問政紀錄仍在建置中/);
+  assert.doesNotMatch(note, /沒有問政|無問政/);
+  assert.doesNotMatch(REGISTERED_NOTE, /臺北/);
+});
+
+test('council links never point to the third-party site and cover all 22 counties', () => {
+  assert.equal(Object.keys(COUNCIL_SITES).length, 22);
+  for (const u of Object.values(COUNCIL_SITES)) assert.match(u, /^https:\/\/www\.[\w-]+\.gov\.tw\/$/);
 });
 
 test('fmtDate converts UTC timestamps to Asia/Taipei dates', () => {
   assert.equal(fmtDate('2026-09-28T17:00:00Z'), '2026-09-29');
 });
 
-const real = new URL('./data/villages.json', import.meta.url);
+const real = new URL('./data/villages/tpe.json', import.meta.url);
 test('all 12 Taipei towns map to the official councilor districts (exported data)', { skip: !existsSync(real) && 'site/data 未產生' }, () => {
-  const villages = taipeiVillages(JSON.parse(readFileSync(real, 'utf8')).villages);
+  const villages = JSON.parse(readFileSync(real, 'utf8')).villages;
   assert.deepEqual(townsOf(villages).sort(), Object.keys(EXPECTED).sort());
   for (const [town, n] of Object.entries(EXPECTED)) {
-    assert.equal(councilDistrictFor(villages, town, 'none'), `tpe-council-${n}`, town);
+    assert.equal(councilDistrictFor(villages, 'tpe', { town })?.id, `tpe-council-${n}`, town);
   }
+});
+
+const hsqData = new URL('./data/villages/hsq.json', import.meta.url);
+test('only Zhubei needs a village in Hsinchu County (exported data)', { skip: !existsSync(hsqData) && 'site/data 未產生' }, () => {
+  const villages = JSON.parse(readFileSync(hsqData, 'utf8')).villages;
+  assert.deepEqual(townsOf(villages).filter((t) => needsVillage(villages, 'hsq', t)), ['竹北市']);
 });
 
 const parties = {
@@ -150,15 +221,6 @@ test('bulletinGaps links the missing profile or platform to the other one\'s bul
 
 test('district 01 bulletin link is percent-encoded', () => {
   assert.equal(DISTRICT01_BULLETIN, 'https://bulletin.cec.gov.tw/01%E9%81%B8%E8%88%89%E5%85%AC%E5%A0%B1/05%E7%9B%B4%E8%BD%84%E5%B8%82%E8%AD%B0%E5%93%A1/111%E5%B9%B4/01%E8%87%BA%E5%8C%97%E5%B8%82/%E8%87%BA%E5%8C%97%E5%B8%82%E7%AC%AC01%E9%81%B8%E8%88%89%E5%8D%80.pdf');
-});
-
-test('taipeiVillages drops same-named towns from other counties', () => {
-  const mixed = [
-    { town: '中正區', districts: { tpe_councilor: 'tpe-council-05' } },
-    { town: '中正區', districts: { kee_councilor: 'kee-council-02' } },
-  ];
-  assert.deepEqual(councilDistrictFor(mixed, '中正區', 'none'), null);
-  assert.equal(councilDistrictFor(taipeiVillages(mixed), '中正區', 'none'), 'tpe-council-05');
 });
 
 const cand = [{ data: { office: 'tpe_councilor', district_id: 'tpe-council-01' } }];
