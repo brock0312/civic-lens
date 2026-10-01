@@ -19415,7 +19415,7 @@ INSERT INTO "village_district" VALUES('65000070012','nwt_councilor','樹林區',
 INSERT INTO "village_district" VALUES('65000070034','nwt_councilor','樹林區','文林里','nwt-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000070006','nwt_councilor','樹林區','潭底里','nwt-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000070032','nwt_councilor','樹林區','金寮里','nwt-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000070007','nwt_councilor','樹林區','[獇]寮里','nwt-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000070007','nwt_councilor','樹林區','獇寮里','nwt-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000070040','nwt_councilor','樹林區','圳民里','nwt-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030027','nwt_councilor','中和區','秀山里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030039','nwt_councilor','中和區','崇南里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -19708,7 +19708,7 @@ INSERT INTO "village_district" VALUES('65000020018','nwt_councilor','三重區',
 INSERT INTO "village_district" VALUES('65000020041','nwt_councilor','三重區','中山里','nwt-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040044','nwt_councilor','永和區','和平里','nwt-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000080020','nwt_councilor','鶯歌區','建國里','nwt-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000200004','nwt_councilor','坪林區','石[曹]里','nwt-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000200004','nwt_councilor','坪林區','石𥕢里','nwt-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000090024','nwt_councilor','三峽區','安溪里','nwt-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000020015','nwt_councilor','三重區','田心里','nwt-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000020060','nwt_councilor','三重區','大德里','nwt-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -19813,7 +19813,7 @@ INSERT INTO "village_district" VALUES('65000010084','nwt_councilor','板橋區',
 INSERT INTO "village_district" VALUES('65000010074','nwt_councilor','板橋區','福德里','nwt-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040020','nwt_councilor','永和區','秀朗里','nwt-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040021','nwt_councilor','永和區','秀成里','nwt-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000030017','nwt_councilor','中和區','瓦[磘]里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000030017','nwt_councilor','中和區','瓦磘里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000030087','nwt_councilor','中和區','民有里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000010111','nwt_councilor','板橋區','華福里','nwt-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040015','nwt_councilor','永和區','永安里','nwt-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -20021,7 +20021,7 @@ INSERT INTO "village_district" VALUES('65000100027','nwt_councilor','淡水區',
 INSERT INTO "village_district" VALUES('65000030004','nwt_councilor','中和區','仁和里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030052','nwt_councilor','中和區','錦和里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030053','nwt_councilor','中和區','錦昌里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000030054','nwt_councilor','中和區','灰[磘]里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000030054','nwt_councilor','中和區','灰磘里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000030085','nwt_councilor','中和區','錦中里','nwt-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000230008','nwt_councilor','八里區','荖阡里','nwt-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000230007','nwt_councilor','八里區','訊塘里','nwt-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -20454,7 +20454,7 @@ INSERT INTO "village_district" VALUES('65000070012','nwt_councilor_plains','樹�
 INSERT INTO "village_district" VALUES('65000070034','nwt_councilor_plains','樹林區','文林里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000070006','nwt_councilor_plains','樹林區','潭底里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000070032','nwt_councilor_plains','樹林區','金寮里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000070007','nwt_councilor_plains','樹林區','[獇]寮里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000070007','nwt_councilor_plains','樹林區','獇寮里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000070040','nwt_councilor_plains','樹林區','圳民里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030027','nwt_councilor_plains','中和區','秀山里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030039','nwt_councilor_plains','中和區','崇南里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -20747,7 +20747,7 @@ INSERT INTO "village_district" VALUES('65000020018','nwt_councilor_plains','三�
 INSERT INTO "village_district" VALUES('65000020041','nwt_councilor_plains','三重區','中山里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040044','nwt_councilor_plains','永和區','和平里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000080020','nwt_councilor_plains','鶯歌區','建國里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000200004','nwt_councilor_plains','坪林區','石[曹]里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000200004','nwt_councilor_plains','坪林區','石𥕢里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000090024','nwt_councilor_plains','三峽區','安溪里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000020015','nwt_councilor_plains','三重區','田心里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000020060','nwt_councilor_plains','三重區','大德里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -20852,7 +20852,7 @@ INSERT INTO "village_district" VALUES('65000010084','nwt_councilor_plains','板�
 INSERT INTO "village_district" VALUES('65000010074','nwt_councilor_plains','板橋區','福德里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040020','nwt_councilor_plains','永和區','秀朗里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040021','nwt_councilor_plains','永和區','秀成里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000030017','nwt_councilor_plains','中和區','瓦[磘]里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000030017','nwt_councilor_plains','中和區','瓦磘里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000030087','nwt_councilor_plains','中和區','民有里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000010111','nwt_councilor_plains','板橋區','華福里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040015','nwt_councilor_plains','永和區','永安里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -21060,7 +21060,7 @@ INSERT INTO "village_district" VALUES('65000100027','nwt_councilor_plains','淡�
 INSERT INTO "village_district" VALUES('65000030004','nwt_councilor_plains','中和區','仁和里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030052','nwt_councilor_plains','中和區','錦和里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030053','nwt_councilor_plains','中和區','錦昌里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000030054','nwt_councilor_plains','中和區','灰[磘]里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000030054','nwt_councilor_plains','中和區','灰磘里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000030085','nwt_councilor_plains','中和區','錦中里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000230008','nwt_councilor_plains','八里區','荖阡里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000230007','nwt_councilor_plains','八里區','訊塘里','nwt-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -21493,7 +21493,7 @@ INSERT INTO "village_district" VALUES('65000070012','nwt_councilor_mountain','�
 INSERT INTO "village_district" VALUES('65000070034','nwt_councilor_mountain','樹林區','文林里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000070006','nwt_councilor_mountain','樹林區','潭底里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000070032','nwt_councilor_mountain','樹林區','金寮里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000070007','nwt_councilor_mountain','樹林區','[獇]寮里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000070007','nwt_councilor_mountain','樹林區','獇寮里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000070040','nwt_councilor_mountain','樹林區','圳民里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030027','nwt_councilor_mountain','中和區','秀山里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030039','nwt_councilor_mountain','中和區','崇南里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -21786,7 +21786,7 @@ INSERT INTO "village_district" VALUES('65000020018','nwt_councilor_mountain','�
 INSERT INTO "village_district" VALUES('65000020041','nwt_councilor_mountain','三重區','中山里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040044','nwt_councilor_mountain','永和區','和平里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000080020','nwt_councilor_mountain','鶯歌區','建國里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000200004','nwt_councilor_mountain','坪林區','石[曹]里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000200004','nwt_councilor_mountain','坪林區','石𥕢里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000090024','nwt_councilor_mountain','三峽區','安溪里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000020015','nwt_councilor_mountain','三重區','田心里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000020060','nwt_councilor_mountain','三重區','大德里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -21891,7 +21891,7 @@ INSERT INTO "village_district" VALUES('65000010084','nwt_councilor_mountain','�
 INSERT INTO "village_district" VALUES('65000010074','nwt_councilor_mountain','板橋區','福德里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040020','nwt_councilor_mountain','永和區','秀朗里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040021','nwt_councilor_mountain','永和區','秀成里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000030017','nwt_councilor_mountain','中和區','瓦[磘]里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000030017','nwt_councilor_mountain','中和區','瓦磘里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000030087','nwt_councilor_mountain','中和區','民有里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000010111','nwt_councilor_mountain','板橋區','華福里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000040015','nwt_councilor_mountain','永和區','永安里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -22099,7 +22099,7 @@ INSERT INTO "village_district" VALUES('65000100027','nwt_councilor_mountain','�
 INSERT INTO "village_district" VALUES('65000030004','nwt_councilor_mountain','中和區','仁和里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030052','nwt_councilor_mountain','中和區','錦和里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000030053','nwt_councilor_mountain','中和區','錦昌里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('65000030054','nwt_councilor_mountain','中和區','灰[磘]里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('65000030054','nwt_councilor_mountain','中和區','灰磘里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('65000030085','nwt_councilor_mountain','中和區','錦中里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000230008','nwt_councilor_mountain','八里區','荖阡里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('65000230007','nwt_councilor_mountain','八里區','訊塘里','nwt-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -24011,7 +24011,7 @@ INSERT INTO "village_district" VALUES('66000210011','txg_councilor','外埔區',
 INSERT INTO "village_district" VALUES('66000220001','txg_councilor','大安區','南埔里','txg-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220002','txg_councilor','大安區','南庄里','txg-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220003','txg_councilor','大安區','中庄里','txg-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('66000220004','txg_councilor','大安區','龜[壳]里','txg-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('66000220004','txg_councilor','大安區','龜売里','txg-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('66000220005','txg_councilor','大安區','福興里','txg-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220006','txg_councilor','大安區','東安里','txg-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220007','txg_councilor','大安區','頂安里','txg-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -24636,7 +24636,7 @@ INSERT INTO "village_district" VALUES('66000210011','txg_councilor_plains','外�
 INSERT INTO "village_district" VALUES('66000220001','txg_councilor_plains','大安區','南埔里','txg-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220002','txg_councilor_plains','大安區','南庄里','txg-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220003','txg_councilor_plains','大安區','中庄里','txg-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('66000220004','txg_councilor_plains','大安區','龜[壳]里','txg-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('66000220004','txg_councilor_plains','大安區','龜売里','txg-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('66000220005','txg_councilor_plains','大安區','福興里','txg-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220006','txg_councilor_plains','大安區','東安里','txg-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220007','txg_councilor_plains','大安區','頂安里','txg-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -25261,7 +25261,7 @@ INSERT INTO "village_district" VALUES('66000210011','txg_councilor_mountain','�
 INSERT INTO "village_district" VALUES('66000220001','txg_councilor_mountain','大安區','南埔里','txg-council-16','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220002','txg_councilor_mountain','大安區','南庄里','txg-council-16','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220003','txg_councilor_mountain','大安區','中庄里','txg-council-16','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('66000220004','txg_councilor_mountain','大安區','龜[壳]里','txg-council-16','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('66000220004','txg_councilor_mountain','大安區','龜売里','txg-council-16','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('66000220005','txg_councilor_mountain','大安區','福興里','txg-council-16','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220006','txg_councilor_mountain','大安區','東安里','txg-council-16','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('66000220007','txg_councilor_mountain','大安區','頂安里','txg-council-16','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -25758,7 +25758,7 @@ INSERT INTO "village_district" VALUES('67000150001','tnn_councilor','七股區',
 INSERT INTO "village_district" VALUES('67000180001','tnn_councilor','新化區','武安里','tnn-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000180012','tnn_councilor','新化區','豐榮里','tnn-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000180003','tnn_councilor','新化區','護國里','tnn-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000180018','tnn_councilor','新化區','[那]拔里','tnn-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000180018','tnn_councilor','新化區','𦰡拔里','tnn-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000200011','tnn_councilor','新市區','永就里','tnn-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000200004','tnn_councilor','新市區','大洲里','tnn-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000200002','tnn_councilor','新市區','新和里','tnn-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -25877,7 +25877,7 @@ INSERT INTO "village_district" VALUES('67000250007','tnn_councilor','南化區',
 INSERT INTO "village_district" VALUES('67000250008','tnn_councilor','南化區','玉山里','tnn-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300007','tnn_councilor','龍崎區','龍船里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300003','tnn_councilor','龍崎區','中坑里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000300008','tnn_councilor','龍崎區','石[曹]里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000300008','tnn_councilor','龍崎區','石𥕢里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000300001','tnn_councilor','龍崎區','崎頂里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300002','tnn_councilor','龍崎區','土崎里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000310013','tnn_councilor','永康區','東灣里','tnn-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -26015,7 +26015,7 @@ INSERT INTO "village_district" VALUES('67000280019','tnn_councilor','歸仁區',
 INSERT INTO "village_district" VALUES('67000280014','tnn_councilor','歸仁區','七甲里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000120004','tnn_councilor','佳里區','建南里','tnn-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000070011','tnn_councilor','麻豆區','大埕里','tnn-council-03','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000140004','tnn_councilor','西港區','[檨]林里','tnn-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000140004','tnn_councilor','西港區','檨林里','tnn-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000140006','tnn_councilor','西港區','營西里','tnn-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000280007','tnn_councilor','歸仁區','看西里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000280008','tnn_councilor','歸仁區','看東里','tnn-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -26167,8 +26167,8 @@ INSERT INTO "village_district" VALUES('67000310008','tnn_councilor','永康區',
 INSERT INTO "village_district" VALUES('67000350004','tnn_councilor','安南區','州南里','tnn-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000350048','tnn_councilor','安南區','布袋里','tnn-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000350005','tnn_councilor','安南區','州北里','tnn-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000350003','tnn_councilor','安南區','[塭]南里','tnn-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000350024','tnn_councilor','安南區','公[塭]里','tnn-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000350003','tnn_councilor','安南區','塭南里','tnn-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
+INSERT INTO "village_district" VALUES('67000350024','tnn_councilor','安南區','公塭里','tnn-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000350025','tnn_councilor','安南區','南興里','tnn-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000360012','tnn_councilor','安平區','億載里','tnn-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000360008','tnn_councilor','安平區','平通里','tnn-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -26408,7 +26408,7 @@ INSERT INTO "village_district" VALUES('67000150001','tnn_councilor_plains','七�
 INSERT INTO "village_district" VALUES('67000180001','tnn_councilor_plains','新化區','武安里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000180012','tnn_councilor_plains','新化區','豐榮里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000180003','tnn_councilor_plains','新化區','護國里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000180018','tnn_councilor_plains','新化區','[那]拔里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000180018','tnn_councilor_plains','新化區','𦰡拔里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000200011','tnn_councilor_plains','新市區','永就里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000200004','tnn_councilor_plains','新市區','大洲里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000200002','tnn_councilor_plains','新市區','新和里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -26527,7 +26527,7 @@ INSERT INTO "village_district" VALUES('67000250007','tnn_councilor_plains','南�
 INSERT INTO "village_district" VALUES('67000250008','tnn_councilor_plains','南化區','玉山里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300007','tnn_councilor_plains','龍崎區','龍船里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300003','tnn_councilor_plains','龍崎區','中坑里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000300008','tnn_councilor_plains','龍崎區','石[曹]里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000300008','tnn_councilor_plains','龍崎區','石𥕢里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000300001','tnn_councilor_plains','龍崎區','崎頂里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300002','tnn_councilor_plains','龍崎區','土崎里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000310013','tnn_councilor_plains','永康區','東灣里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -26665,7 +26665,7 @@ INSERT INTO "village_district" VALUES('67000280019','tnn_councilor_plains','歸�
 INSERT INTO "village_district" VALUES('67000280014','tnn_councilor_plains','歸仁區','七甲里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000120004','tnn_councilor_plains','佳里區','建南里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000070011','tnn_councilor_plains','麻豆區','大埕里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000140004','tnn_councilor_plains','西港區','[檨]林里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000140004','tnn_councilor_plains','西港區','檨林里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000140006','tnn_councilor_plains','西港區','營西里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000280007','tnn_councilor_plains','歸仁區','看西里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000280008','tnn_councilor_plains','歸仁區','看東里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -26817,8 +26817,8 @@ INSERT INTO "village_district" VALUES('67000310008','tnn_councilor_plains','永�
 INSERT INTO "village_district" VALUES('67000350004','tnn_councilor_plains','安南區','州南里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000350048','tnn_councilor_plains','安南區','布袋里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000350005','tnn_councilor_plains','安南區','州北里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000350003','tnn_councilor_plains','安南區','[塭]南里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000350024','tnn_councilor_plains','安南區','公[塭]里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000350003','tnn_councilor_plains','安南區','塭南里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
+INSERT INTO "village_district" VALUES('67000350024','tnn_councilor_plains','安南區','公塭里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000350025','tnn_councilor_plains','安南區','南興里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000360012','tnn_councilor_plains','安平區','億載里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000360008','tnn_councilor_plains','安平區','平通里','tnn-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -27058,7 +27058,7 @@ INSERT INTO "village_district" VALUES('67000150001','tnn_councilor_mountain','�
 INSERT INTO "village_district" VALUES('67000180001','tnn_councilor_mountain','新化區','武安里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000180012','tnn_councilor_mountain','新化區','豐榮里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000180003','tnn_councilor_mountain','新化區','護國里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000180018','tnn_councilor_mountain','新化區','[那]拔里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000180018','tnn_councilor_mountain','新化區','𦰡拔里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000200011','tnn_councilor_mountain','新市區','永就里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000200004','tnn_councilor_mountain','新市區','大洲里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000200002','tnn_councilor_mountain','新市區','新和里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -27177,7 +27177,7 @@ INSERT INTO "village_district" VALUES('67000250007','tnn_councilor_mountain','�
 INSERT INTO "village_district" VALUES('67000250008','tnn_councilor_mountain','南化區','玉山里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300007','tnn_councilor_mountain','龍崎區','龍船里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300003','tnn_councilor_mountain','龍崎區','中坑里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000300008','tnn_councilor_mountain','龍崎區','石[曹]里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000300008','tnn_councilor_mountain','龍崎區','石𥕢里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000300001','tnn_councilor_mountain','龍崎區','崎頂里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000300002','tnn_councilor_mountain','龍崎區','土崎里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000310013','tnn_councilor_mountain','永康區','東灣里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -27315,7 +27315,7 @@ INSERT INTO "village_district" VALUES('67000280019','tnn_councilor_mountain','�
 INSERT INTO "village_district" VALUES('67000280014','tnn_councilor_mountain','歸仁區','七甲里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000120004','tnn_councilor_mountain','佳里區','建南里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000070011','tnn_councilor_mountain','麻豆區','大埕里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000140004','tnn_councilor_mountain','西港區','[檨]林里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000140004','tnn_councilor_mountain','西港區','檨林里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000140006','tnn_councilor_mountain','西港區','營西里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000280007','tnn_councilor_mountain','歸仁區','看西里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000280008','tnn_councilor_mountain','歸仁區','看東里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -27467,8 +27467,8 @@ INSERT INTO "village_district" VALUES('67000310008','tnn_councilor_mountain','�
 INSERT INTO "village_district" VALUES('67000350004','tnn_councilor_mountain','安南區','州南里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000350048','tnn_councilor_mountain','安南區','布袋里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000350005','tnn_councilor_mountain','安南區','州北里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000350003','tnn_councilor_mountain','安南區','[塭]南里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('67000350024','tnn_councilor_mountain','安南區','公[塭]里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('67000350003','tnn_councilor_mountain','安南區','塭南里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
+INSERT INTO "village_district" VALUES('67000350024','tnn_councilor_mountain','安南區','公塭里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('67000350025','tnn_councilor_mountain','安南區','南興里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000360012','tnn_councilor_mountain','安平區','億載里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('67000360008','tnn_councilor_mountain','安平區','平通里','tnn-council-13','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -31671,7 +31671,7 @@ INSERT INTO "village_district" VALUES('10007070003','cha_councilor','秀水鄉',
 INSERT INTO "village_district" VALUES('10007090012','cha_councilor','芬園鄉','同安村','cha-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007090013','cha_councilor','芬園鄉','中崙村','cha-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010057','cha_councilor','彰化市','三村里','cha-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10007010030','cha_councilor','彰化市','磚[磘]里','cha-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10007010030','cha_councilor','彰化市','磚磘里','cha-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10007010002','cha_councilor','彰化市','下廍里','cha-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010058','cha_councilor','彰化市','國聖里','cha-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010069','cha_councilor','彰化市','田中里','cha-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -31764,7 +31764,7 @@ INSERT INTO "village_district" VALUES('10007200004','cha_councilor','二林鎮',
 INSERT INTO "village_district" VALUES('10007200005','cha_councilor','二林鎮','中西里','cha-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007200006','cha_councilor','二林鎮','廣興里','cha-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140009','cha_councilor','埔鹽鄉','角樹村','cha-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10007140010','cha_councilor','埔鹽鄉','瓦[磘]村','cha-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10007140010','cha_councilor','埔鹽鄉','瓦磘村','cha-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10007140011','cha_councilor','埔鹽鄉','好修村','cha-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140012','cha_councilor','埔鹽鄉','西湖村','cha-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140013','cha_councilor','埔鹽鄉','大有村','cha-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -32262,7 +32262,7 @@ INSERT INTO "village_district" VALUES('10007070003','cha_councilor_plains','秀�
 INSERT INTO "village_district" VALUES('10007090012','cha_councilor_plains','芬園鄉','同安村','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007090013','cha_councilor_plains','芬園鄉','中崙村','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010057','cha_councilor_plains','彰化市','三村里','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10007010030','cha_councilor_plains','彰化市','磚[磘]里','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10007010030','cha_councilor_plains','彰化市','磚磘里','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10007010002','cha_councilor_plains','彰化市','下廍里','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010058','cha_councilor_plains','彰化市','國聖里','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010069','cha_councilor_plains','彰化市','田中里','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -32355,7 +32355,7 @@ INSERT INTO "village_district" VALUES('10007200004','cha_councilor_plains','二�
 INSERT INTO "village_district" VALUES('10007200005','cha_councilor_plains','二林鎮','中西里','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007200006','cha_councilor_plains','二林鎮','廣興里','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140009','cha_councilor_plains','埔鹽鄉','角樹村','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10007140010','cha_councilor_plains','埔鹽鄉','瓦[磘]村','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10007140010','cha_councilor_plains','埔鹽鄉','瓦磘村','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10007140011','cha_councilor_plains','埔鹽鄉','好修村','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140012','cha_councilor_plains','埔鹽鄉','西湖村','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140013','cha_councilor_plains','埔鹽鄉','大有村','cha-council-09','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -32853,7 +32853,7 @@ INSERT INTO "village_district" VALUES('10007070003','cha_councilor_mountain','�
 INSERT INTO "village_district" VALUES('10007090012','cha_councilor_mountain','芬園鄉','同安村','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007090013','cha_councilor_mountain','芬園鄉','中崙村','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010057','cha_councilor_mountain','彰化市','三村里','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10007010030','cha_councilor_mountain','彰化市','磚[磘]里','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10007010030','cha_councilor_mountain','彰化市','磚磘里','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10007010002','cha_councilor_mountain','彰化市','下廍里','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010058','cha_councilor_mountain','彰化市','國聖里','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007010069','cha_councilor_mountain','彰化市','田中里','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -32946,7 +32946,7 @@ INSERT INTO "village_district" VALUES('10007200004','cha_councilor_mountain','�
 INSERT INTO "village_district" VALUES('10007200005','cha_councilor_mountain','二林鎮','中西里','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007200006','cha_councilor_mountain','二林鎮','廣興里','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140009','cha_councilor_mountain','埔鹽鄉','角樹村','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10007140010','cha_councilor_mountain','埔鹽鄉','瓦[磘]村','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10007140010','cha_councilor_mountain','埔鹽鄉','瓦磘村','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10007140011','cha_councilor_mountain','埔鹽鄉','好修村','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140012','cha_councilor_mountain','埔鹽鄉','西湖村','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10007140013','cha_councilor_mountain','埔鹽鄉','大有村','cha-council-10','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -33638,7 +33638,7 @@ INSERT INTO "village_district" VALUES('10008030016','nan_councilor','草屯鎮',
 INSERT INTO "village_district" VALUES('10008130016','nan_councilor','仁愛鄉','都達村','nan-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008120004','nan_councilor','信義鄉','明德村','nan-council-03','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008070004','nan_councilor','鹿谷鄉','廣興村','nan-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10008040005','nan_councilor','竹山鎮','硘[磘]里','nan-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10008040005','nan_councilor','竹山鎮','硘磘里','nan-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10008040010','nan_councilor','竹山鎮','德興里','nan-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008070003','nan_councilor','鹿谷鄉','彰雅村','nan-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008040013','nan_councilor','竹山鎮','延山里','nan-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -33901,7 +33901,7 @@ INSERT INTO "village_district" VALUES('10008030016','nan_councilor_plains','草�
 INSERT INTO "village_district" VALUES('10008130016','nan_councilor_plains','仁愛鄉','都達村','nan-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008120004','nan_councilor_plains','信義鄉','明德村','nan-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008070004','nan_councilor_plains','鹿谷鄉','廣興村','nan-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10008040005','nan_councilor_plains','竹山鎮','硘[磘]里','nan-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10008040005','nan_councilor_plains','竹山鎮','硘磘里','nan-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10008040010','nan_councilor_plains','竹山鎮','德興里','nan-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008070003','nan_councilor_plains','鹿谷鄉','彰雅村','nan-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008040013','nan_councilor_plains','竹山鎮','延山里','nan-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34164,7 +34164,7 @@ INSERT INTO "village_district" VALUES('10008030016','nan_councilor_mountain','�
 INSERT INTO "village_district" VALUES('10008130016','nan_councilor_mountain','仁愛鄉','都達村','nan-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008120004','nan_councilor_mountain','信義鄉','明德村','nan-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008070004','nan_councilor_mountain','鹿谷鄉','廣興村','nan-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10008040005','nan_councilor_mountain','竹山鎮','硘[磘]里','nan-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10008040005','nan_councilor_mountain','竹山鎮','硘磘里','nan-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10008040010','nan_councilor_mountain','竹山鎮','德興里','nan-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008070003','nan_councilor_mountain','鹿谷鄉','彰雅村','nan-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10008040013','nan_councilor_mountain','竹山鎮','延山里','nan-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34203,7 +34203,7 @@ INSERT INTO "village_district" VALUES('10009010014','yun_councilor','斗六市',
 INSERT INTO "village_district" VALUES('10009010013','yun_councilor','斗六市','林頭里','yun-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009010002','yun_councilor','斗六市','仁愛里','yun-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009010003','yun_councilor','斗六市','信義里','yun-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009200021','yun_councilor','水林鄉','[欍]埔村','yun-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009200021','yun_councilor','水林鄉','瓊埔村','yun-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009020021','yun_councilor','斗南鎮','小東里','yun-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009020023','yun_councilor','斗南鎮','大同里','yun-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009020024','yun_councilor','斗南鎮','僑真里','yun-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34315,7 +34315,7 @@ INSERT INTO "village_district" VALUES('10009110012','yun_councilor','二崙鄉',
 INSERT INTO "village_district" VALUES('10009110013','yun_councilor','二崙鄉','油車村','yun-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009120008','yun_councilor','崙背鄉','五魁村','yun-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009120012','yun_councilor','崙背鄉','舊庄村','yun-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009130003','yun_councilor','麥寮鄉','瓦[磘]村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009130003','yun_councilor','麥寮鄉','瓦磘村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009130005','yun_councilor','麥寮鄉','崙後村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009130006','yun_councilor','麥寮鄉','後安村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009170002','yun_councilor','元長鄉','長北村','yun-council-03','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34471,7 +34471,7 @@ INSERT INTO "village_district" VALUES('10009170021','yun_councilor','元長鄉',
 INSERT INTO "village_district" VALUES('10009200006','yun_councilor','水林鄉','西井村','yun-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200007','yun_councilor','水林鄉','車港村','yun-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200008','yun_councilor','水林鄉','蘇秦村','yun-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009170018','yun_councilor','元長鄉','瓦[磘]村','yun-council-03','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009170018','yun_councilor','元長鄉','瓦磘村','yun-council-03','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009180004','yun_councilor','四湖鄉','鹿場村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009180008','yun_councilor','四湖鄉','蔡厝村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200014','yun_councilor','水林鄉','大溝村','yun-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34561,8 +34561,8 @@ INSERT INTO "village_district" VALUES('10009010031','yun_councilor','斗六市',
 INSERT INTO "village_district" VALUES('10009010029','yun_councilor','斗六市','溪洲里','yun-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009080002','yun_councilor','大埤鄉','南和村','yun-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009080001','yun_councilor','大埤鄉','北和村','yun-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009180021','yun_councilor','四湖鄉','[萡]東村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009180016','yun_councilor','四湖鄉','[萡]子村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009180021','yun_councilor','四湖鄉','萡東村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
+INSERT INTO "village_district" VALUES('10009180016','yun_councilor','四湖鄉','萡子村','yun-council-05','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009040011','yun_councilor','西螺鎮','新安里','yun-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009040012','yun_councilor','西螺鎮','新豐里','yun-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009040015','yun_councilor','西螺鎮','安定里','yun-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34595,7 +34595,7 @@ INSERT INTO "village_district" VALUES('10009010014','yun_councilor_plains','斗�
 INSERT INTO "village_district" VALUES('10009010013','yun_councilor_plains','斗六市','林頭里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009010002','yun_councilor_plains','斗六市','仁愛里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009010003','yun_councilor_plains','斗六市','信義里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009200021','yun_councilor_plains','水林鄉','[欍]埔村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009200021','yun_councilor_plains','水林鄉','瓊埔村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009020021','yun_councilor_plains','斗南鎮','小東里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009020023','yun_councilor_plains','斗南鎮','大同里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009020024','yun_councilor_plains','斗南鎮','僑真里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34707,7 +34707,7 @@ INSERT INTO "village_district" VALUES('10009110012','yun_councilor_plains','二�
 INSERT INTO "village_district" VALUES('10009110013','yun_councilor_plains','二崙鄉','油車村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009120008','yun_councilor_plains','崙背鄉','五魁村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009120012','yun_councilor_plains','崙背鄉','舊庄村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009130003','yun_councilor_plains','麥寮鄉','瓦[磘]村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009130003','yun_councilor_plains','麥寮鄉','瓦磘村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009130005','yun_councilor_plains','麥寮鄉','崙後村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009130006','yun_councilor_plains','麥寮鄉','後安村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009170002','yun_councilor_plains','元長鄉','長北村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34863,7 +34863,7 @@ INSERT INTO "village_district" VALUES('10009170021','yun_councilor_plains','元�
 INSERT INTO "village_district" VALUES('10009200006','yun_councilor_plains','水林鄉','西井村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200007','yun_councilor_plains','水林鄉','車港村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200008','yun_councilor_plains','水林鄉','蘇秦村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009170018','yun_councilor_plains','元長鄉','瓦[磘]村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009170018','yun_councilor_plains','元長鄉','瓦磘村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009180004','yun_councilor_plains','四湖鄉','鹿場村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009180008','yun_councilor_plains','四湖鄉','蔡厝村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200014','yun_councilor_plains','水林鄉','大溝村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34953,8 +34953,8 @@ INSERT INTO "village_district" VALUES('10009010031','yun_councilor_plains','斗�
 INSERT INTO "village_district" VALUES('10009010029','yun_councilor_plains','斗六市','溪洲里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009080002','yun_councilor_plains','大埤鄉','南和村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009080001','yun_councilor_plains','大埤鄉','北和村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009180021','yun_councilor_plains','四湖鄉','[萡]東村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009180016','yun_councilor_plains','四湖鄉','[萡]子村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009180021','yun_councilor_plains','四湖鄉','萡東村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
+INSERT INTO "village_district" VALUES('10009180016','yun_councilor_plains','四湖鄉','萡子村','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009040011','yun_councilor_plains','西螺鎮','新安里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009040012','yun_councilor_plains','西螺鎮','新豐里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009040015','yun_councilor_plains','西螺鎮','安定里','yun-council-07','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -34987,7 +34987,7 @@ INSERT INTO "village_district" VALUES('10009010014','yun_councilor_mountain','�
 INSERT INTO "village_district" VALUES('10009010013','yun_councilor_mountain','斗六市','林頭里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009010002','yun_councilor_mountain','斗六市','仁愛里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009010003','yun_councilor_mountain','斗六市','信義里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009200021','yun_councilor_mountain','水林鄉','[欍]埔村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009200021','yun_councilor_mountain','水林鄉','瓊埔村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009020021','yun_councilor_mountain','斗南鎮','小東里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009020023','yun_councilor_mountain','斗南鎮','大同里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009020024','yun_councilor_mountain','斗南鎮','僑真里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -35099,7 +35099,7 @@ INSERT INTO "village_district" VALUES('10009110012','yun_councilor_mountain','�
 INSERT INTO "village_district" VALUES('10009110013','yun_councilor_mountain','二崙鄉','油車村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009120008','yun_councilor_mountain','崙背鄉','五魁村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009120012','yun_councilor_mountain','崙背鄉','舊庄村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009130003','yun_councilor_mountain','麥寮鄉','瓦[磘]村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009130003','yun_councilor_mountain','麥寮鄉','瓦磘村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009130005','yun_councilor_mountain','麥寮鄉','崙後村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009130006','yun_councilor_mountain','麥寮鄉','後安村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009170002','yun_councilor_mountain','元長鄉','長北村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -35255,7 +35255,7 @@ INSERT INTO "village_district" VALUES('10009170021','yun_councilor_mountain','�
 INSERT INTO "village_district" VALUES('10009200006','yun_councilor_mountain','水林鄉','西井村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200007','yun_councilor_mountain','水林鄉','車港村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200008','yun_councilor_mountain','水林鄉','蘇秦村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009170018','yun_councilor_mountain','元長鄉','瓦[磘]村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009170018','yun_councilor_mountain','元長鄉','瓦磘村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009180004','yun_councilor_mountain','四湖鄉','鹿場村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009180008','yun_councilor_mountain','四湖鄉','蔡厝村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009200014','yun_councilor_mountain','水林鄉','大溝村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -35345,8 +35345,8 @@ INSERT INTO "village_district" VALUES('10009010031','yun_councilor_mountain','�
 INSERT INTO "village_district" VALUES('10009010029','yun_councilor_mountain','斗六市','溪洲里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009080002','yun_councilor_mountain','大埤鄉','南和村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009080001','yun_councilor_mountain','大埤鄉','北和村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009180021','yun_councilor_mountain','四湖鄉','[萡]東村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10009180016','yun_councilor_mountain','四湖鄉','[萡]子村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10009180021','yun_councilor_mountain','四湖鄉','萡東村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
+INSERT INTO "village_district" VALUES('10009180016','yun_councilor_mountain','四湖鄉','萡子村','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10009040011','yun_councilor_mountain','西螺鎮','新安里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009040012','yun_councilor_mountain','西螺鎮','新豐里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10009040015','yun_councilor_mountain','西螺鎮','安定里','yun-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -36210,7 +36210,7 @@ INSERT INTO "village_district" VALUES('10013240004','pif_councilor','滿州鄉',
 INSERT INTO "village_district" VALUES('10013040013','pif_councilor','恆春鎮','大光里','pif-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013040014','pif_councilor','恆春鎮','水泉里','pif-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013040017','pif_councilor','恆春鎮','鵝鑾里','pif-council-06','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10013170001','pif_councilor','新園鄉','瓦[磘]村','pif-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10013170001','pif_councilor','新園鄉','瓦磘村','pif-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10013170003','pif_councilor','新園鄉','田洋村','pif-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013050026','pif_councilor','萬丹鄉','灣內村','pif-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013050023','pif_councilor','萬丹鄉','香社村','pif-council-04','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -36652,7 +36652,7 @@ INSERT INTO "village_district" VALUES('10013240004','pif_councilor_plains','滿�
 INSERT INTO "village_district" VALUES('10013040013','pif_councilor_plains','恆春鎮','大光里','pif-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013040014','pif_councilor_plains','恆春鎮','水泉里','pif-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013040017','pif_councilor_plains','恆春鎮','鵝鑾里','pif-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10013170001','pif_councilor_plains','新園鄉','瓦[磘]村','pif-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10013170001','pif_councilor_plains','新園鄉','瓦磘村','pif-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10013170003','pif_councilor_plains','新園鄉','田洋村','pif-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013050026','pif_councilor_plains','萬丹鄉','灣內村','pif-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013050023','pif_councilor_plains','萬丹鄉','香社村','pif-council-08','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -37094,7 +37094,7 @@ INSERT INTO "village_district" VALUES('10013240004','pif_councilor_mountain','�
 INSERT INTO "village_district" VALUES('10013040013','pif_councilor_mountain','恆春鎮','大光里','pif-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013040014','pif_councilor_mountain','恆春鎮','水泉里','pif-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013040017','pif_councilor_mountain','恆春鎮','鵝鑾里','pif-council-15','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10013170001','pif_councilor_mountain','新園鄉','瓦[磘]村','pif-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10013170001','pif_councilor_mountain','新園鄉','瓦磘村','pif-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10013170003','pif_councilor_mountain','新園鄉','田洋村','pif-council-12','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013050026','pif_councilor_mountain','萬丹鄉','灣內村','pif-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10013050023','pif_councilor_mountain','萬丹鄉','香社村','pif-council-11','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -39145,7 +39145,7 @@ INSERT INTO "village_district" VALUES('10016010019','pen_councilor','馬公市',
 INSERT INTO "village_district" VALUES('10016010022','pen_councilor','馬公市','東衛里','pen-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10016010025','pen_councilor','馬公市','興仁里','pen-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10016010030','pen_councilor','馬公市','井垵里','pen-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10016010031','pen_councilor','馬公市','[嵵]裡里','pen-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10016010031','pen_councilor','馬公市','嵵裡里','pen-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10016020016','pen_councilor','湖西鄉','城北村','pen-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10016020020','pen_councilor','湖西鄉','尖山村','pen-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10016020021','pen_councilor','湖西鄉','龍門村','pen-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -40083,7 +40083,7 @@ INSERT INTO "village_district" VALUES('10020020056','cyi_councilor','西區','�
 INSERT INTO "village_district" VALUES('10020020057','cyi_councilor','西區','新富里','cyi-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10020010058','cyi_councilor','東區','朝陽里','cyi-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10020010044','cyi_councilor','東區','短竹里','cyi-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
-INSERT INTO "village_district" VALUES('10020020018','cyi_councilor','西區','磚[磘]里','cyi-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
+INSERT INTO "village_district" VALUES('10020020018','cyi_councilor','西區','磚磘里','cyi-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-10-01T23:13:06Z');
 INSERT INTO "village_district" VALUES('10020010042','cyi_councilor','東區','鹿寮里','cyi-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10020020031','cyi_councilor','西區','書院里','cyi-council-02','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
 INSERT INTO "village_district" VALUES('10020010065','cyi_councilor','東區','蘭潭里','cyi-council-01','https://web.cec.gov.tw/api/file/45d8e965-f63a-46d5-b636-7d81e47cf4d1.pdf','2026-09-30T14:24:34Z');
@@ -40551,7 +40551,7 @@ INSERT INTO "village_district" VALUES('65000070012','legislator','樹林區','�
 INSERT INTO "village_district" VALUES('65000070034','legislator','樹林區','文林里','ly-nwt-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000070006','legislator','樹林區','潭底里','ly-nwt-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000070032','legislator','樹林區','金寮里','ly-nwt-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('65000070007','legislator','樹林區','[獇]寮里','ly-nwt-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('65000070007','legislator','樹林區','獇寮里','ly-nwt-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('65000070040','legislator','樹林區','圳民里','ly-nwt-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000030027','legislator','中和區','秀山里','ly-nwt-09','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000030039','legislator','中和區','崇南里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -40844,7 +40844,7 @@ INSERT INTO "village_district" VALUES('65000020018','legislator','三重區','�
 INSERT INTO "village_district" VALUES('65000020041','legislator','三重區','中山里','ly-nwt-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000040044','legislator','永和區','和平里','ly-nwt-09','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000080020','legislator','鶯歌區','建國里','ly-nwt-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('65000200004','legislator','坪林區','石[曹]里','ly-nwt-11','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('65000200004','legislator','坪林區','石𥕢里','ly-nwt-11','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('65000090024','legislator','三峽區','安溪里','ly-nwt-10','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000020015','legislator','三重區','田心里','ly-nwt-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000020060','legislator','三重區','大德里','ly-nwt-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -40949,7 +40949,7 @@ INSERT INTO "village_district" VALUES('65000010084','legislator','板橋區','�
 INSERT INTO "village_district" VALUES('65000010074','legislator','板橋區','福德里','ly-nwt-07','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000040020','legislator','永和區','秀朗里','ly-nwt-09','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000040021','legislator','永和區','秀成里','ly-nwt-09','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('65000030017','legislator','中和區','瓦[磘]里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('65000030017','legislator','中和區','瓦磘里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('65000030087','legislator','中和區','民有里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000010111','legislator','板橋區','華福里','ly-nwt-07','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000040015','legislator','永和區','永安里','ly-nwt-09','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -41157,7 +41157,7 @@ INSERT INTO "village_district" VALUES('65000100027','legislator','淡水區','�
 INSERT INTO "village_district" VALUES('65000030004','legislator','中和區','仁和里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000030052','legislator','中和區','錦和里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000030053','legislator','中和區','錦昌里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('65000030054','legislator','中和區','灰[磘]里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('65000030054','legislator','中和區','灰磘里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('65000030085','legislator','中和區','錦中里','ly-nwt-08','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000230008','legislator','八里區','荖阡里','ly-nwt-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('65000230007','legislator','八里區','訊塘里','ly-nwt-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/65_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -42005,7 +42005,7 @@ INSERT INTO "village_district" VALUES('66000210011','legislator','外埔區','�
 INSERT INTO "village_district" VALUES('66000220001','legislator','大安區','南埔里','ly-txg-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/66_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('66000220002','legislator','大安區','南庄里','ly-txg-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/66_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('66000220003','legislator','大安區','中庄里','ly-txg-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/66_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('66000220004','legislator','大安區','龜[壳]里','ly-txg-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/66_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('66000220004','legislator','大安區','龜売里','ly-txg-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/66_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('66000220005','legislator','大安區','福興里','ly-txg-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/66_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('66000220006','legislator','大安區','東安里','ly-txg-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/66_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('66000220007','legislator','大安區','頂安里','ly-txg-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/66_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -42502,7 +42502,7 @@ INSERT INTO "village_district" VALUES('67000150001','legislator','七股區','�
 INSERT INTO "village_district" VALUES('67000180001','legislator','新化區','武安里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000180012','legislator','新化區','豐榮里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000180003','legislator','新化區','護國里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('67000180018','legislator','新化區','[那]拔里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('67000180018','legislator','新化區','𦰡拔里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('67000200011','legislator','新市區','永就里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000200004','legislator','新市區','大洲里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000200002','legislator','新市區','新和里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -42621,7 +42621,7 @@ INSERT INTO "village_district" VALUES('67000250007','legislator','南化區','�
 INSERT INTO "village_district" VALUES('67000250008','legislator','南化區','玉山里','ly-tnn-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000300007','legislator','龍崎區','龍船里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000300003','legislator','龍崎區','中坑里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('67000300008','legislator','龍崎區','石[曹]里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('67000300008','legislator','龍崎區','石𥕢里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('67000300001','legislator','龍崎區','崎頂里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000300002','legislator','龍崎區','土崎里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000310013','legislator','永康區','東灣里','ly-tnn-04','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -42759,7 +42759,7 @@ INSERT INTO "village_district" VALUES('67000280019','legislator','歸仁區','�
 INSERT INTO "village_district" VALUES('67000280014','legislator','歸仁區','七甲里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000120004','legislator','佳里區','建南里','ly-tnn-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000070011','legislator','麻豆區','大埕里','ly-tnn-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('67000140004','legislator','西港區','[檨]林里','ly-tnn-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('67000140004','legislator','西港區','檨林里','ly-tnn-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('67000140006','legislator','西港區','營西里','ly-tnn-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000280007','legislator','歸仁區','看西里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000280008','legislator','歸仁區','看東里','ly-tnn-06','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -42911,8 +42911,8 @@ INSERT INTO "village_district" VALUES('67000310008','legislator','永康區','�
 INSERT INTO "village_district" VALUES('67000350004','legislator','安南區','州南里','ly-tnn-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000350048','legislator','安南區','布袋里','ly-tnn-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000350005','legislator','安南區','州北里','ly-tnn-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('67000350003','legislator','安南區','[塭]南里','ly-tnn-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('67000350024','legislator','安南區','公[塭]里','ly-tnn-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('67000350003','legislator','安南區','塭南里','ly-tnn-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-10-01T23:13:09Z');
+INSERT INTO "village_district" VALUES('67000350024','legislator','安南區','公塭里','ly-tnn-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('67000350025','legislator','安南區','南興里','ly-tnn-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000360012','legislator','安平區','億載里','ly-tnn-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('67000360008','legislator','安平區','平通里','ly-tnn-05','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/67_000_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -44626,7 +44626,7 @@ INSERT INTO "village_district" VALUES('10007070003','legislator','秀水鄉','�
 INSERT INTO "village_district" VALUES('10007090012','legislator','芬園鄉','同安村','ly-cha-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10007090013','legislator','芬園鄉','中崙村','ly-cha-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10007010057','legislator','彰化市','三村里','ly-cha-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10007010030','legislator','彰化市','磚[磘]里','ly-cha-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10007010030','legislator','彰化市','磚磘里','ly-cha-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10007010002','legislator','彰化市','下廍里','ly-cha-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10007010058','legislator','彰化市','國聖里','ly-cha-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10007010069','legislator','彰化市','田中里','ly-cha-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -44719,7 +44719,7 @@ INSERT INTO "village_district" VALUES('10007200004','legislator','二林鎮','�
 INSERT INTO "village_district" VALUES('10007200005','legislator','二林鎮','中西里','ly-cha-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10007200006','legislator','二林鎮','廣興里','ly-cha-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10007140009','legislator','埔鹽鄉','角樹村','ly-cha-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10007140010','legislator','埔鹽鄉','瓦[磘]村','ly-cha-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10007140010','legislator','埔鹽鄉','瓦磘村','ly-cha-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10007140011','legislator','埔鹽鄉','好修村','ly-cha-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10007140012','legislator','埔鹽鄉','西湖村','ly-cha-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10007140013','legislator','埔鹽鄉','大有村','ly-cha-03','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_007_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -45411,7 +45411,7 @@ INSERT INTO "village_district" VALUES('10008030016','legislator','草屯鎮','�
 INSERT INTO "village_district" VALUES('10008130016','legislator','仁愛鄉','都達村','ly-nan-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_008_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10008120004','legislator','信義鄉','明德村','ly-nan-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_008_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10008070004','legislator','鹿谷鄉','廣興村','ly-nan-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_008_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10008040005','legislator','竹山鎮','硘[磘]里','ly-nan-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_008_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10008040005','legislator','竹山鎮','硘磘里','ly-nan-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_008_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10008040010','legislator','竹山鎮','德興里','ly-nan-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_008_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10008070003','legislator','鹿谷鄉','彰雅村','ly-nan-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_008_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10008040013','legislator','竹山鎮','延山里','ly-nan-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_008_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -45450,7 +45450,7 @@ INSERT INTO "village_district" VALUES('10009010014','legislator','斗六市','�
 INSERT INTO "village_district" VALUES('10009010013','legislator','斗六市','林頭里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009010002','legislator','斗六市','仁愛里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009010003','legislator','斗六市','信義里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10009200021','legislator','水林鄉','[欍]埔村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10009200021','legislator','水林鄉','瓊埔村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10009020021','legislator','斗南鎮','小東里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009020023','legislator','斗南鎮','大同里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009020024','legislator','斗南鎮','僑真里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -45562,7 +45562,7 @@ INSERT INTO "village_district" VALUES('10009110012','legislator','二崙鄉','�
 INSERT INTO "village_district" VALUES('10009110013','legislator','二崙鄉','油車村','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009120008','legislator','崙背鄉','五魁村','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009120012','legislator','崙背鄉','舊庄村','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10009130003','legislator','麥寮鄉','瓦[磘]村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10009130003','legislator','麥寮鄉','瓦磘村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10009130005','legislator','麥寮鄉','崙後村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009130006','legislator','麥寮鄉','後安村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009170002','legislator','元長鄉','長北村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -45718,7 +45718,7 @@ INSERT INTO "village_district" VALUES('10009170021','legislator','元長鄉','�
 INSERT INTO "village_district" VALUES('10009200006','legislator','水林鄉','西井村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009200007','legislator','水林鄉','車港村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009200008','legislator','水林鄉','蘇秦村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10009170018','legislator','元長鄉','瓦[磘]村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10009170018','legislator','元長鄉','瓦磘村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10009180004','legislator','四湖鄉','鹿場村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009180008','legislator','四湖鄉','蔡厝村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009200014','legislator','水林鄉','大溝村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -45808,8 +45808,8 @@ INSERT INTO "village_district" VALUES('10009010031','legislator','斗六市','�
 INSERT INTO "village_district" VALUES('10009010029','legislator','斗六市','溪洲里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009080002','legislator','大埤鄉','南和村','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009080001','legislator','大埤鄉','北和村','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10009180021','legislator','四湖鄉','[萡]東村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10009180016','legislator','四湖鄉','[萡]子村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10009180021','legislator','四湖鄉','萡東村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-10-01T23:13:09Z');
+INSERT INTO "village_district" VALUES('10009180016','legislator','四湖鄉','萡子村','ly-yun-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10009040011','legislator','西螺鎮','新安里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009040012','legislator','西螺鎮','新豐里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10009040015','legislator','西螺鎮','安定里','ly-yun-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_009_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -46315,7 +46315,7 @@ INSERT INTO "village_district" VALUES('10013240004','legislator','滿州鄉','�
 INSERT INTO "village_district" VALUES('10013040013','legislator','恆春鎮','大光里','ly-pif-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_013_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10013040014','legislator','恆春鎮','水泉里','ly-pif-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_013_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10013040017','legislator','恆春鎮','鵝鑾里','ly-pif-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_013_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10013170001','legislator','新園鄉','瓦[磘]村','ly-pif-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_013_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10013170001','legislator','新園鄉','瓦磘村','ly-pif-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_013_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10013170003','legislator','新園鄉','田洋村','ly-pif-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_013_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10013050026','legislator','萬丹鄉','灣內村','ly-pif-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_013_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10013050023','legislator','萬丹鄉','香社村','ly-pif-02','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_013_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -47021,7 +47021,7 @@ INSERT INTO "village_district" VALUES('10016010019','legislator','馬公市','�
 INSERT INTO "village_district" VALUES('10016010022','legislator','馬公市','東衛里','ly-pen-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_016_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10016010025','legislator','馬公市','興仁里','ly-pen-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_016_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10016010030','legislator','馬公市','井垵里','ly-pen-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_016_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10016010031','legislator','馬公市','[嵵]裡里','ly-pen-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_016_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10016010031','legislator','馬公市','嵵裡里','ly-pen-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_016_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10016020016','legislator','湖西鄉','城北村','ly-pen-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_016_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10016020020','legislator','湖西鄉','尖山村','ly-pen-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_016_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10016020021','legislator','湖西鄉','龍門村','ly-pen-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_016_00_000_0000.json','2026-09-30T14:24:36Z');
@@ -47401,7 +47401,7 @@ INSERT INTO "village_district" VALUES('10020020056','legislator','西區','永�
 INSERT INTO "village_district" VALUES('10020020057','legislator','西區','新富里','ly-cyi-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_020_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10020010058','legislator','東區','朝陽里','ly-cyi-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_020_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10020010044','legislator','東區','短竹里','ly-cyi-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_020_00_000_0000.json','2026-09-30T14:24:36Z');
-INSERT INTO "village_district" VALUES('10020020018','legislator','西區','磚[磘]里','ly-cyi-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_020_00_000_0000.json','2026-09-30T14:24:36Z');
+INSERT INTO "village_district" VALUES('10020020018','legislator','西區','磚磘里','ly-cyi-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_020_00_000_0000.json','2026-10-01T23:13:09Z');
 INSERT INTO "village_district" VALUES('10020010042','legislator','東區','鹿寮里','ly-cyi-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_020_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10020020031','legislator','西區','書院里','ly-cyi-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_020_00_000_0000.json','2026-09-30T14:24:36Z');
 INSERT INTO "village_district" VALUES('10020010065','legislator','東區','蘭潭里','ly-cyi-01','https://db.cec.gov.tw/static/elections/data/areas/ELC/L0/L1/9c96a2080bfc199c590ec54f3a2bda7b/L/10_020_00_000_0000.json','2026-09-30T14:24:36Z');
