@@ -354,7 +354,7 @@ function bulletinSection(facts, notes) {
   return `<section aria-labelledby="k-bulletin"><h2 id="k-bulletin" tabindex="-1">2022 選舉公報</h2>${body}</section>`;
 }
 
-// 前科資訊：只要有 2026 參選資料就顯示。只列 final === true 的確定判決，照原文呈現不加評語；
+// 確定有罪判決：只要有 2026 參選資料就顯示（用詞依刑法第 76 條，不稱「前科」）。只列 final === true 的確定判決，照原文呈現不加評語；
 // 沒有資料時只說「尚未收錄」，任何情況都不寫成沒有前科（見 docs/PLAN.md §6 G5）
 export const JUDICIAL_SEARCH = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
 export const TAIWANGOGO = 'https://council2026.taiwangogo.tw/';
@@ -376,11 +376,11 @@ export function criminalRecordSection(facts) {
     </dl></li>`;
   }).join('');
   const status = list.length
-    ? `<p class="count">本站收錄 <span class="num">${list.length}</span> 筆經查證的確定判決。</p><ol class="convictions">${rows}</ol>`
-    : '<p class="count">本站尚未收錄經查證的確定判決。</p>';
-  return `<section aria-labelledby="k-crime"><h2 id="k-crime">前科資訊</h2>
+    ? `<p class="count">本站收錄 <span class="num">${list.length}</span> 筆經查證的確定有罪判決。</p><ol class="convictions">${rows}</ol>`
+    : '<p class="count">本站尚未收錄經查證的確定有罪判決。</p>';
+  return `<section aria-labelledby="k-crime"><h2 id="k-crime">確定有罪判決</h2>
     ${status}
-    <p class="small muted">本站只收錄司法院公開、可佐證身分的確定判決，並附判決字號與原文連結。選舉公報依法不刊登前科（公職人員選舉罷免法第47條）。</p>
+    <p class="small muted">本站只收錄司法院公開、已確定且可佐證身分的有罪判決，並附判決字號與原文連結；無法確認已確定或無法佐證身分的判決不收錄。本站的查證以第三方資料庫列出的線索為起點，沒有涵蓋所有候選人，「尚未收錄」不代表查無判決。選舉公報依法不刊登前科（公職人員選舉罷免法第47條）。</p>
     <h3>查詢入口</h3>
     <ul class="portals">
       <li>${ext(JUDICIAL_SEARCH, '司法院裁判書查詢系統')}<span class="muted small">（官方）</span></li>

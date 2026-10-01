@@ -171,12 +171,12 @@ const BANNED = /無前科|沒有前科|清白/;
 test('criminal record section shows only when the person has a candidacy', () => {
   assert.equal(criminalRecordSection({}), '');
   assert.equal(criminalRecordSection({ office: [{}], conviction: [conv('2020-01-01')] }), '');
-  assert.match(criminalRecordSection({ candidacy: cand }), /<h2 id="k-crime">前科資訊<\/h2>/);
+  assert.match(criminalRecordSection({ candidacy: cand }), /<h2 id="k-crime">確定有罪判決<\/h2>/);
 });
 
 test('without convictions shows the status line, both portals in order and the full disclosure', () => {
   const html = criminalRecordSection({ candidacy: cand });
-  assert.match(html, /本站尚未收錄經查證的確定判決。/);
+  assert.match(html, /本站尚未收錄經查證的確定有罪判決。/);
   assert.match(html, /選舉公報依法不刊登前科（公職人員選舉罷免法第47條）。/);
   assert.ok(html.includes(TAIWANGOGO_NOTE));
   assert.ok(TAIWANGOGO_NOTE.endsWith('本站未查證其內容，提供連結不代表本站認同或背書。'));
@@ -196,7 +196,7 @@ test('taiwangogo link is site-level with noopener noreferrer nofollow', () => {
 
 test('convictions render newest first with court, linked case number, date, offense and result', () => {
   const html = criminalRecordSection({ candidacy: cand, conviction: [conv('2019-03-01'), conv('2021-07-01')] });
-  assert.match(html, /本站收錄 <span class="num">2<\/span> 筆經查證的確定判決。/);
+  assert.match(html, /本站收錄 <span class="num">2<\/span> 筆經查證的確定有罪判決。/);
   assert.ok(html.indexOf('2021-07-01') < html.indexOf('2019-03-01'));
   assert.match(html, /<a href="https:\/\/judgment\.judicial\.gov\.tw\/FJUD\/data\.aspx\?ty=JD&#38;id=2021-07-01" target="_blank" rel="noopener">111年度訴字第07號<\/a>/);
   for (const s of ['臺灣臺北地方法院', '詐欺', '有期徒刑6月']) assert.ok(html.includes(s), s);
@@ -208,7 +208,7 @@ test('convictions whose final is not exactly true are never shown', () => {
   const html = criminalRecordSection({ candidacy: cand, conviction: [conv('2020-01-01', { final: false }), conv('2020-02-01', { final: 'true' }), conv('2020-03-01', { final: undefined }), conv('2018-05-01')] });
   assert.match(html, /本站收錄 <span class="num">1<\/span> 筆/);
   for (const d of ['2020-01-01', '2020-02-01', '2020-03-01']) assert.ok(!html.includes(d), d);
-  assert.match(criminalRecordSection({ candidacy: cand, conviction: [conv('2020-01-01', { final: false })] }), /本站尚未收錄經查證的確定判決。/);
+  assert.match(criminalRecordSection({ candidacy: cand, conviction: [conv('2020-01-01', { final: false })] }), /本站尚未收錄經查證的確定有罪判決。/);
 });
 
 test('criminal record section never says the person has no record', () => {
@@ -226,4 +226,11 @@ test('incumbent heading follows the district office: mayor, county magistrate or
 test('office source label is the election result for mayors and the council roster otherwise', () => {
   assert.equal(officeSourceLabel('tpe_mayor'), '選舉結果');
   assert.equal(officeSourceLabel('tpe_councilor'), '議員名冊');
+});
+
+test('criminal-record section discloses that verification starts from third-party leads', () => {
+  const html = criminalRecordSection({ candidacy: [{ data: {} }] });
+  assert.match(html, /沒有涵蓋所有候選人/);
+  assert.match(html, /「尚未收錄」不代表查無判決/);
+  assert.doesNotMatch(html, /前科資訊/);
 });
