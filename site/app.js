@@ -441,7 +441,7 @@ export function criminalRecordSection(facts) {
   const status = list.length
     ? `<p class="count">本站收錄 <span class="num">${list.length}</span> 筆經查證的確定有罪判決。</p><ol class="convictions">${rows}</ol>`
     : '<p class="count">本站尚未收錄經查證的確定有罪判決。</p>';
-  return `<section aria-labelledby="k-crime"><h2 id="k-crime">確定有罪判決</h2>
+  return `<section aria-labelledby="k-crime"><h2 id="k-crime">確定有罪判決查詢</h2>
     ${status}
     <p class="small muted">本站只收錄司法院公開、已確定且可佐證身分的有罪判決，並附判決字號與原文連結；無法確認已確定或無法佐證身分的判決不收錄。本站的查證以第三方資料庫列出的線索為起點，沒有涵蓋所有候選人，「尚未收錄」不代表查無判決。選舉公報依法不刊登前科（公職人員選舉罷免法第47條）。</p>
     <h3>查詢入口</h3>

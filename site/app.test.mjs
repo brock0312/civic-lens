@@ -171,7 +171,7 @@ const BANNED = /無前科|沒有前科|清白/;
 test('criminal record section shows only when the person has a candidacy', () => {
   assert.equal(criminalRecordSection({}), '');
   assert.equal(criminalRecordSection({ office: [{}], conviction: [conv('2020-01-01')] }), '');
-  assert.match(criminalRecordSection({ candidacy: cand }), /<h2 id="k-crime">確定有罪判決<\/h2>/);
+  assert.match(criminalRecordSection({ candidacy: cand }), /<h2 id="k-crime">確定有罪判決查詢<\/h2>/);
 });
 
 test('without convictions shows the status line, both portals in order and the full disclosure', () => {
