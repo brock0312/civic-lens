@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { councilDistrictFor, taipeiVillages, townsOf, fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE } from './app.js';
+import { councilDistrictFor, taipeiVillages, townsOf, fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel } from './app.js';
 
 const EXPECTED = {
   北投區: '01', 士林區: '01', 內湖區: '02', 南港區: '02', 松山區: '03', 信義區: '03',
@@ -215,4 +215,15 @@ test('criminal record section never says the person has no record', () => {
   for (const facts of [{ candidacy: cand }, { candidacy: cand, conviction: [conv('2020-01-01')] }, { candidacy: cand, conviction: [conv('2020-01-01', { final: false })] }]) {
     assert.doesNotMatch(criminalRecordSection(facts), BANNED);
   }
+});
+
+test('incumbent heading follows the district office: mayor, county magistrate or councilor', () => {
+  assert.equal(incumbentHeading({ office: 'tpe_mayor', name: '臺北市' }), '現任市長');
+  assert.equal(incumbentHeading({ office: 'hsq_mayor', name: '新竹縣' }), '現任縣長');
+  assert.equal(incumbentHeading({ office: 'tpe_councilor', name: '臺北市第01選舉區' }), '現任議員');
+});
+
+test('office source label is the election result for mayors and the council roster otherwise', () => {
+  assert.equal(officeSourceLabel('tpe_mayor'), '選舉結果');
+  assert.equal(officeSourceLabel('tpe_councilor'), '議員名冊');
 });

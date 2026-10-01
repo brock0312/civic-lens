@@ -90,6 +90,15 @@ export function bulletinGaps(facts) {
   };
 }
 
+// 現任者的段落標題與出處標籤依職位決定：首長選區用市長／縣長（依選區名稱有無「縣」），其餘為議員
+const isHead = (office) => String(office || '').endsWith('_mayor');
+export function incumbentHeading(d) {
+  if (!isHead(d.office)) return '現任議員';
+  return String(d.name || '').includes('縣') ? '現任縣長' : '現任市長';
+}
+// 議員來自議會名冊；首長來自中選會選舉結果
+export const officeSourceLabel = (office) => (isHead(office) ? '選舉結果' : '議員名冊');
+
 // 更正表單：匿名 Google 表單（不需登入、不收集 Email）；清成空字串時頁面會顯示「更正表單準備中」
 export const CORRECTION_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdoxikbfSY2jzSlQ70YUTU9AYWbg_CjDhYaIvSe8cWubhgXyQ/viewform';
 
@@ -263,7 +272,7 @@ function renderDistrict(main, ctx, id) {
   const registered = cands.some((p) => p.data.status === 'registered');
   const seatsFn = notes.ref(d.source_url, d.fetched_at, '應選名額公告');
   const candRows = cands.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '候選人登記名冊', p.data.publisher), ctx.parties, officeIds.has(p.person_id))).join('');
-  const officeRows = office.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '議員名冊'), ctx.parties, false)).join('');
+  const officeRows = office.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, officeSourceLabel(p.data.office)), ctx.parties, false)).join('');
 
   main.innerHTML = `
     <h1 tabindex="-1">${esc(districtTitle(d))}</h1>
@@ -278,7 +287,7 @@ function renderDistrict(main, ctx, id) {
       ${registered ? '<p class="status" role="note">名單依臺北市選委會 115-09-08 登記冊，尚未經審定；號次將於官方名單公告（市長 11/12、議員 11/17）後補上。</p>' : ''}
       ${cands.length ? `<ol class="roster">${candRows}</ol><p class="small muted">依官方登記順序排列，非選票號次。</p>` : '<p class="muted">尚無候選人資料。</p>'}
     </section>
-    ${office.length ? `<section aria-labelledby="office-h"><h2 id="office-h">現任議員</h2>
+    ${office.length ? `<section aria-labelledby="office-h"><h2 id="office-h">${incumbentHeading(d)}</h2>
       <ul class="roster">${officeRows}</ul></section>` : ''}
     ${notes.render()}`;
 }
@@ -447,7 +456,7 @@ async function renderPerson(main, ctx, id) {
 
   const office = offices.map((f) => `<li><span class="name">${esc(f.data.title || OFFICE_LABEL[f.data.office] || '')}</span>
       <span>${districtLink(f.data.district_id)}</span>
-      <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, '議員名冊')}</span></li>`).join('');
+      <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office))}</span></li>`).join('');
 
   const bulletin = bulletinSection(facts, notes);
   const jump = facts.profile?.length || facts.platform?.length ? 'k-platform' : bulletin && 'k-bulletin';
