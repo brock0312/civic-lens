@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { councilDistrictFor, taipeiVillages, townsOf, fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps } from './app.js';
+import { councilDistrictFor, taipeiVillages, townsOf, fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE } from './app.js';
 
 const EXPECTED = {
   北投區: '01', 士林區: '01', 內湖區: '02', 南港區: '02', 松山區: '03', 信義區: '03',
@@ -159,4 +159,60 @@ test('taipeiVillages drops same-named towns from other counties', () => {
   ];
   assert.deepEqual(councilDistrictFor(mixed, '中正區', 'none'), null);
   assert.equal(councilDistrictFor(taipeiVillages(mixed), '中正區', 'none'), 'tpe-council-05');
+});
+
+const cand = [{ data: { office: 'tpe_councilor', district_id: 'tpe-council-01' } }];
+const conv = (judgment_date, extra = {}) => ({
+  source_url: `https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id=${judgment_date}`,
+  data: { court: '臺灣臺北地方法院', case_no: `111年度訴字第${judgment_date.slice(5, 7)}號`, judgment_date, offense: '詐欺', result: '有期徒刑6月', final: true, title: 't', ...extra },
+});
+const BANNED = /無前科|沒有前科|清白/;
+
+test('criminal record section shows only when the person has a candidacy', () => {
+  assert.equal(criminalRecordSection({}), '');
+  assert.equal(criminalRecordSection({ office: [{}], conviction: [conv('2020-01-01')] }), '');
+  assert.match(criminalRecordSection({ candidacy: cand }), /<h2 id="k-crime">前科資訊<\/h2>/);
+});
+
+test('without convictions shows the status line, both portals in order and the full disclosure', () => {
+  const html = criminalRecordSection({ candidacy: cand });
+  assert.match(html, /本站尚未收錄經查證的確定判決。/);
+  assert.match(html, /選舉公報依法不刊登前科（公職人員選舉罷免法第47條）。/);
+  assert.ok(html.includes(TAIWANGOGO_NOTE));
+  assert.ok(TAIWANGOGO_NOTE.endsWith('本站未查證其內容，提供連結不代表本站認同或背書。'));
+  const j = html.indexOf(`href="${JUDICIAL_SEARCH}"`);
+  const g = html.indexOf('href="https://council2026.taiwangogo.tw/"');
+  assert.ok(j > 0 && g > j, 'judicial portal comes first');
+});
+
+test('taiwangogo link is site-level with noopener noreferrer nofollow', () => {
+  const html = criminalRecordSection({ candidacy: cand });
+  const links = [...html.matchAll(/<a href="([^"]*taiwangogo[^"]*)"([^>]*)>/g)];
+  assert.equal(links.length, 1);
+  assert.equal(links[0][1], 'https://council2026.taiwangogo.tw/');
+  assert.match(links[0][2], /rel="noopener noreferrer nofollow"/);
+  assert.match(links[0][2], /target="_blank"/);
+});
+
+test('convictions render newest first with court, linked case number, date, offense and result', () => {
+  const html = criminalRecordSection({ candidacy: cand, conviction: [conv('2019-03-01'), conv('2021-07-01')] });
+  assert.match(html, /本站收錄 <span class="num">2<\/span> 筆經查證的確定判決。/);
+  assert.ok(html.indexOf('2021-07-01') < html.indexOf('2019-03-01'));
+  assert.match(html, /<a href="https:\/\/judgment\.judicial\.gov\.tw\/FJUD\/data\.aspx\?ty=JD&#38;id=2021-07-01" target="_blank" rel="noopener">111年度訴字第07號<\/a>/);
+  for (const s of ['臺灣臺北地方法院', '詐欺', '有期徒刑6月']) assert.ok(html.includes(s), s);
+  assert.ok(html.includes('council2026.taiwangogo.tw') && html.includes(TAIWANGOGO_NOTE), 'portals kept below');
+  assert.ok(!html.includes('本站尚未收錄'));
+});
+
+test('convictions whose final is not exactly true are never shown', () => {
+  const html = criminalRecordSection({ candidacy: cand, conviction: [conv('2020-01-01', { final: false }), conv('2020-02-01', { final: 'true' }), conv('2020-03-01', { final: undefined }), conv('2018-05-01')] });
+  assert.match(html, /本站收錄 <span class="num">1<\/span> 筆/);
+  for (const d of ['2020-01-01', '2020-02-01', '2020-03-01']) assert.ok(!html.includes(d), d);
+  assert.match(criminalRecordSection({ candidacy: cand, conviction: [conv('2020-01-01', { final: false })] }), /本站尚未收錄經查證的確定判決。/);
+});
+
+test('criminal record section never says the person has no record', () => {
+  for (const facts of [{ candidacy: cand }, { candidacy: cand, conviction: [conv('2020-01-01')] }, { candidacy: cand, conviction: [conv('2020-01-01', { final: false })] }]) {
+    assert.doesNotMatch(criminalRecordSection(facts), BANNED);
+  }
 });

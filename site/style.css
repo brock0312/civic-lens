@@ -173,6 +173,14 @@ section.inter:first-of-type h3 { margin-top: 0; }
 .platform { white-space: pre-wrap; margin: 0 0 8px; max-width: 40em; }
 .src { font-size: 0.875rem; color: var(--muted); margin: 8px 0 0; }
 
+/* 前科資訊 */
+.convictions { list-style: none; padding: 0; margin: 0 0 12px; }
+.convictions li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.convictions li:first-child { border-top: 1px solid var(--line); }
+.portals { padding-left: 1.25em; margin: 0; }
+.portals li { margin: 0 0 8px; }
+.portals p { margin: 4px 0 0; max-width: 40em; }
+
 /* 腳註 */
 .notes ul { list-style: none; padding: 0; margin: 0; font-size: 0.875rem; color: var(--ink-2); }
 .notes li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); padding: 3px 0; }

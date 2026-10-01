@@ -345,6 +345,41 @@ function bulletinSection(facts, notes) {
   return `<section aria-labelledby="k-bulletin"><h2 id="k-bulletin" tabindex="-1">2022 選舉公報</h2>${body}</section>`;
 }
 
+// 前科資訊：只要有 2026 參選資料就顯示。只列 final === true 的確定判決，照原文呈現不加評語；
+// 沒有資料時只說「尚未收錄」，任何情況都不寫成沒有前科（見 docs/PLAN.md §6 G5）
+export const JUDICIAL_SEARCH = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
+export const TAIWANGOGO = 'https://council2026.taiwangogo.tw/';
+export const TAIWANGOGO_NOTE = '該網站由台灣前進經營，時代力量代管，並與時代力量、台灣基進、台灣綠黨、小民參政歐巴桑聯盟合作。收錄範圍包含起訴、行政罰、民事判決與新聞報導。起訴不等於有罪，行政罰與民事判決也不是刑事前科。本站未查證其內容，提供連結不代表本站認同或背書。';
+
+export function criminalRecordSection(facts) {
+  if (!(facts.candidacy || []).length) return '';
+  const list = (facts.conviction || []).filter((f) => f.data?.final === true)
+    .sort((a, b) => String(b.data.judgment_date || '').localeCompare(String(a.data.judgment_date || '')));
+  const rows = list.map((f) => {
+    const d = f.data;
+    const u = safeUrl(f.source_url);
+    return `<li><dl class="facts">
+      <dt>法院</dt><dd>${esc(d.court)}</dd>
+      <dt>判決字號</dt><dd>${u ? ext(u, esc(d.case_no)) : esc(d.case_no)}</dd>
+      <dt>判決日期</dt><dd><time datetime="${esc(d.judgment_date)}">${esc(d.judgment_date)}</time></dd>
+      <dt>罪名</dt><dd>${esc(d.offense)}</dd>
+      <dt>判決結果</dt><dd>${esc(d.result)}</dd>
+    </dl></li>`;
+  }).join('');
+  const status = list.length
+    ? `<p class="count">本站收錄 <span class="num">${list.length}</span> 筆經查證的確定判決。</p><ol class="convictions">${rows}</ol>`
+    : '<p class="count">本站尚未收錄經查證的確定判決。</p>';
+  return `<section aria-labelledby="k-crime"><h2 id="k-crime">前科資訊</h2>
+    ${status}
+    <p class="small muted">本站只收錄司法院公開、可佐證身分的確定判決，並附判決字號與原文連結。選舉公報依法不刊登前科（公職人員選舉罷免法第47條）。</p>
+    <h3>查詢入口</h3>
+    <ul class="portals">
+      <li>${ext(JUDICIAL_SEARCH, '司法院裁判書查詢系統')}<span class="muted small">（官方）</span></li>
+      <li><a href="${TAIWANGOGO}" target="_blank" rel="noopener noreferrer nofollow">council2026.taiwangogo.tw</a>
+        <p class="small muted">${TAIWANGOGO_NOTE}</p></li>
+    </ul></section>`;
+}
+
 // 摘要卡「說過什麼｜做了什麼」：只是事實計數，不排序、不比較、不評語
 function summaryCard(facts, { offices, inters, written, videos, jump }) {
   const said = `<div class="said"><h2>說過什麼</h2>
@@ -426,6 +461,7 @@ async function renderPerson(main, ctx, id) {
     ${lead ? `<p class="byline">${party(lead.data.party, ctx.parties)}<span>${districtLink(lead.data.district_id)}</span></p>` : ''}
     ${summaryCard(facts, { offices, inters, written, videos, jump })}
     ${cand ? `<section aria-labelledby="k-cand"><h2 id="k-cand">2026 參選</h2>${cand}</section>` : ''}
+    ${criminalRecordSection(facts)}
     ${office ? `<section aria-labelledby="k-office"><h2 id="k-office">任職</h2><ul class="roster office">${office}</ul></section>` : ''}
     ${bulletin}
     ${inter}
