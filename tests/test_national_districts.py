@@ -181,6 +181,22 @@ class TestMoiVillages(unittest.TestCase):
         self.assertEqual(moi.villages_from_zip(buf.getvalue()),
                          [{"VILLCODE": "10004010001", "COUNTYNAME": "新竹縣", "VILLNAME": "尚義里"}])
 
+    def zip_of(self, records):
+        fields = [("VILLCODE", 11), ("TOWNNAME", 9), ("VILLNAME", 12)]
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("VILLAGE_NLSC_1150817.dbf", dbf(fields, [(b" ", r) for r in records]))
+        return buf.getvalue()
+
+    def test_replaces_bracketed_glyphs_with_cec_spelling_by_villcode(self):
+        got = moi.villages_from_zip(self.zip_of([["65000200004", "坪林區", "石[曹]里"],
+                                                 ["10007140010", "埔鹽鄉", "瓦[磘]村"]]))
+        self.assertEqual([v["VILLNAME"] for v in got], ["石\U00025562里", "瓦磘村"])
+
+    def test_raises_when_a_bracketed_name_has_no_cec_mapping(self):
+        with self.assertRaises(ValueError):
+            moi.villages_from_zip(self.zip_of([["99999999999", "某鄉", "[X]村"]]))
+
 
 if __name__ == "__main__":
     unittest.main()
