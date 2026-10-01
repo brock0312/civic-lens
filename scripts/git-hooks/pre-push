@@ -1,0 +1,25 @@
+#!/bin/sh
+# civic-lens 本機防線：只准推 main，且推出去的 dump 不得含生日（見 README「資料更新」）
+while read local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" != "refs/heads/main" ]; then
+    echo "pre-push: 只能推 main，拒絕推送 $local_ref -> $remote_ref" >&2
+    exit 1
+  fi
+  if [ "$local_sha" != "0000000000000000000000000000000000000000" ]; then
+    bad=$(git show "$local_sha:data/civic.sql" 2>/dev/null | grep '^INSERT INTO "person" VALUES' | grep -vc ',NULL,NULL);$')
+    if [ "${bad:-0}" != "0" ]; then
+      echo "pre-push: data/civic.sql 有 $bad 筆 person 列含生日，拒絕推送" >&2
+      exit 1
+    fi
+  fi
+  if [ "$local_sha" != "0000000000000000000000000000000000000000" ]; then
+    for f in $(git ls-tree -r --name-only "$local_sha" -- data/summaries/ 2>/dev/null | grep -E '^data/summaries/14-[0-9]+\.json$'); do
+      status=$(git show "$local_sha:$f" | python3 -c "import json,sys; print((json.load(sys.stdin).get('review') or {}).get('status',''))" 2>/dev/null)
+      if [ "$status" != "approved" ]; then
+        echo "pre-push: $f 的 review.status 是「${status:-（無）}」，未審閱通過的摘要不得推上公開 repo" >&2
+        exit 1
+      fi
+    done
+  fi
+done
+exit 0
