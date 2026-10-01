@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>civic-lens 臺北市選區查詢</title>
+<meta name="description" content="選擇行政區，查看你所在選區的 2026 臺北市議員與市長候選人，每筆資料附原始出處。">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <nav aria-label="網站">
+    <a class="brand" href="#/">civic-lens</a><span class="brand-sub">臺北市 2026 選區查詢</span>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+  <noscript>
+    <p>本站需要啟用 JavaScript 才能查詢選區與候選人。若無法啟用，可直接查閱
+    <a href="https://www.cec.gov.tw/">中央選舉委員會</a>與
+    <a href="https://election.gov.taipei/">臺北市選舉委員會</a>公告的原始資料。</p>
+  </noscript>
+  <p id="loading" class="muted">資料載入中</p>
+</main>
+<footer class="site-footer">
+  <p>本站是個人維運的非官方網站，與中央選舉委員會、各地方選舉委員會、各議會，以及任何政黨、候選人都沒有隸屬、合作或資助關係。本站只收錄法定公開資料，每筆都附原始出處與擷取時間。資料可能因為來源更新，或本站擷取、解析錯誤，而與原始文件不一致，一律以原始出處的官方公告為準。本站不評分、不排名、不做政治立場判斷。列出或未列出任何紀錄，都不代表對任何人的評價。</p>
+  <p>資料來源：<a href="https://www.cec.gov.tw/" target="_blank" rel="noopener">中央選舉委員會</a>、<a href="https://election.gov.taipei/" target="_blank" rel="noopener">臺北市選舉委員會</a>、<a href="https://www.tcc.gov.tw/" target="_blank" rel="noopener">臺北市議會</a>、內政部（政黨標章）</p>
+  <p>資料更新時間：<span id="updated" class="num">載入中</span></p>
+  <p id="emblem-src" hidden></p>
+  <p>政黨標章權利屬於各政黨，僅用於辨識候選人的推薦政黨，不代表各政黨認可本站。政黨如果不同意使用，請透過更正管道告知，本站會改為只顯示文字。</p>
+  <p><a href="#/about/corrections">更正與當事人說明</a></p>
+  <section class="ext" aria-labelledby="ext-h">
+    <h2 id="ext-h">其他參考資源</h2>
+    <p><a href="https://council2026.taiwangogo.tw/" target="_blank" rel="noopener noreferrer nofollow">council2026.taiwangogo.tw</a></p>
+    <p>該網站由台灣前進經營，時代力量代管，並與時代力量、台灣基進、台灣綠黨、小民參政歐巴桑聯盟合作。收錄範圍包含起訴、行政罰、民事判決與新聞報導。起訴不等於有罪，行政罰與民事判決也不是刑事前科。本站未查證其內容，提供連結不代表本站認同或背書。查證刑事判決，請以<a href="https://judgment.judicial.gov.tw/FJUD/default.aspx" target="_blank" rel="noopener">司法院裁判書查詢系統</a>的確定判決為準。</p>
+  </section>
+</footer>
+</body>
+</html>

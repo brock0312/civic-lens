@@ -1,0 +1,47 @@
+import sys
+import traceback
+from pathlib import Path
+
+from etl.db import open_db, dump
+from etl.export import export
+from etl.sources import (
+    national_candidates, national_districts, national_legislators, tcc_attendance, tcc_councilors,
+    tcc_interpellations, tcc_videos, tpe_bulletin_2022, tpe_candidates, tpe_districts,
+)
+
+ROOT = Path(__file__).resolve().parent.parent
+
+# 每個模組提供 run(conn)；districts 要先跑（FK）；公報要在 tcc_councilors（寫生日）與 tpe_candidates（登記冊對照）之後
+# national_candidates 要在 national_districts（名額核對）與 tpe_candidates（臺北交叉核對）之後
+# tcc_attendance 要在 tcc_councilors（identity 對照）之後
+SOURCES = [
+    tpe_districts, tpe_candidates, national_districts, national_legislators, national_candidates,
+    tcc_councilors, tcc_interpellations, tcc_videos, tcc_attendance, tpe_bulletin_2022,
+]
+
+
+def main():
+    db_path = ROOT / "data" / "civic.db"
+    dump_path = ROOT / "data" / "civic.sql"
+    conn = open_db(db_path, dump_path)
+
+    had_failure = False
+    for source in SOURCES:
+        try:
+            source.run(conn)
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            traceback.print_exc()
+            had_failure = True
+
+    # 先 dump 再 export：export 出錯時，已成功抓到的資料仍會被保存
+    dump(conn, dump_path)
+    export(conn, ROOT / "site" / "data")
+
+    if had_failure:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,153 @@
+{
+ "GetList": [
+  {
+   "Title": "第14屆第08次定期大會市政總質詢",
+   "Date": "2026/09/11 13:20~16:36",
+   "ViewCount": "337",
+   "Url": "https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=36f899ab-94ec-4102-bdd5-a55fa89cdd22",
+   "Type": "大會",
+   "StartTime": "2026-09-11T13:20:06"
+  },
+  {
+   "Title": "第14屆第08次定期大會警政衛生部門質詢",
+   "Date": "2026/08/11 13:20~18:19",
+   "ViewCount": "448",
+   "Url": "https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=a1b99608-bad0-4b68-9bba-c7259e0dd700",
+   "Type": "大會",
+   "StartTime": "2026-08-11T13:20:12"
+  },
+  {
+   "Title": "第14屆第06次定期大會交通部門質詢",
+   "Date": "2025/11/13 13:20~18:33",
+   "ViewCount": "246",
+   "Url": "https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=9f8c1e2f-8e8b-4f0b-b07c-12f94654e28b",
+   "Type": "大會",
+   "StartTime": "2025-11-13T13:20:16"
+  },
+  {
+   "Title": "第13屆第08次定期大會市政總質詢",
+   "Date": "2022/09/13 13:20~15:54",
+   "ViewCount": "318",
+   "Url": "https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=92f11ca8-7b04-44b3-8866-039decab098f",
+   "Type": "大會",
+   "StartTime": "2022-09-13T13:20:28"
+  },
+  {
+   "Title": "第14屆第08次定期大會第11次會議",
+   "Date": "2026/09/23 13:50~15:06",
+   "ViewCount": "60",
+   "Url": "https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=fc0fc42e-3da5-4e8a-af00-77ccef9e66cd",
+   "Type": "大會",
+   "StartTime": "2026-09-23T13:50:19"
+  },
+  {
+   "Title": "第14屆第08次定期大會警政衛生委員會第10次會議消防局預算(下午)",
+   "Date": "2026/09/24 14:00~17:30",
+   "ViewCount": "2",
+   "Url": "https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=d43003c4-77c6-4916-b29a-0d4fc3f89b54",
+   "Type": "委員會",
+   "StartTime": "2026-09-24T14:00:00"
+  }
+ ],
+ "videos": {
+  "36f899ab-94ec-4102-bdd5-a55fa89cdd22": {
+   "Read": {
+    "Title": "第14屆第08次定期大會市政總質詢",
+    "MeetTime": "2026/09/11 13:20~16:36",
+    "Content": "第13質詢組：徐立信<br/>計1位時間40分鐘 <br/>第14質詢組：洪健益,劉耀仁<br/>計2位時間80分鐘 <br/>第15質詢組：侯漢廷<br/>計1位時間40分鐘 <br/>",
+    "Type": "大會"
+   },
+   "Segment_Read": [
+    {
+     "SegmentId": "a2af6638-cd2f-4f42-b189-3a0719da583a",
+     "VideoId": "36f899ab-94ec-4102-bdd5-a55fa89cdd22",
+     "Name": "第13組：徐立信",
+     "Time": null,
+     "TimeText": "13:31:47",
+     "VideoTime": 701.436846,
+     "IsOldQues": false,
+     "Url": null
+    },
+    {
+     "SegmentId": "6b5af762-65c6-42c8-92cc-0f13433c19ef",
+     "VideoId": "36f899ab-94ec-4102-bdd5-a55fa89cdd22",
+     "Name": "第14組：洪健益,劉耀仁",
+     "Time": null,
+     "TimeText": "14:13:41",
+     "VideoTime": 3215.072821,
+     "IsOldQues": false,
+     "Url": null
+    },
+    {
+     "SegmentId": "7ba19a22-4aa8-44eb-84bf-4f212f2524de",
+     "VideoId": "36f899ab-94ec-4102-bdd5-a55fa89cdd22",
+     "Name": "第15組：侯漢廷",
+     "Time": null,
+     "TimeText": "15:55:43",
+     "VideoTime": 9337.646482,
+     "IsOldQues": false,
+     "Url": null
+    }
+   ]
+  },
+  "9f8c1e2f-8e8b-4f0b-b07c-12f94654e28b": {
+   "Read": {
+    "Title": "第14屆第06次定期大會交通部門質詢",
+    "MeetTime": "2025/11/13 13:20~18:33",
+    "Content": "第1質詢組：張斯綱,李明賢,柳采葳,李柏毅,鍾沛君<br/>計5位時間90分鐘 <br/>第2質詢組：王閔生,陳慈慧,何孟樺<br/>計3位時間54分鐘 <br/>第3質詢組：顏若芳,林延鳳<br/>計2位時間36分鐘 <br/>第4質詢組：吳世正,郭昭巖,陳錦祥,楊植斗,李芳儒<br/>計5位時間90分鐘 <br/>",
+    "Type": "大會"
+   },
+   "Segment_Read": []
+  },
+  "a1b99608-bad0-4b68-9bba-c7259e0dd700": {
+   "Read": {
+    "Title": "第14屆第08次定期大會警政衛生部門質詢",
+    "MeetTime": "2026/08/11 13:20~18:19",
+    "Content": "第7質詢組：林杏兒,游淑慧,詹為元,王欣儀<br/>計4位時間72分鐘 <br/>第8質詢組：徐立信<br/>計1位時間18分鐘 <br/>第9質詢組：王孝維,洪婉臻,張文潔,林世宗,陳怡君<br/>計5位時間90分鐘 <br/>第10質詢組：黃瀞瑩,陳宥丞,林珍羽,張志豪<br/>計4位時間72分鐘 <br/>",
+    "Type": "大會"
+   },
+   "Segment_Read": [
+    {
+     "SegmentId": "93a15625-9fe2-4654-aa9e-d1cf32bbd554",
+     "VideoId": "a1b99608-bad0-4b68-9bba-c7259e0dd700",
+     "Name": "第7質詢組：林杏兒,游淑慧,詹為元,王欣儀",
+     "Time": null,
+     "TimeText": "13:31:28",
+     "VideoTime": 676.39437,
+     "IsOldQues": false,
+     "Url": null
+    },
+    {
+     "SegmentId": "7258785b-be3d-4fc0-9d20-99f373f4134c",
+     "VideoId": "a1b99608-bad0-4b68-9bba-c7259e0dd700",
+     "Name": "第8質詢組：徐立信",
+     "Time": null,
+     "TimeText": "14:46:16",
+     "VideoTime": 5164.654456,
+     "IsOldQues": false,
+     "Url": null
+    },
+    {
+     "SegmentId": "42843b5e-3c1d-48f8-8a33-552543bc937c",
+     "VideoId": "a1b99608-bad0-4b68-9bba-c7259e0dd700",
+     "Name": "第9質詢組：王孝維,洪婉臻,張文潔,林世宗,陳怡君",
+     "Time": null,
+     "TimeText": "15:15:24",
+     "VideoTime": 6912.805588,
+     "IsOldQues": false,
+     "Url": null
+    },
+    {
+     "SegmentId": "a3937b6a-ec2b-4ce1-84bb-5b6e4335bef8",
+     "VideoId": "a1b99608-bad0-4b68-9bba-c7259e0dd700",
+     "Name": "第10質詢組：黃瀞瑩,陳宥丞,林珍羽,張志豪",
+     "Time": null,
+     "TimeText": "17:02:25",
+     "VideoTime": 13333.720567,
+     "IsOldQues": false,
+     "Url": null
+    }
+   ]
+  }
+ }
+}

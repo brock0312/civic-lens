@@ -1,0 +1,143 @@
+{
+ "source": {
+  "name": "內政部政黨資訊網（查政黨）",
+  "url": "https://party.moi.gov.tw/PartyMain.aspx?gs=P01&n=16100&sms=13073"
+ },
+ "parties": {
+  "中國國民黨": {
+   "registry_name": "中國國民黨",
+   "registry_no": 1,
+   "emblem": "parties/kmt.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=2",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2016/ff808081542c937601542d21be91001b.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "民主進步黨": {
+   "registry_name": "民主進步黨",
+   "registry_no": 16,
+   "emblem": "parties/dpp.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=31",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2016/ff808081542c937601542d16549d0015.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "台灣民眾黨": {
+   "registry_name": "台灣民眾黨",
+   "registry_no": 350,
+   "emblem": "parties/tpp.png",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=409",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2021/ff8080816e68e248016ecb15220c0260.png",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "新黨": {
+   "registry_name": "新黨",
+   "registry_no": 74,
+   "emblem": "parties/new-party.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=133",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2016/ff808081542c937601542d14e6b30014.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "時代力量": {
+   "registry_name": "時代力量",
+   "registry_no": 267,
+   "emblem": "parties/npp.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=326",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/444/relpic/13073/326/b045d6b6-d6bd-49fc-a6ce-f0aa754ac16a.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "台灣基進": {
+   "registry_name": "台灣基進",
+   "registry_no": 303,
+   "emblem": "parties/tsp.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=362",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2021/ff8080816e68e248016eb14f795b01e9.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "臺灣SoR無法黨": {
+   "registry_name": "臺灣SoR無法黨",
+   "registry_no": 366,
+   "emblem": "parties/sor.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=425",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/444/relpic/13073/425/6712a0c9-e0c1-4105-a2b1-c6a2e48eab1e.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "三勢團結促進聯盟": {
+   "registry_name": "三勢團結促進聯盟",
+   "registry_no": 203,
+   "emblem": "parties/sanshi.png",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=262",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/444/relpic/13073/262/015ae6b6-6928-4ed6-9458-33aa4cdf2077.png",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "永久和平自然法": {
+   "registry_name": "永久和平自然法",
+   "registry_no": 195,
+   "emblem": "parties/natural-law.png",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=254",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/444/relpic/13073/254/d6b78573-76e4-4ebc-b884-3981fd66c577.png",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "勞動黨": {
+   "registry_name": "勞動黨",
+   "registry_no": 15,
+   "emblem": "parties/labor.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=29",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2016/ff808081542c937601542d3309430023.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "台聯黨": {
+   "registry_name": "台聯黨",
+   "registry_no": 95,
+   "emblem": "parties/tsu.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=154",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2021/8a428aff7c83259a017ca5bf7d5400d0.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "小民參政歐巴桑聯盟": {
+   "registry_name": "小民參政歐巴桑聯盟",
+   "registry_no": 357,
+   "emblem": "parties/obasang.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=416",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2020/ff8080816f79b50201732c50082f105c.JPG",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "台灣綠黨": {
+   "registry_name": "台灣綠黨",
+   "registry_no": 79,
+   "emblem": "parties/green.png",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=138",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/444/relpic/13073/138/b9f31d1b-60c4-45a6-8162-da1fd3e323dc.png",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "左翼聯盟": {
+   "registry_name": "左翼聯盟",
+   "registry_no": 338,
+   "emblem": "parties/left-wing-alliance.png",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=397",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2022/8a428aff7e6c3038017e7bd907420054.png",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  },
+  "社會民主黨": {
+   "registry_name": "社會民主黨",
+   "registry_no": 269,
+   "emblem": "parties/sdp.png",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=328",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2016/ff808081542c937601542d4a4adf0041.jpg",
+   "resized": true,
+   "fetched_at": "2026-09-28"
+  }
+ }
+}

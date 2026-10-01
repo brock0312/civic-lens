@@ -1,0 +1,15 @@
+<pdf2xml>
+<page number="1" position="absolute" top="0" left="0" height="2154" width="1530">
+<image top="281" left="806" width="116" height="142" src="x"/>
+<image top="330" left="958" width="507" height="280" src="x"/>
+<image top="772" left="806" width="116" height="144" src="x"/>
+<image top="772" left="97" width="116" height="143" src="x"/>
+<image top="280" left="99" width="116" height="144" src="x"/>
+<image top="330" left="251" width="506" height="280" src="x"/>
+</page>
+<page number="2" position="absolute" top="0" left="0" height="2154" width="1530">
+<image top="280" left="98" width="116" height="143" src="x"/>
+<image top="330" left="250" width="507" height="280" src="x"/>
+<image top="279" left="806" width="114" height="144" src="x"/>
+</page>
+</pdf2xml>
