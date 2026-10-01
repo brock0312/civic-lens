@@ -11,8 +11,8 @@
 
 | 範圍 | 已上線 | 尚未完成 |
 |---|---|---|
-| 全國 22 縣市 | 2026 候選人名單（1,583 人）、選區與名額、村里對到議員／立委選區、縣市地圖 SVG | **前端尚未全國化**：首頁仍只做臺北；地圖 SVG 已在 `site/assets/taiwan-counties.svg`，還沒接上頁面 |
-| 臺北市議會 | 現任名錄與身分對照、書面質詢 2,473 筆、口頭質詢影片 2,918 筆（深連結到質詢組起點）、大會出缺勤 6,413 筆（出席率、請假率）、2022 公報政見與學經歷、市長任職、第 5 次定期大會質詢摘要（40 人） | 第 1–4 次定期大會摘要（批次進行中）、第 5 次剩 8 人 |
+| 全國 22 縣市 | 2026 候選人名單（1,583 人）、選區與名額、村里對到議員／立委選區；**全國查詢前端**（2026-10-02）：首頁台灣地圖＋縣市清單 → 縣市頁（鄉鎮 → 跨選區時選里 → 原住民身分）→ 議員選區與縣市長；非臺北縣市標示「深度資料建置中」並連議會官網 | 21 縣市的深度資料（見 §5 的 L3-A、L3-B） |
+| 臺北市議會 | 現任名錄與身分對照、書面質詢 2,473 筆、口頭質詢影片 2,918 筆（深連結到質詢組起點）、大會出缺勤 6,413 筆（出席率、請假率）、2022 公報政見與學經歷、市長任職、第 5 次定期大會質詢摘要（40 人） | 第 1–4 次定期大會摘要（批次進行中，log：`data/cache/summaries_batch_0104.log`）、第 5 次剩 8 人 |
 | 其他 21 個議會 | 無 | 全部（見 §5 的 L3） |
 | 立委 | 選區對照 | 名冊、質詢、提案、表決、出席（govapi，見 §5） |
 | 確定有罪判決查詢 | 區塊與查詢入口（目前顯示「尚未收錄經查證的確定有罪判決」） | 查證流程與 ETL，最快 11/25 公報後才有可顯示的資料（見 [V7](validation/V7-criminal-records.md)） |
@@ -28,7 +28,7 @@ git push origin main
 
 - **ETL 只能在本機跑**：臺北市議會全系統、內政部村里檔、中選會開票 JSON 都擋海外 IP，GitHub 機器抓不到。每日排程已停用，資料採**手動更新**（步驟見 README「資料更新」）。
 - **來源**（`etl/run.py` 的 `SOURCES`，順序有依賴）：`tpe_districts`、`tpe_candidates`、`national_districts`、`national_legislators`、`national_candidates`、`tcc_councilors`、`tcc_interpellations`、`tcc_videos`、`tcc_attendance`、`tcc_summaries`、`tpe_bulletin_2022`。
-- **前端**：`site/`，純 HTML／CSS／vanilla JS，無 build、無依賴。設計語言為「報導式數據新聞」、單色、黨徽是全頁唯一的彩色。測試：`node --test site/app.test.mjs`（一定要指定檔案）。
+- **前端**：`site/`，純 HTML／CSS／vanilla JS，無 build、無依賴。設計語言為「報導式數據新聞」、單色、黨徽是全頁唯一的彩色。路由：`#/` 地圖、`#/c/<iso>` 縣市、`#/d/<id>` 選區、`#/p/<id>` 人物。選區判定、職稱等純函式在 `site/geo.js`；村里資料依縣市拆成 `data/villages/<iso>.json`，按需載入。有深度資料的縣市列在 `geo.js` 的 `DEEP_COUNTIES`（目前只有 tpe），議會官網在 `COUNCIL_SITES`。村里名的造字已改用中選會寫法（`etl/moi.py` 的 `CEC_VILLNAMES`，21 筆）。測試：`node --test site/app.test.mjs`（一定要指定檔案）。
 - **測試**：`python3 -m unittest`、`node --test site/app.test.mjs`。判斷是否通過一律看 exit code，不要只看經過 `grep`／`tail` 管線的輸出。
 
 ## 3. 一定要遵守的規則
@@ -63,7 +63,7 @@ git push origin main
 | # | 工作 | 下一步 | 參考 |
 |---|---|---|---|
 | 1 | **摘要第 1–4 次會期** | 批次每天續跑；跑完一個會期就抽樣審閱、修訂、核可、上線。第 5 次剩 8 人（快取裡沒有回答）也要補跑 | §4 |
-| 2 | **全國地圖前端** | 首頁改成台灣地圖 → 縣市頁 → 鄉鎮 → 里；`villages.json`（2.4 MB）依縣市拆檔；23 個造字村里名改用中選會的寫法；尚未有深度資料的縣市標示「深度資料建置中」並連外部資源 | [V11](validation/V11-national-lists.md)、PLAN §10 |
+| 2 | **L3-A 各縣市基本深度** | 全國地圖前端已完成（10/02）。下一步：先把 2022 公報解析（`tpe_bulletin_2022`）通用化到其他 21 縣市，再做各議會現任名錄＋身分對照、首長任職；每天 5 縣市。縣市完成後加進 `site/geo.js` 的 `DEEP_COUNTIES`，並調整人物頁的空白說明 | §6、[V11](validation/V11-national-lists.md)、[V12](validation/V12-councils-survey.md) |
 | 3 | **選舉時程維運** | 10/16 審定後移除不合格者（全國）；11/12、11/17 補號次；11/25 解析 2026 公報（全國新人的政見、學經歷與生日） | [V1](validation/V1-candidates-2026.md) |
 | 4 | **立委全國** | govapi（`v2.ly.govapi.tw`）名冊、書面質詢、提案、表決、IVOD；出席欄位先做 V5 驗證 | PLAN §2、§7 |
 | 5 | **其他議會（L3）** | 先完成 V12 普查（新北網站曾連不上、桃園與 16 縣市未查），依平台分組；高雄最容易（影片 API 可逐人、有出席統計表），臺中、臺南可做名錄與影片 | [V12](validation/V12-councils-survey.md) |
