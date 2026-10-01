@@ -7,8 +7,12 @@ name: daily
 #   3. Settings → Pages → Build and deployment → Source 選「GitHub Actions」
 #      （不要選 Deploy from a branch：那會把 docs/、tests/、data/ 一起公開）
 #
-# 流程：etl（唯讀、處理外部輸入）→ commit（只搬 data/civic.sql）→ deploy（在 main 的程式上重建 site/data，只部署 site/）
-# - push 到 main：只跑 deploy
+# 資料更新以本機（臺灣網路）為準：tcc.gov.tw、內政部、中選會開票 JSON 擋海外 IP，GitHub 機器抓不到，所以不跑排程
+#
+# push 到 main（正式路徑）：test（唯讀，跑單元測試並檢查 data/civic.sql）→ deploy（只部署這次 push 的 commit）
+# - test 失敗：不部署
+#
+# 手動觸發（workflow_dispatch，僅供備用）：etl（唯讀、處理外部輸入）→ commit（只搬 data/civic.sql）→ deploy（在 main 的程式上重建 site/data，只部署 site/）
 # - 測試失敗：不上傳 dump → 不 commit、不部署
 # - 部分來源失敗：run.py 先 dump（失敗的來源 rollback），etl job 標為失敗，但已成功的資料照樣 commit 並部署
 # - commit job 用 GITHUB_TOKEN push，不會再觸發本 workflow 的 push 事件
@@ -16,8 +20,7 @@ name: daily
 # action 一律釘完整 commit SHA；更新時用 gh api repos/<owner>/<repo>/git/ref/tags/<tag> 查 SHA（annotated tag 要再解一層）
 
 on:
-  schedule:
-    - cron: '0 19 * * *'   # 每天 03:00 臺北時間
+  # 手動觸發保留備用；被擋的來源在 GitHub 機器上一定失敗，正式的資料更新以本機為準（見 README「資料更新」）
   workflow_dispatch:
   push:
     branches: [main]
@@ -30,6 +33,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test:
+    # push 時的部署關卡：唯讀，checkout 不留 token；測試放在這裡跑，有 Pages 權限的 deploy job 不執行測試
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install poppler (pdftotext, pdftohtml, pdftoppm)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - run: python -m unittest -v
+      - name: Check data/civic.sql
+        # 與 commit job 的 Check dump 相同：本機推上來的 dump 也要完整、且不含生日（B1）
+        # 推上來時 dump 已在公開 repo，這裡擋不住外洩，只能擋部署並亮紅燈；推之前要先照 README 自行檢查
+        env:
+          DUMP: data/civic.sql
+        run: |
+          test "$(tail -n 1 "$DUMP")" = 'COMMIT;' || { echo '::error::dump 不完整'; exit 1; }
+          grep -q '^INSERT INTO "person" VALUES' "$DUMP" || { echo '::error::dump 沒有 person 列'; exit 1; }
+          not_null=$(grep '^INSERT INTO "person" VALUES' "$DUMP" | grep -vc ',NULL,NULL);$' || true)
+          dated=$(grep -cE "^INSERT INTO \"person\" VALUES.*'[0-9]{4}-[0-9]{2}-[0-9]{2}'" "$DUMP" || true)
+          if [ "$not_null" != 0 ] || [ "$dated" != 0 ]; then
+            echo "::error::person 列含有生日（非 NULL ${not_null} 列、日期格式 ${dated} 列）"
+            exit 1
+          fi
+
   etl:
     # 處理政府網站下載的 PDF／HTML（外部輸入）：唯讀權限，checkout 不留 token
     if: github.event_name != 'push'
@@ -108,9 +142,12 @@ jobs:
           fi
 
   deploy:
-    needs: commit
-    # push：etl／commit 為 skipped，直接部署；排程／手動：commit 成功才部署（測試失敗時 commit 為 skipped）
-    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || needs.commit.result == 'success') }}
+    needs: [commit, test]
+    # push：etl／commit 為 skipped，test 成功才部署；手動：test 為 skipped，commit 成功才部署（測試失敗時 commit 為 skipped）
+    if: >-
+      ${{ !cancelled() && github.ref == 'refs/heads/main' && (
+      (github.event_name == 'push' && needs.test.result == 'success') ||
+      (github.event_name != 'push' && needs.commit.result == 'success')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -125,7 +162,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: main   # 取 commit job 剛推上去的 dump；程式也用 main 上的版本，不沿用 etl job 的產出
+          # push：部署 test 驗過的那個 commit，不取 main 最新（可能是還沒測過的下一次 push）
+          # 手動：取 commit job 剛推上去的 dump；程式也用 main 上的版本，不沿用 etl job 的產出
+          ref: ${{ github.event_name == 'push' && github.sha || 'main' }}
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:

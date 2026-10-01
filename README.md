@@ -38,6 +38,23 @@
   - [報導者觀測站](https://lawmaker.twreporter.org/)：放個人頁的深連結，議題名稱與相關提案數原文照錄並標示出處。依 CC BY-NC-ND 3.0 TW，不改寫、不摘要。
 - **每一筆資料都附原始出處連結與擷取時間**；遇到同名而無法唯一確認身分時，不顯示。
 
+## 資料更新
+
+臺北市議會、內政部、中選會等政府網站擋海外 IP，GitHub Actions 抓不到，所以資料在本機（臺灣網路）手動更新：
+
+1. `python3 -m unittest`：測試全過才繼續。
+2. `python3 -m etl.run`：抓資料並寫出 `data/civic.sql`。
+3. 確認 `data/civic.sql` 沒有生日。下面這行要印出 `0`：
+
+   ```sh
+   grep '^INSERT INTO "person" VALUES' data/civic.sql | grep -vc ',NULL,NULL);$'
+   ```
+
+4. 只 commit `data/civic.sql`：`git add data/civic.sql && git commit -m 'chore: data update'`
+5. `git push origin main`：push 之後 GitHub 會自動跑測試，通過才部署網站。
+
+**只推 main，絕對不要用 `git push --all`。**
+
 ## 非目標
 
 - 評分、排名、政治立場判斷（只呈現事實與出處，不下結論）
