@@ -5,4 +5,4 @@ data/civic.db
 data/civic.db-journal
 site/data/
 .claude/worktrees/
-data/cache/transcripts/
+data/cache/

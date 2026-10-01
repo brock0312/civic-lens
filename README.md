@@ -2,7 +2,9 @@
 
 讓台灣選民輸入所在地，就能看清楚自己選區的民意代表與首長「做了什麼、說過什麼、跟誰有關」。
 
-> 狀態：**建置中**。臺北市的名單、選區、書面質詢、口頭質詢影片已完成。計畫見 [`docs/PLAN.md`](docs/PLAN.md)，資料來源調查見 [`docs/data-sources/`](docs/data-sources/)，驗證紀錄見 [`docs/validation/`](docs/validation/)。
+**網站：<https://brock0312.github.io/civic-lens/>**
+
+> 狀態：**建置中**。全國 22 縣市的 2026 候選人名單與選區已收錄；臺北市另有書面質詢、口頭質詢影片、大會出缺勤與 2022 選舉公報。計畫見 [`docs/PLAN.md`](docs/PLAN.md)，資料來源調查見 [`docs/data-sources/`](docs/data-sources/)，驗證紀錄見 [`docs/validation/`](docs/validation/)。
 
 ## 目標
 
