@@ -99,6 +99,26 @@ class RosterTest(unittest.TestCase):
              + sq + '信義區</h2><h3><a href="x" itemprop="url">陳\u3000宜 議員</a></h3>')
         self.assertEqual(self._dn(r.parse_kee(h)), [(1, "藍敏煌"), (2, "陳宜")])
 
+    def test_cyq_one_page_per_district_and_strips_title_inside_name(self):
+        pages = ['<option value="">選擇議員</option><option value="1">王啓澧 議員</option>',
+                 '<option value="">選擇議員</option><option value="2">張議長明達 議員</option>']
+        self.assertEqual(self._dn(r.parse_cyq(pages)), [(1, "王啓澧"), (2, "張明達")])
+
+    def test_mia_one_page_per_district_unescapes_and_strips_titles(self):
+        cell = '<TD width="50%" bgcolor="#E4E4E4">{}</TD>'
+        pages = [cell.format("副議長  張淑芬") + cell.format("&#28201;俊勇"), cell.format("議長  李文斌")]
+        self.assertEqual(self._dn(r.parse_mia(pages)), [(1, "張淑芬"), (1, "温俊勇"), (2, "李文斌")])
+
+    def test_hsz_numbers_districts_by_area_name_across_pages(self):
+        sp = "<section><span>{}議員 {}</span></section>"
+        pages = [sp.format("東區", "余邦彥") + sp.format("東區", "鄭美娟"), sp.format("平地原住民", "林慈愛")]
+        self.assertEqual(self._dn(r.parse_hsz(pages)), [(1, "余邦彥"), (1, "鄭美娟"), (6, "林慈愛")])
+
+    def test_ttt_unions_townships_by_id_and_reads_district_from_type(self):
+        a = '{"id":1,"member":"吳秀華","type":"第一選區(區域縣議員)"}'
+        b = '{"id":9,"member":"蔡玉玲","type":"第十五選區(山地原住民)"}'
+        self.assertEqual(self._dn(r.parse_ttt([f"[{a}]", f"[{a},{b}]"])), [(1, "吳秀華"), (15, "蔡玉玲")])
+
 
 if __name__ == "__main__":
     unittest.main()
