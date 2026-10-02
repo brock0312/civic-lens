@@ -68,15 +68,28 @@ export function needsDistrict01Note(facts) {
   return (facts.office || []).some((f) => f.data?.district_id === 'tpe-council-01') && !(facts.profile || []).length;
 }
 
-// 公報只擷取到學經歷或政見其中一項時，缺的那項改連另一項的公報原文；值為 null 表示不缺
+// 臺北以外：對到公報檔的人都有 bulletin fact（原檔網址＋頁碼），沒收到文字欄位時連到這裡；臺北沒有，回 null
+export function bulletinLink(facts) {
+  const b = facts.bulletin?.[0];
+  const u = safeUrl(b?.source_url);
+  if (!u) return null;
+  return b.data?.page ? `${u}#page=${Number(b.data.page)}` : u;
+}
+
+// 公報只擷取到學經歷或政見其中一項時，缺的那項改連公報原檔（有 bulletin fact 就用它，否則連另一項的公報原文）；值為 null 表示不缺
 export function bulletinGaps(facts) {
   const profile = facts.profile?.[0];
   const platform = facts.platform?.[0];
+  const link = bulletinLink(facts);
   return {
-    profile: !profile && platform ? platform.source_url || '' : null,
-    platform: profile && !platform ? profile.source_url || '' : null,
+    profile: !profile && platform ? link ?? (platform.source_url || '') : null,
+    platform: profile && !platform ? link ?? (profile.source_url || '') : null,
   };
 }
+
+// 臺北以外沒收到的欄位：不區分圖片或無文字層，中性寫「本站未收錄」並連原檔
+export const BULLETIN_MISSING = (what) => `本站未收錄文字${what}，請見`;
+const pageNote = (facts) => (facts.bulletin?.[0]?.data?.page ? `（第 ${Number(facts.bulletin[0].data.page)} 頁）` : '');
 
 // 現任者的段落標題與出處標籤依職位決定：首長選區用市長／縣長（依選區名稱有無「縣」），其餘為議員
 const isHead = (office) => String(office || '').endsWith('_mayor');
@@ -521,20 +534,25 @@ function srcLine(f, label, notes) {
 }
 
 // 2022 選舉公報：學歷、經歷、政見；政見原文保留換行，不截斷
-function bulletinSection(facts, notes) {
+export function bulletinSection(facts, notes) {
   const profile = (facts.profile || [])[0];
   const platform = (facts.platform || [])[0];
+  const link = bulletinLink(facts);
   let body;
   if (profile || platform) {
     const pd = profile?.data || {};
     const gap = bulletinGaps(facts);
-    const gapNote = (what, url) => `<p class="status" role="note">2022 公報${what}未能以文字擷取，請見${safeUrl(url) ? ext(safeUrl(url), '公報原文') : '公報原文'}。</p>`;
+    const gapNote = (what, url) => (link
+      ? `<p class="status" role="note">${BULLETIN_MISSING(what)}${ext(link, '公報原檔')}${pageNote(facts)}。</p>`
+      : `<p class="status" role="note">2022 公報${what}未能以文字擷取，請見${safeUrl(url) ? ext(safeUrl(url), '公報原文') : '公報原文'}。</p>`);
     body = `${pd.education?.length ? `<h3>學歷</h3><ul class="plain">${listItems(pd.education)}</ul>` : ''}
       ${pd.experience?.length ? `<h3>經歷</h3><ul class="plain">${listItems(pd.experience)}</ul>` : ''}
       ${profile ? srcLine(profile, '2022 選舉公報學經歷', notes) : ''}
       ${gap.profile !== null ? `<h3>學經歷</h3>${gapNote('學經歷', gap.profile)}` : ''}
       <h3 id="k-platform" tabindex="-1">政見</h3>
       ${platform ? `<div class="platform">${esc(platform.data?.text || '')}</div>${srcLine(platform, '2022 選舉公報政見', notes)}` : gapNote('政見', gap.platform)}`;
+  } else if (link) {
+    body = `<p class="status" role="note">${BULLETIN_MISSING('政見與學經歷')}${ext(link, '公報原檔')}${pageNote(facts)}。</p>`;
   } else if (needsDistrict01Note(facts)) {
     body = `<p class="status" role="note">第1選舉區 2022 公報因版面內含重疊文字，本站無法可靠擷取，請見${ext(DISTRICT01_BULLETIN, '公報原文')}。</p>`;
   } else return '';

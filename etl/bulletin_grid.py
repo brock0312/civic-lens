@@ -39,6 +39,15 @@ C_FAMILY = ["桃園市", "臺中市", "高雄市", "苗栗縣", "南投縣", "�
 D_FAMILY = ["彰化縣", "新竹縣", "新竹市"]
 B_FAMILY = ["新北市", "臺南市"]
 NO_TEXT_LAYER = {"雲林縣": "錯碼（㆒㈴㈻）且 pdftohtml 輸出非 UTF-8，V13 判定等同沒有文字層"}
+# 單檔視同沒有文字層（整檔外框字或圖片，切不出任何列）：只放原檔連結（使用者 2026-10-02 決定）
+_P = "01選舉公報/05直轄市議員/111年/"
+NO_TEXT_FILES = {
+    _P + "03桃園市/桃園市第7選舉區.pdf": "整檔外框字或圖片",
+    _P + "03桃園市/桃園市第8選舉區.pdf": "整檔外框字或圖片",
+    _P + "04臺中市/臺中市第15選區.pdf": "整檔外框字或圖片",
+    _P + "04臺中市/臺中市第16選區.pdf": "整檔外框字或圖片",
+    _P + "04臺中市/臺中市第17選區.pdf": "整檔外框字或圖片",
+}
 
 DARK = bytes.maketrans(bytes(range(256)), bytes(int(i < 128) for i in range(256)))
 H_FRAC = 0.3     # 水平線：連續深色像素 ≥ 頁寬 30%（D 家族一組表格約佔頁寬 45%）
@@ -467,11 +476,12 @@ def _plain(text):
 def gate_field(parts, images, suspect, flat_raw):
     """學歷／經歷／政見一欄 → (文字, None) 或 (None, 丟棄原因)。"""
     words = [w for _, ws in parts for w in ws]
+    for (x0, y0, x1, y1), ws in parts:  # 先看圖片：整格是圖片時也沒有字，不能當成「空白」（候選人沒填）
+        if any(overlaps(im, x0 + 2, y0 + 2, x1 - 2, y1 - 2) for im in images):
+            return None, "圖片"
     if not words:
         return None, "空白"
     for (x0, y0, x1, y1), ws in parts:
-        if any(overlaps(im, x0 + 2, y0 + 2, x1 - 2, y1 - 2) for im in images):
-            return None, "圖片"
         if any(_overlap(w, (x0, y0, x1, y1)) < 0.8 * (w[2] - w[0]) * (w[3] - w[1]) for w in ws):
             return None, "跨格"
     if suspect & set(words):
@@ -492,6 +502,11 @@ def load_cec(cache=CACHE / "v13"):
             key = (c["iso"], "mayor" if kind == "mayor" else "councilor", c["district_n"])
             out.setdefault(key, {})[c["cand_no"]] = c
     return out
+
+
+def same_party(name):
+    """政黨比對時「台」「臺」視為同字（只用於政黨；姓名異體字不放寬）。"""
+    return name.replace("台", "臺")
 
 
 def identify(row, iso, districts, cec):
@@ -518,7 +533,7 @@ def identify(row, iso, districts, cec):
     # 出生年、黨籍先比：之後的兩種原因（NAME_ONLY）就代表號次、出生年、黨籍都已和該號次的候選人一致
     if c["birth_year"] not in {roc_birth_year(t) for t in readings(f.get("birth", []))}:
         return sec, int(no_t), c, "出生年不符"
-    if c["party"] not in {NO_PARTY.get(t, t) for t in readings(f.get("party", []))}:
+    if same_party(c["party"]) not in {same_party(NO_PARTY.get(t, t)) for t in readings(f.get("party", []))}:
         return sec, int(no_t), c, "黨籍不符"
     if any(w in row["suspect"] for _, ws in f["no"] + f["name"] for w in ws):
         return sec, int(no_t), c, "號次或姓名有看不見的文字"
@@ -605,8 +620,8 @@ def main(seed=2022):
     passed = {}
     for f in sorted(files, key=lambda f: order.index(_county_name(f["iso"]))):
         county, name = _county_name(f["iso"]), f["path"].rsplit("/", 1)[-1]
-        if county in NO_TEXT_LAYER:
-            print(f"{county} {name}：跳過（{NO_TEXT_LAYER[county]}）", flush=True)
+        if county in NO_TEXT_LAYER or f["path"] in NO_TEXT_FILES:
+            print(f"{county} {name}：跳過（{NO_TEXT_LAYER.get(county) or NO_TEXT_FILES[f['path']]}）", flush=True)
             continue
         rep = process(PDF_ROOT / f["path"], f["iso"], f["districts"], cec,
                       cut_pages_b if county in B_FAMILY else cut_pages)

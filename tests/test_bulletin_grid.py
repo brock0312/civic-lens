@@ -264,5 +264,11 @@ class NameOnlyRejectTest(unittest.TestCase):
         self.assertEqual(rep["rows"], [])
 
 
+class GateFieldTest(unittest.TestCase):
+    def test_image_only_cell_is_image_not_blank(self):
+        self.assertEqual(bg.gate_field([((0, 0, 100, 100), [])], [(10, 10, 50, 50)], set(), ""), (None, "圖片"))
+        self.assertEqual(bg.gate_field([((0, 0, 100, 100), [])], [], set(), ""), (None, "空白"))
+
+
 if __name__ == "__main__":
     unittest.main()

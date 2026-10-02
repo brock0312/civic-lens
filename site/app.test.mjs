@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -446,4 +446,40 @@ test('office extra refs add 2022 party and inauguration sources only when the fi
   const f = { fetched_at: 't', data: { party_source_url: 'https://c', party_source_label: 'CEC', inauguration_source_url: 'https://m', inauguration_source_label: 'MOI' } };
   assert.equal(officeExtraRefs(f, notes), '[CEC][MOI]');
   assert.equal(officeExtraRefs({ fetched_at: 't', data: { party: 'x' } }, notes), '');
+});
+
+// 臺北以外的公報：bulletin fact 記原檔網址與頁碼
+const NWT_PDF = 'https://bulletin.cec.gov.tw/01%E9%81%B8%E8%88%89%E5%85%AC%E5%A0%B1/x.pdf';
+const noNotes = { ref: () => '' };
+const linkFact = (page) => ({ source_url: NWT_PDF, data: { page }, fetched_at: '2026-10-02T00:00:00Z' });
+
+test('bulletinLink adds the page anchor when known and is null for Taipei people', () => {
+  assert.equal(bulletinLink({ bulletin: [linkFact(3)] }), `${NWT_PDF}#page=3`);
+  assert.equal(bulletinLink({ bulletin: [linkFact()] }), NWT_PDF);
+  assert.equal(bulletinLink({}), null);
+});
+
+test('bulletinGaps links the missing field to the bulletin page when there is a bulletin fact', () => {
+  const plat = { source_url: NWT_PDF };
+  assert.deepEqual(bulletinGaps({ platform: [plat], bulletin: [linkFact(2)] }), { profile: `${NWT_PDF}#page=2`, platform: null });
+});
+
+test('bulletinSection shows only the neutral original-file link when no text was collected', () => {
+  const html = bulletinSection({ bulletin: [linkFact(5)] }, noNotes);
+  assert.match(html, /2022 選舉公報/);
+  assert.match(html, /本站未收錄文字政見與學經歷，請見<a href="[^"]+#page=5"[^>]*>公報原檔<\/a>（第 5 頁）。/);
+});
+
+test('bulletinSection for a non-Taipei person with a platform but no profile uses the neutral wording', () => {
+  const html = bulletinSection({ platform: [{ ...linkFact(), data: { text: '一、政見' } }], bulletin: [linkFact(4)] }, noNotes);
+  assert.match(html, /一、政見/);
+  assert.match(html, /出處：.*2022 選舉公報政見.*中央選舉委員會/);
+  assert.match(html, /本站未收錄文字學經歷，請見<a href="[^"]+#page=4"/);
+  assert.doesNotMatch(html, /未能以文字擷取/);
+});
+
+test('bulletinSection keeps the Taipei wording when there is no bulletin fact', () => {
+  const html = bulletinSection({ platform: [{ ...linkFact(), data: { text: 'x' } }] }, noNotes);
+  assert.match(html, /2022 公報學經歷未能以文字擷取/);
+  assert.equal(bulletinSection({}, noNotes), '');
 });

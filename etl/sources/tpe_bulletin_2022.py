@@ -184,7 +184,11 @@ def join_wrapped(a, b):
 
 def items(lines):
     """學歷／經歷欄：有項目符號就依符號分項（折行接回前一項）；整欄沒有符號就整欄一項、保留換行。"""
-    texts = [line_text(l) for l in lines]
+    return split_items([line_text(l) for l in lines])
+
+
+def split_items(texts):
+    """items() 的文字版：輸入已排好的各行文字。"""
     if not texts:
         return []
     if not any(BULLET.match(t) for t in texts):
