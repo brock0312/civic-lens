@@ -1,6 +1,6 @@
-"""2022 選舉公報 C 家族（單欄橫列表格）與 D 家族（雙欄橫列表格）的框線切格器與報告。
+"""2022 選舉公報 C 家族（單欄橫列表格）、D 家族（雙欄橫列表格）與 B 家族（新北、臺南兩欄格子）的框線切格器與報告。
 
-規格見 docs/validation/V13-l3a-basic.md §1.3–§1.5。只切格與報告，不寫資料庫。
+規格見 docs/validation/V13-l3a-basic.md §1.3–§1.5。只切格與報告，不寫資料庫。B 家族見 cut_pages_b()，關卡與輸出列相同。
 
 做法：每頁算圖（沿用臺北 pdf_layers 的灰階頁，100 dpi）找長的深色水平線，相鄰兩條水平線之間是一個「橫帶」；
 每個橫帶各自找貫穿整帶高度的垂直線，切成格子。表頭列（號次、姓名、學歷…）決定每一欄是什麼欄位，
@@ -37,6 +37,7 @@ CEC_FILES = ["c1", "c2", "c2r", "cec_T1_T1", "cec_T1_T2", "cec_T1_T3", "cec_T2_T
 
 C_FAMILY = ["桃園市", "臺中市", "高雄市", "苗栗縣", "南投縣", "嘉義縣", "花蓮縣", "金門縣", "連江縣", "基隆市", "嘉義市"]
 D_FAMILY = ["彰化縣", "新竹縣", "新竹市"]
+B_FAMILY = ["新北市", "臺南市"]
 NO_TEXT_LAYER = {"雲林縣": "錯碼（㆒㈴㈻）且 pdftohtml 輸出非 UTF-8，V13 判定等同沒有文字層"}
 
 DARK = bytes.maketrans(bytes(range(256)), bytes(int(i < 128) for i in range(256)))
@@ -99,6 +100,14 @@ class Page:
         if b <= a:
             return False
         return any(self.mask[y * self.w + a:y * self.w + b].count(1) >= 0.9 * (b - a) for y in range(rule[0], rule[1] + 1))
+
+    def sub_rows(self, x0, x1, y0, y1):
+        """格 [x0, x1]×[y0, y1]（pt）被貫穿整格寬（≥ 90%）的水平線切成的子格 [(sy0, sy1)]（pt）。"""
+        a, b = int(x0 / S) + 2, int(x1 / S) - 2
+        ys = [y for y in range(int(y0 / S), int(y1 / S))
+              if b > a and self.mask[y * self.w + a:y * self.w + b].count(1) >= 0.9 * (b - a)]
+        edges = [y0] + [v for r in _merge(ys) for v in (r[0] * S, (r[1] + 1) * S)] + [y1]
+        return [(p, q) for p, q in zip(edges[::2], edges[1::2]) if q - p >= 5]
 
     def bands(self, rules, x0=0, x1=None):
         """相鄰兩條水平線之間的橫帶，各自切出 [x0, x1]（pt）內的格子：[(y0, y1, [(cx0, cx1), ...])]。"""
@@ -261,6 +270,16 @@ def cut_pages(pages, grays):
     return rows
 
 
+def _own(words, boxes):
+    """字詞歸給重疊面積最大的格（直排字的 bbox 常往上偏半個字，用中心會掉到上一格），重疊不到 40% 不收。"""
+    owned = {}
+    for w in words:
+        best = max(boxes, key=lambda b: _overlap(w, b), default=None)
+        if best and _overlap(w, best) >= 0.4 * (w[2] - w[0]) * (w[3] - w[1]):
+            owned.setdefault(best, []).append(w)
+    return owned
+
+
 def _fits(group, cells):
     """資料列的格線要涵蓋表頭每一欄的左緣（政見格內多出的分隔線不影響）；投開票所一覽表之類的別的表格不會符合。"""
     return all(any(abs(c[0] - x0) < 4 for c in cells) for x0, _, _ in group)
@@ -285,12 +304,7 @@ def _cut_group(page, words, pno, group, sy0, sy1, title):
                 side[-1] = (side[-1][0], w[3], side[-1][2] + [w])
             else:
                 side.append((w[1], w[3], [w]))
-    boxes = [(x0, y0, x1, y1) for y0, y1, cells in bands for x0, x1 in cells]
-    owned = {}  # 字詞歸給重疊面積最大的格（直排字的 bbox 常往上偏半個字，用中心會掉到上一格），重疊不到 40% 不收
-    for w in words:
-        best = max(boxes, key=lambda b: _overlap(w, b), default=None)
-        if best and _overlap(w, best) >= 0.4 * (w[2] - w[0]) * (w[3] - w[1]):
-            owned.setdefault(best, []).append(w)
+    owned = _own(words, [(x0, y0, x1, y1) for y0, y1, cells in bands for x0, x1 in cells])
     out = []
     for y0, y1, cells in bands:
         fields = {}
@@ -320,6 +334,80 @@ def _cut_group(page, words, pno, group, sy0, sy1, title):
             for r in run:
                 r["district_text"] = text or None
     return out
+
+
+# ---------- B 家族（新北、臺南） ----------
+# 左右兩欄、每格一人。一位候選人佔兩個橫帶：上帶是「號次｜照片｜姓名、出生年月日｜性別、出生地、推薦之政黨｜學歷」，
+# 標籤與值各自一格、同一欄內用短橫線分上下；下帶是「經歷｜經歷內容｜政見｜政見內容」。
+# 上帶每一欄再用貫穿整格寬的橫線切子格，標籤格的值就是右邊一欄中心落在標籤格高度內的子格（V13 §1.4）。
+
+def pair_labels(columns):
+    """columns：由左而右的欄，每欄 [(box, words)] 由上而下 → {欄位: [(box, words)]}。
+    號次格的值是同格裡「號次」以外的字；其他標籤格的值是右邊一欄、中心落在標籤格高度內的子格。
+    已當作值的格不再當標籤（生日「48年9月25日」含「年月日」三字）。"""
+    fields, taken = {}, set()
+    for i, col in enumerate(columns):
+        for box, ws in col:
+            if box in taken:
+                continue
+            if any(w[4] == "號次" for w in ws):
+                fields["no"] = [(box, [w for w in ws if w[4] != "號次"])]
+                continue
+            f = label_of(cell_text(ws, *box))
+            if f in (None, "no", "photo") or i + 1 == len(columns):
+                continue
+            fields[f] = [(b, v) for b, v in columns[i + 1] if box[1] <= (b[1] + b[3]) / 2 < box[3]]
+            taken.update(b for b, _ in fields[f])
+    return fields
+
+
+def cut_pages_b(pages, grays):
+    """B 家族的 cut_pages：回傳格式相同（district_text 一律 None，選區看候選人上方最近的標題）。
+    每個「號次」字詞是一位候選人：只用切過號次欄的水平線（＝格子上緣、上下帶分界、格子下緣），
+    旁邊另一欄的表格（臺南合併區檔右下的電視政見日程表）或政見框裡的圖表橫線不會把格子切斷。"""
+    rows, title = [], None
+    for pno, (pg, gray) in enumerate(zip(pages, grays), 1):
+        page = Page(gray)
+        words = [w for w in pg["words"] if _plain(w[4])]
+        prev = 0
+        for a in sorted((w for w in words if w[4] == "號次"), key=lambda w: (round(w[1]), w[0])):
+            rules = [r for r in page.rules if page.crosses(r, a[0], a[2])]
+            above = [r for r in rules if r[1] * S <= a[1] + 1]
+            below = [r for r in rules if r[0] * S >= a[3]]
+            if not above or len(below) < 2:
+                continue
+            y0, y1, cells = (page.bands([above[-1], below[0]]) or [(0, 0, [])])[0]
+            ly0, ly1, lcells = page.bands(below[:2])[0]
+            k = next((j for j, (x0, x1) in enumerate(cells) if x0 <= (a[0] + a[2]) / 2 < x1), None)
+            if k is None:
+                continue
+            # 一人的欄到學歷值為止（學歷標籤的右邊一欄），也不越過下一個號次格
+            end = len(cells)
+            for j in range(k + 1, len(cells)):
+                text = cell_text(_words_in(words, cells[j][0], y0, cells[j][1], y1), cells[j][0], y0, cells[j][1], y1)
+                if "號次" in text:
+                    end = j
+                    break
+                if label_of(text) == "education":
+                    end = min(j + 2, len(cells))
+                    break
+            gx0, gx1 = cells[k][0], cells[end - 1][1]
+            # 合併區檔：由近而遠找上一列候選人之後的標題（「第12選舉區（平地原住民）候選人」「市長候選人」）
+            lines = [line_text(l) for l in to_lines([w for w in words if prev <= (w[1] + w[3]) / 2 < y0])]
+            title = next((sec for sec in map(section_of, reversed(lines)) if sec), title)
+            prev = max(prev, ly1)
+            upper = [[(x0, sy0, x1, sy1) for sy0, sy1 in ([(y0, y1)] if j == k else page.sub_rows(x0, x1, y0, y1))]
+                     for j, (x0, x1) in enumerate(cells[k:end], k)]
+            # 新北的照片圖框下緣壓過上下帶分界線約 2pt，下帶格子上緣內縮 2pt，免得經歷欄被當成有圖片
+            lower = [[(x0, ly0 + 2, x1, ly1)] for x0, x1 in lcells if gx0 - 2 <= x0 and x1 <= gx1 + 2]
+            owned = _own(words, [b for col in upper + lower for b in col])
+            fields = {}
+            for cols in (upper, lower):
+                fields.update(pair_labels([[(b, owned.get(b, [])) for b in col] for col in cols]))
+            if "no" in fields and "name" in fields:
+                rows.append({"page": pno, "box": (gx0, y0, gx1, ly1), "fields": fields, "district_text": None,
+                             "title": title})
+    return rows
 
 
 # ---------- 關卡 ----------
@@ -401,12 +489,13 @@ def identify(row, iso, districts, cec):
     return sec, int(no_t), c, None
 
 
-def process(pdf, iso, districts, cec):
-    """一份公報 → {rows: [通過身分關卡的列], rejects: Counter, drops: {欄: Counter}, cut, no_text, unreliable}。"""
+def process(pdf, iso, districts, cec, cutter=cut_pages):
+    """一份公報 → {rows: [通過身分關卡的列], rejects: Counter, drops: {欄: Counter}, cut, no_text, unreliable}。
+    cutter：cut_pages（C、D 家族）或 cut_pages_b（B 家族）。"""
     bbox, raw, xml, grays = pdf_layers(pdf.read_bytes())
     pages = parse_pages(bbox, xml, grays)
     flat = _plain(raw)
-    cut = cut_pages(pages, grays)
+    cut = cutter(pages, grays)
     rep = {"cut": 0, "no_text": 0, "rows": [], "rejects": Counter(), "drops": {f: Counter() for f in TEXT_FIELDS},
            "suspect_in_cells": 0}
     seen = Counter()
@@ -463,31 +552,39 @@ def crop(pdf, page, box, out):
 
 def main(seed=2022):
     cec = load_cec()
+    order = C_FAMILY + D_FAMILY + list(NO_TEXT_LAYER) + B_FAMILY
     files = [f for f in file_map(json.loads(INDEX.read_text()))
-             if (PDF_ROOT / f["path"]).exists() and _county_name(f["iso"]) in C_FAMILY + D_FAMILY + list(NO_TEXT_LAYER)]
+             if (PDF_ROOT / f["path"]).exists() and _county_name(f["iso"]) in order]
     CHECK_DIR.mkdir(parents=True, exist_ok=True)
     rng = random.Random(seed)
     passed = {}
-    for f in sorted(files, key=lambda f: (C_FAMILY + D_FAMILY + list(NO_TEXT_LAYER)).index(_county_name(f["iso"]))):
+    for f in sorted(files, key=lambda f: order.index(_county_name(f["iso"]))):
         county, name = _county_name(f["iso"]), f["path"].rsplit("/", 1)[-1]
         if county in NO_TEXT_LAYER:
             print(f"{county} {name}：跳過（{NO_TEXT_LAYER[county]}）", flush=True)
             continue
-        rep = process(PDF_ROOT / f["path"], f["iso"], f["districts"], cec)
+        rep = process(PDF_ROOT / f["path"], f["iso"], f["districts"], cec,
+                      cut_pages_b if county in B_FAMILY else cut_pages)
         drops = "；".join(f"{fld} " + "、".join(f"{k}{v}" for k, v in c.items()) for fld, c in rep["drops"].items() if c)
         print(f"{county} {name}：切出 {rep['cut']} 列、通過身分 {len(rep['rows'])}"
               f"{'（整檔不可靠）' if rep['unreliable'] else ''}；沒有文字 {rep['no_text']}；"
               f"身分不收 {dict(rep['rejects']) or 0}；欄位丟棄 {drops or 0}；格內看不見的字詞 {rep['suspect_in_cells']}", flush=True)
         passed.setdefault(county, []).extend((f["path"], r) for r in rep["rows"])
-    print("\n人工抽查（每縣市隨機 1 位，seed=%d）：" % seed)
+    print("\n人工抽查（C、D 每縣市隨機 1 位；B 議員檔 2 位、市長檔 1 位；seed=%d）：" % seed)
     for county, rows in passed.items():
-        if not rows:
+        if county in B_FAMILY:  # 新北市長檔與 12 號議員檔是同一份，市長只從市長檔抽、議員只從議員檔抽
+            council = [(p, r) for p, r in rows if "議員/" in p and r["office"] == "councilor"]
+            mayor = [(p, r) for p, r in rows if "長/" in p.split("111年")[0] and r["office"] == "mayor"]
+            picks = rng.sample(council, min(2, len(council))) + rng.sample(mayor, min(1, len(mayor)))
+        else:
+            picks = [rng.choice(rows)] if rows else []
+        if not picks:
             print(f"{county}：沒有通過的列")
-            continue
-        path, r = rng.choice(rows)
-        png = crop(PDF_ROOT / path, r["page"], r["box"], CHECK_DIR / f"{county}_{r['district_n'] or 'mayor'}_{r['cand_no']}")
-        plat = (r["platform"] or "（未收）").replace("\n", "")[:30]
-        print(f"{county} {png.name}：{r['name']}｜政見開頭 {plat}")
+        for path, r in picks:
+            png = crop(PDF_ROOT / path, r["page"], r["box"], CHECK_DIR / f"{county}_{r['district_n'] or 'mayor'}_{r['cand_no']}")
+            plat = (r["platform"] or "（未收）").replace("\n", "")[:30]
+            edu = (r["education"] or "（未收）").replace("\n", "")[:20] if county in B_FAMILY else None
+            print(f"{county} {png.name}：{r['name']}｜" + (f"學歷開頭 {edu}｜" if edu else "") + f"政見開頭 {plat}")
 
 
 def _county_name(iso):

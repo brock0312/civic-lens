@@ -104,5 +104,59 @@ class ParseTest(unittest.TestCase):
         self.assertIsNone(bg.section_of("第一、九選舉區"))
 
 
+def px_word(x0, y0, x1, y1, t):
+    """以 100 dpi 像素給字框，轉成 pt。"""
+    return tuple(v * bg.S for v in (x0, y0, x1, y1)) + (t,)
+
+
+class BFamilyTest(unittest.TestCase):
+    # 合成一頁 B 家族：兩位候選人、各有選區標題；每人上帶（號次｜標籤｜值｜標籤｜值，標籤與值欄在 y=60 有短橫線）
+    # 與下帶（經歷｜內容｜政見｜內容）。
+    V = (5, 30, 60, 100, 130, 195)
+
+    def page(self):
+        w, h, px = gray(200, 300, hs=(40, 80, 120, 160, 200, 240), vs=self.V)
+        px = bytearray(px)
+        for y in (60, 180):  # 只橫過標籤與值欄的短橫線，不切過號次欄
+            px[y * w + 30:y * w + 195] = bytes(165)
+        words = []
+        for dy, title, name in ((0, "第十二選舉區候選人", "王小明"), (120, "第十三選舉區候選人", "李大華")):
+            words += [px_word(10, 20 + dy, 150, 30 + dy, title),
+                      px_word(8, 42 + dy, 27, 50 + dy, "號次"), px_word(12, 60 + dy, 22, 75 + dy, "1"),
+                      px_word(33, 45 + dy, 57, 55 + dy, "姓名"), px_word(63, 45 + dy, 97, 55 + dy, name),
+                      px_word(33, 65 + dy, 57, 75 + dy, "出生年月日"), px_word(63, 65 + dy, 97, 75 + dy, "48年9月25日"),
+                      px_word(103, 45 + dy, 127, 55 + dy, "性別"), px_word(135, 45 + dy, 150, 55 + dy, "男"),
+                      px_word(103, 65 + dy, 127, 75 + dy, "推薦之政黨"), px_word(135, 65 + dy, 150, 75 + dy, "無"),
+                      px_word(8, 90 + dy, 27, 110 + dy, "經歷"), px_word(33, 95 + dy, 57, 105 + dy, "里長"),
+                      px_word(63, 90 + dy, 97, 110 + dy, "政見"), px_word(103, 95 + dy, 127, 105 + dy, "修路")]
+        return [{"words": words}], [(w, h, bytes(px))]
+
+    def test_short_rule_splits_label_and_value_cells(self):
+        page = bg.Page(self.page()[1][0])
+        self.assertEqual(len(page.sub_rows(30 * bg.S, 60 * bg.S, 41 * bg.S, 80 * bg.S)), 2)
+        self.assertEqual(len(page.sub_rows(5 * bg.S, 30 * bg.S, 41 * bg.S, 80 * bg.S)), 1)
+
+    def test_upper_part_is_split_by_labels(self):
+        row = bg.cut_pages_b(*self.page())[0]
+        got = {f: bg._text(parts) for f, parts in row["fields"].items()}
+        self.assertEqual(got, {"no": "1", "name": "王小明", "birth": "48年9月25日", "sex": "男", "party": "無",
+                               "experience": "里長", "platform": "修路"})
+
+    def test_birth_value_is_not_read_as_a_label(self):
+        # 「48年9月25日」含「年月日」：已是值的格不能再當標籤，把右邊的「性別」格吃掉
+        cell = lambda x0, x1, y0, y1, t: ((x0, y0, x1, y1), [word(x0 + 1, y0 + 1, x1 - 1, y1 - 1, t)])
+        cols = [[cell(0, 10, 0, 10, "姓名"), cell(0, 10, 10, 20, "出生年月日")],
+                [cell(10, 40, 0, 10, "王小明"), cell(10, 40, 10, 20, "48年9月25日")],
+                [cell(40, 50, 0, 20, "性別")], [cell(50, 60, 0, 20, "男")]]
+        f = bg.pair_labels(cols)
+        self.assertEqual(bg._text(f["birth"]), "48年9月25日")
+        self.assertEqual(bg._text(f["sex"]), "男")
+
+    def test_merged_file_is_segmented_by_district_titles(self):
+        rows = bg.cut_pages_b(*self.page())
+        self.assertEqual([(r["title"], bg._text(r["fields"]["name"])) for r in rows],
+                         [(("councilor", 12), "王小明"), (("councilor", 13), "李大華")])
+
+
 if __name__ == "__main__":
     unittest.main()
