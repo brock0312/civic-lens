@@ -110,6 +110,9 @@ def export(conn, out_dir):
             },
         )
 
+    # 有現任議員名錄（議員任職 fact）的縣市，前端縣市頁的說明依此列出
+    rosters = {_iso_of(d["district_id"]) for d in districts.values()
+               if any(p["kind"] == "office" and str(p["data"].get("office")).endswith("_councilor") for p in d["people"])}
     districts_by_county = {}
     for district_id in sorted(districts):
         d = districts[district_id]
@@ -120,7 +123,8 @@ def export(conn, out_dir):
         out_dir / "counties.json",
         {
             "counties": [
-                {**dict(row), "districts": districts_by_county.get(row["iso"], [])}
+                {**dict(row), "districts": districts_by_county.get(row["iso"], []),
+                 "councilor_roster": row["iso"] in rosters}
                 for row in conn.execute(
                     "SELECT iso, moi_code, name, source_url, fetched_at FROM county ORDER BY iso"
                 )

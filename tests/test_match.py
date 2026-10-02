@@ -23,6 +23,22 @@ class MatchTest(unittest.TestCase):
         o = self.one(rec(1, "nwt", "馬見Lahuy．Ipin", 13), [cand("p1", "馬見Lahuy‧Ipin", "nwt-council-13")])
         self.assertEqual(o["links"], [{"key": 1, "person_id": "p1"}])
 
+    def test_links_indigenous_name_with_different_word_order(self):
+        o = self.one(rec(1, "tnn", "Ingay Tali穎艾達利", 12), [cand("p1", "穎艾達利 Ingay Tali", "tnn-council-12")])
+        self.assertEqual(o["links"], [{"key": 1, "person_id": "p1"}])
+        o = self.one(rec(1, "khh", "范織欽(Pasulang‧Tomatalate)", 15), [cand("p1", "范織欽 Pasulang．Tomatalate", "khh-council-15")])
+        self.assertEqual(len(o["links"]), 1)
+
+    def test_romanization_on_one_side_only_goes_to_review(self):
+        o = self.one(rec(1, "tnn", "施余興望", 13), [cand("p1", "施余興望 Tjakumay Tagaw", "tnn-council-13")])
+        self.assertEqual(o["review"], [{"key": 1, "person_ids": ["p1"], "reason": "romanization"}])
+        self.assertEqual(o["links"], [])
+
+    def test_different_romanization_words_go_to_review(self):
+        o = self.one(rec(1, "khh", "高忠德(Taki ludun‧Anu)", 14), [cand("p1", "高忠德 Takiludun．Anu", "khh-council-14")])
+        self.assertEqual(o["review"][0]["reason"], "romanization")
+        self.assertEqual(o["links"], [])
+
     def test_duplicate_name_goes_to_review(self):
         o = self.one(rec(1, "kee", "王大明", 3), [cand("p1", "王大明", "kee-council-03"), cand("p2", "王大明", "kee-council-04")])
         self.assertEqual(o["review"][0]["reason"], "duplicate_name")

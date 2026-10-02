@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -419,4 +419,19 @@ test('non-Taipei county note lists what is provided, neutrally', () => {
   assert.match(n, /2026 候選人名單、選區與新竹縣長任職資料/);
   assert.match(n, /新竹縣議會的問政紀錄仍在建置中/);
   assert.doesNotMatch(n, /只提供|深度資料/);
+});
+
+test('county note mentions the incumbent councillor list only when the data has one', () => {
+  const nwt = { iso: 'nwt', name: '新北市', councilor_roster: true };
+  assert.match(countyNote(nwt), /2026 候選人名單、選區、現任議員名單與新北市長任職資料/);
+  assert.match(countyNote(nwt), /新北市議會的問政紀錄仍在建置中/);
+  assert.doesNotMatch(countyNote(hsq), /現任議員/);
+});
+
+test('home note lists non-Taipei counties with an incumbent councillor list, from data', () => {
+  const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
+  const nwt = { iso: 'nwt', name: '新北市', councilor_roster: true };
+  const khh = { iso: 'khh', name: '高雄市', councilor_roster: true };
+  assert.match(homeNote([tpe, nwt, hsq, khh]), /縣市長任職資料，新北市、高雄市另有現任議員名單，議員問政紀錄仍在建置中/);
+  assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
 });

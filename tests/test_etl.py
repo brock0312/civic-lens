@@ -196,6 +196,33 @@ class TestEtl(unittest.TestCase):
             )
 
 
+class TestFetchIpv4(unittest.TestCase):
+    def test_ipv4_connection_uses_the_ipv4_only_connector(self):
+        from etl.fetch import _V4Connection, _connect_v4
+        self.assertIs(_V4Connection("example.com")._create_connection, _connect_v4)
+
+
+class TestCountyRosterFlag(unittest.TestCase):
+    def test_counties_json_flags_counties_with_councilor_office_facts_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
+            for iso in ("nwt", "kee", "ila"):
+                upsert(conn, "county", {"iso": iso, "moi_code": "1", "name": iso, "source_url": "http://m",
+                                        "fetched_at": "2024-01-01T00:00:00Z"}, ("iso",))
+            for did in ("nwt-council-01", "kee-council-01", "ila-mayor"):
+                _add_district(conn, did)
+            upsert_person(conn, "p1", "甲")
+            upsert_fact(conn, "o1", "p1", "office", {"office": "nwt_councilor", "district_id": "nwt-council-01"},
+                        "http://a", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "c1", "p1", "candidacy", {"district_id": "kee-council-01"}, "http://a", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "o2", "p1", "office", {"office": "ila_mayor", "district_id": "ila-mayor"},
+                        "http://a", "2024-01-01T00:00:00Z")
+            export(conn, Path(tmp) / "out")
+            out = json.loads((Path(tmp) / "out" / "counties.json").read_text(encoding="utf-8"))
+            self.assertEqual({c["iso"]: c["councilor_roster"] for c in out["counties"]},
+                             {"nwt": True, "kee": False, "ila": False})
+
+
 def _add_district(conn, district_id):
     upsert(conn, "district", {
         "district_id": district_id, "office": "tpe_councilor", "name": district_id,

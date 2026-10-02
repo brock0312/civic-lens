@@ -7,8 +7,13 @@ import {
 const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['tcc.gov.tw', '臺北市議會']];
 export const INTERPELLATION_PAGE = 20;
 const NO_RECORD ='本站目前沒有此人的任內問政紀錄（收錄範圍：第14屆臺北市議員書面質詢與口頭質詢影片）';
-// 非深度縣市的縣市頁說明：列出目前提供的資料，措辭中性
-export const countyNote = (county) => `目前提供 2026 候選人名單、選區與${county.name}長任職資料；${county.name}議會的問政紀錄仍在建置中。`;
+// 非深度縣市的縣市頁說明：列出目前提供的資料，措辭中性；現任議員名單依 counties.json 的 councilor_roster
+export const countyNote = (county) => `目前提供 2026 候選人名單、選區${county.councilor_roster ? '、現任議員名單' : ''}與${county.name}長任職資料；${county.name}議會的問政紀錄仍在建置中。`;
+// 首頁縣市清單下的說明（counties 已依顯示順序排好）
+export function homeNote(counties) {
+  const roster = counties.filter((c) => c.councilor_roster && !DEEP_COUNTIES.has(c.iso)).map((c) => c.name);
+  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；其他縣市目前提供 2026 候選人名單、選區與縣市長任職資料${roster.length ? `，${roster.join('、')}另有現任議員名單` : ''}，議員問政紀錄仍在建置中。`;
+}
 // 非深度縣市：問政紀錄還沒建置，措辭不能讓人以為此人沒有問政
 export const noRecordNote = (county) => `${county.name}議會的問政紀錄仍在建置中，本站目前尚未收錄。`;
 
@@ -259,7 +264,7 @@ async function renderHome(main, ctx) {
       <nav aria-labelledby="county-h">
         <h2 id="county-h">縣市</h2>
         <ul class="counties">${counties.map((c) => `<li><a href="#/c/${esc(c.iso)}" data-iso="${esc(c.iso)}">${esc(c.name)}</a>${DEEP_COUNTIES.has(c.iso) ? '<span class="tag">含問政紀錄</span>' : ''}</li>`).join('')}</ul>
-        <p class="small muted">標示「含問政紀錄」的縣市另收錄議員的問政紀錄；其他縣市目前提供 2026 候選人名單、選區與縣市長任職資料，議員問政紀錄仍在建置中。</p>
+        <p class="small muted">${esc(homeNote(counties))}</p>
       </nav>
     </div>`;
 

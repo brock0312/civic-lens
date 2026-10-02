@@ -14,6 +14,19 @@ def _norm(name):
     return _SEP.sub("", name)
 
 
+_ROMAN = re.compile(r"(?<![@0-9A-Za-z])[A-Za-z]+(?![@0-9A-Za-z])")  # 不碰中選會造字碼（如 @FA3E@）
+
+
+def han(name):
+    """姓名去掉羅馬拼音、括號、空白與間隔號後剩下的部分（漢字）。"""
+    return re.sub(r"[()（）]", "", _norm(_ROMAN.sub("", name)))
+
+
+def name_key(name):
+    """比對鍵：漢字部分＋羅馬拼音詞的多重集合（小寫）。原住民姓名在官網名錄與中選會的拼音詞序不同。"""
+    return han(name), tuple(sorted(w.lower() for w in _ROMAN.findall(name)))
+
+
 def _iso(district_id):
     return district_id.split("-")[0]
 
@@ -35,22 +48,26 @@ def _overlap(rec, district_id):
 
 
 def match(records, candidates):
-    cands = defaultdict(list)  # (iso, 正規化名) -> candidates
+    cands = defaultdict(list)  # (iso, 比對鍵) -> candidates
+    han_idx, var_idx = defaultdict(list), defaultdict(list)
     for c in candidates:
-        cands[(_iso(c["district_id"]), _norm(c["name"]))].append(c)
-    var_idx = defaultdict(list)
-    for (iso, n), cs in cands.items():
-        var_idx[(iso, n.translate(_VAR))].extend(cs)
-    rec_count = Counter((r["iso"], _norm(r["name"])) for r in records)
+        iso, k = _iso(c["district_id"]), name_key(c["name"])
+        cands[(iso, k)].append(c)
+        han_idx[(iso, k[0])].append(c)
+        var_idx[(iso, k[0].translate(_VAR))].append(c)
+    rec_count = Counter((r["iso"], name_key(r["name"])) for r in records)
 
     links, review, unregistered = [], [], []
     for r in records:
-        k = (r["iso"], _norm(r["name"]))
+        k = (r["iso"], name_key(r["name"]))
         exact = cands.get(k, [])
         if not exact:
-            hits = [c for c in var_idx.get((r["iso"], k[1].translate(_VAR)), [])]
-            if hits:
-                review.append({"key": r["key"], "person_ids": [c["person_id"] for c in hits], "reason": "variant"})
+            # 漢字相同、拼音不同（或只有一邊有拼音）：進審閱，不自動串
+            for reason, hits in (("romanization", han_idx.get((r["iso"], k[1][0]), [])),
+                                 ("variant", var_idx.get((r["iso"], k[1][0].translate(_VAR)), []))):
+                if hits:
+                    review.append({"key": r["key"], "person_ids": [c["person_id"] for c in hits], "reason": reason})
+                    break
             else:
                 unregistered.append(r["key"])
             continue

@@ -1,5 +1,6 @@
 """五都議會官網的現任議員名錄解析（純函式）。以官網名錄為現任依據。"""
 import re
+import time
 from pathlib import Path
 
 from etl.fetch import get
@@ -42,6 +43,7 @@ ROSTER_URLS = {
 }
 _OLD = {"nwt", "tao", "txg", "tnn", "khh"}
 _ENC = {"ila": "big5"}
+_IPV4 = {"tao"}  # 桃園議會的 IPv6 位址連不上（2026-10-02 實測）
 # 臺南、高雄在姓名後加註離職
 _MARK = re.compile(r"\((歿|解職[^)]*|轉任[^)]*)\)")
 _NUM = {c: i for i, c in enumerate("一二三四五六七八九十", 1)}
@@ -187,9 +189,12 @@ PARSERS = {"nwt": parse_nwt, "tao": parse_tao, "txg": parse_txg, "tnn": parse_tn
 def fetch_roster(iso):
     url = ROSTER_URLS[iso]
     if isinstance(url, list):
-        pages = [get(u).decode("utf-8") for u in url]
+        pages = []
+        for u in url:  # 同一主機逐頁抓，間隔 1.1 秒
+            time.sleep(1.1)
+            pages.append(get(u, ipv4=iso in _IPV4).decode("utf-8"))
         return PARSERS[iso](pages)
-    html = get(url).decode(_ENC.get(iso, "utf-8"))
+    html = get(url, ipv4=iso in _IPV4).decode(_ENC.get(iso, "utf-8"))
     if iso not in _OLD:  # 新縣市存快取供測試與重跑；單頁、每縣市一個主機，不需間隔
         (Path("data/cache/rosters") / f"{iso}.html").write_text(html, encoding="utf-8")
     return PARSERS[iso](html)
