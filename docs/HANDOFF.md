@@ -13,7 +13,7 @@
 |---|---|---|
 | 全國 22 縣市 | 2026 候選人名單（1,583 人）、選區與名額、村里對到議員／立委選區；**全國查詢前端**（2026-10-02）：首頁台灣地圖＋縣市清單 → 縣市頁（鄉鎮 → 跨選區時選里 → 原住民身分）→ 議員選區與縣市長；非臺北縣市標示「深度資料建置中」並連議會官網 | 21 縣市的深度資料（見 §5 的 L3-A、L3-B） |
 | 臺北市議會 | 現任名錄與身分對照、書面質詢 2,473 筆、口頭質詢影片 2,918 筆（深連結到質詢組起點）、大會出缺勤 6,413 筆（出席率、請假率）、2022 公報政見與學經歷、市長任職、第 5 次定期大會質詢摘要（40 人） | 第 1–4 次定期大會摘要（批次進行中，log：`data/cache/summaries_batch_0104.log`；10/02 額度用完停在 14-01 第 26/51 人，隔天用同一指令續跑）、第 5 次剩 8 人 |
-| 其他 21 個議會 | 無 | 全部（見 §5 的 L3） |
+| 其他 21 個議會 | 21 縣市長任職；**六都**（新北、桃園、臺中、臺南、高雄）現任議員 303 人（官網名錄，261 人串到 2026 候選人）與 2022 公報政見、學經歷（無文字者連原檔） | 其餘 16 縣市的現任與公報（L3-A 第 2–5 天）；各議會問政紀錄（L3-B） |
 | 立委 | 選區對照 | 名冊、質詢、提案、表決、出席（govapi，見 §5） |
 | 確定有罪判決查詢 | 區塊與查詢入口（目前顯示「尚未收錄經查證的確定有罪判決」） | 查證流程與 ETL，最快 11/25 公報後才有可顯示的資料（見 [V7](validation/V7-criminal-records.md)） |
 
@@ -27,7 +27,7 @@ git push origin main
 ```
 
 - **ETL 只能在本機跑**：臺北市議會全系統、內政部村里檔、中選會開票 JSON 都擋海外 IP，GitHub 機器抓不到。每日排程已停用，資料採**手動更新**（步驟見 README「資料更新」）。
-- **來源**（`etl/run.py` 的 `SOURCES`，順序有依賴）：`tpe_districts`、`tpe_candidates`、`national_districts`、`national_legislators`、`national_candidates`、`tcc_councilors`、`tcc_interpellations`、`tcc_videos`、`tcc_attendance`、`tcc_summaries`、`tpe_bulletin_2022`。
+- **來源**（`etl/run.py` 的 `SOURCES`，順序有依賴）：`tpe_districts`、`tpe_candidates`、`national_districts`、`national_legislators`、`national_candidates`、`national_heads`（縣市長任職＋`data/head_status.csv`）、`national_councilors`（議會官網現任名錄，縣市清單見 `ISOS`）、`national_bulletin_2022`（2022 公報政見與學經歷，縣市清單見 `ISOS`）、`tcc_councilors`、`tcc_interpellations`、`tcc_videos`、`tcc_attendance`、`tcc_summaries`、`tpe_bulletin_2022`。
 - **前端**：`site/`，純 HTML／CSS／vanilla JS，無 build、無依賴。設計語言為「報導式數據新聞」、單色、黨徽是全頁唯一的彩色。路由：`#/` 地圖、`#/c/<iso>` 縣市、`#/d/<id>` 選區、`#/p/<id>` 人物。選區判定、職稱等純函式在 `site/geo.js`；村里資料依縣市拆成 `data/villages/<iso>.json`，按需載入。有深度資料的縣市列在 `geo.js` 的 `DEEP_COUNTIES`（目前只有 tpe），議會官網在 `COUNCIL_SITES`。村里名的造字已改用中選會寫法（`etl/moi.py` 的 `CEC_VILLNAMES`，21 筆）。測試：`node --test site/app.test.mjs`（一定要指定檔案）。
 - **測試**：`python3 -m unittest`、`node --test site/app.test.mjs`。判斷是否通過一律看 exit code，不要只看經過 `grep`／`tail` 管線的輸出。
 
@@ -64,7 +64,7 @@ git push origin main
 | # | 工作 | 下一步 | 參考 |
 |---|---|---|---|
 | 1 | **摘要第 1–4 次會期** | 批次每天續跑；跑完一個會期就抽樣審閱、修訂、核可、上線。第 5 次剩 8 人（快取裡沒有回答）也要補跑 | §4 |
-| 2 | **L3-A 各縣市基本深度** | 決定見 V13、V14「已定案」。**第 0 天共用工作（10/02）已完成**：`etl/cec2022.py`（2022 開票，含落選人）、`etl/match.py`（身分串接＋審閱清單）、`etl/bulletin2022.py`（公報檔→選區對照，200 檔）、`etl/bulletin_grid.py`（C、D 家族框線切格器：12 縣市可用，各抽 1 人目視正確；新竹市直排字框偏移整檔不收，第 3 天再修；雲林當無文字層）、**縣市長任職已上線**（`national_heads`＋人工表 `data/head_status.csv`，照 V14 文案）。B 家族（新北、臺南）解析器也在 `etl/bulletin_grid.py`（`cut_pages_b`），兩市樣本全部通過、抽 6 人目視正確；新北市長檔與第 12 區檔是同一份 PDF，接 ETL 時要去重。**第 0 天全部完成。****第 1 天（六都）進度**：`etl/rosters.py` 五都名錄解析器完成（快取比對與 V13 逐人一致：現任 303、離職 15、遞補 2；尚未接 ETL）。另有 11 縣市（hsq、cha、nan、yun、pif、ila、hua、pen、kin、lie、kee）單頁名錄解析器，用 V13 快取驗證、`fetch_roster` 線上抓取尚未實測（宜蘭網址由頁框推得、Big5）。接 ETL 時注意：彰化 謝典林／謝典霖、南投 林婷立／林庭秝 疑為錯字或改名，要進審閱清單而非當成離職＋遞補；澎湖名錄沒有選區，要靠姓名對回 2022 當選人的選區；臺東（JS）、嘉義縣（API）、桃園以外的分頁組（苗栗、新竹市）尚未做。注意：原住民姓名的羅馬拼音詞序在官網名錄與中選會不同，`etl.match` 的完整姓名比對會比不到，接 ETL 時要決定改比漢字部分或進審閱清單。**第 1 天起**：每縣市接上議會名錄爬蟲（現任）＋身分串接＋公報 facts＋前端（嘉義市標「2022 當選」、Z 家族只放公報原檔連結）；公報欄位接進 ETL 時沿用臺北 `tpe_bulletin_2022` 的接行與條列（`items`），並交 verifier 抽樣對照 PDF。**維運**：宜蘭、新竹市長狀態每次上線前與每週重查一次，直到 2026-12-25（V14 §5），有變動就改 `data/head_status.csv` | [V13](validation/V13-l3a-basic.md)、[V14](validation/V14-county-heads.md)、§6 |
+| 2 | **L3-A 各縣市基本深度** | 決定見 V13、V14「已定案」。**第 0 天共用工作與第 1 天（六都）已完成**（10/02–03）：`etl/cec2022.py`、`etl/match.py`（姓名鍵＝漢字＋拼音詞集合；漢字同名多人進審閱）、`etl/bulletin2022.py`、`etl/bulletin_grid.py`（B／C／D 家族；無文字層清單 `NO_TEXT_FILES`）、`etl/rosters.py`（20 個議會名錄解析器，嘉義市依定案不爬）、縣市長任職、六都現任與公報。審閱中未串接：臺南 李啟維、施余興望，高雄 高忠德（`data/identity_national.csv` 填入確認後才串）。**下一步（第 2 天）**：基隆、嘉義縣、南投、苗栗、花蓮：把 iso 加進 `national_councilors.ISOS` 與 `national_bulletin_2022.ISOS`，下載該縣市全部議員公報、跑切格報告看覆蓋率，再跑 ETL、verifier 抽樣對照 PDF。注意：彰化 謝典林／謝典霖、南投 林婷立／林庭秝 疑為錯字或改名（進審閱）；澎湖名錄沒有選區；新竹市公報直排字框偏移（第 3 天修）；Z 家族（屏東、宜蘭、臺東、澎湖）與雲林只放公報原檔連結；嘉義市標「2022 當選」。**維運**：宜蘭、新竹市長狀態每次上線前與每週跑 `scripts/check_head_status.py`，直到 2026-12-25 | [V13](validation/V13-l3a-basic.md)、[V14](validation/V14-county-heads.md)、§6 |
 | 3 | **選舉時程維運** | 10/16 審定後移除不合格者（全國）；11/12、11/17 補號次；11/25 解析 2026 公報（全國新人的政見、學經歷與生日） | [V1](validation/V1-candidates-2026.md) |
 | 4 | **立委全國** | govapi（`v2.ly.govapi.tw`）名冊、書面質詢、提案、表決、IVOD；出席欄位先做 V5 驗證 | PLAN §2、§7 |
 | 5 | **其他議會（L3）** | 先完成 V12 普查（新北網站曾連不上、桃園與 16 縣市未查），依平台分組；高雄最容易（影片 API 可逐人、有出席統計表），臺中、臺南可做名錄與影片 | [V12](validation/V12-councils-survey.md) |
