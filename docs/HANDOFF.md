@@ -46,6 +46,7 @@ git push origin main
 
 ### 資料更新並上線
 見 README「資料更新」。重點：`python3 -m unittest` → `python3 -m etl.run` → 生日檢查 → 只 commit `data/civic.sql` → `git push origin main`。
+- **縣市長狀態重查**（V14 §5，每次上線前與每週一次，直到 2026-12-25）：`python3 scripts/check_head_status.py`。exit 1 代表需要人工確認：照輸出查官方頁面，必要時更新 `data/head_status.csv` 再跑 ETL。腳本只回報、不改檔。
 
 ### 質詢摘要（NotebookLM）
 - **登入**：只能在 Mac 的「終端機」App 執行 `notebooklm login --fresh`，登入後在終端機按 Enter。Claude Code 的 `!` 指令沒有 stdin，login 會失敗。用前先確認 `notebooklm auth check --test --json` 的 `token_fetch` 為 true。
