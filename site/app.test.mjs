@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -434,4 +434,9 @@ test('home note lists non-Taipei counties with an incumbent councillor list, fro
   const khh = { iso: 'khh', name: '高雄市', councilor_roster: true };
   assert.match(homeNote([tpe, nwt, hsq, khh]), /縣市長任職資料，新北市、高雄市另有現任議員名單，議員問政紀錄仍在建置中/);
   assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
+});
+
+test('a party taken from the 2022 results is labelled with the year', () => {
+  assert.match(partyOf({ party: '民主進步黨', party_year: 2022 }, {}), /2022 推薦/);
+  assert.doesNotMatch(partyOf({ party: '民主進步黨' }, {}), /推薦/);
 });

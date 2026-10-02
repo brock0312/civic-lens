@@ -58,7 +58,7 @@ def head_data(head, events):
     extra = CYI if iso == "cyi" else {}
     inaug_url, inaug_label = extra.get("inauguration", MOI_INAUGURATION)
     data = {
-        "office": f"{iso}_mayor", "district_id": f"{iso}-mayor", "title": f"{NAMES[iso]}長", "party": head["party"],
+        "office": f"{iso}_mayor", "district_id": f"{iso}-mayor", "title": f"{NAMES[iso]}長", "party": head["party"], "party_year": 2022,
         "elected_on": extra.get("elected_on", VOTE_DATE),
         "source_label": extra.get("source_label", "中選會 2022 開票結果"),
         "inauguration_source_url": inaug_url, "inauguration_source_label": inaug_label,

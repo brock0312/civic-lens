@@ -74,8 +74,10 @@ def plan(roster, won, candidates, identity):
         w = seats.get(_seat_key(r["iso"], r["district_n"], r["name"]))
         data = {"office": f"{r['iso']}_councilor", "district_id": council_id(r["iso"], r["district_n"]),
                 "title": f"{NAMES[r['iso']]}議員"}
-        if r.get("party") or w:
-            data["party"] = r.get("party") or w["party"]
+        if r.get("party"):
+            data["party"] = r["party"]
+        elif w:  # 名錄沒有政黨時用 2022 推薦政黨，前端標「2022 推薦」，避免換黨者顯示成目前政黨
+            data["party"], data["party_year"] = w["party"], 2022
         # 2022 當選人才寫任職起日；其餘（遞補或補選，依據未查）留空
         rows.append({"row": r, "person_id": person_id, "verified_by": verified_by, "data": data,
                      "date": TERM_START if w else None})

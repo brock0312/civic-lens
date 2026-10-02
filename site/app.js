@@ -351,9 +351,14 @@ async function renderCounty(main, ctx, iso) {
   update();
 }
 
+// 政黨取自 2022 開票（推薦政黨）時加註年份：之後換黨的人不會被顯示成目前政黨
+export function partyOf(data, parties) {
+  return `${party(data.party, parties)}${data.party_year ? `<span class="muted small">${esc(data.party_year)} 推薦</span>` : ''}`;
+}
+
 function rosterRow(p, fn, parties, tag) {
   return `<li><a class="name" href="#/p/${esc(p.person_id)}">${esc(p.name)}</a>
-    ${party(p.data.party, parties)}
+    ${partyOf(p.data, parties)}
     <span class="meta">${tag ? `<span class="tag">${esc(tag)}</span>` : ''}${fn}</span></li>`;
 }
 
@@ -651,7 +656,7 @@ async function renderPerson(main, ctx, id) {
     ${crumbs(['#/', '全國'], ...(leadCounty ? [[`#/c/${leadCounty.iso}`, leadCounty.name]] : []),
       ...(leadMeta ? [[`#/d/${leadMeta.d.district_id}`, districtTitle(leadMeta.d, leadMeta.county)]] : []), ['', p.name])}
     <h1 tabindex="-1">${esc(p.name)}</h1>
-    ${lead ? `<p class="byline">${party(lead.data.party, ctx.parties)}<span>${districtLink(lead.data.district_id)}</span></p>` : ''}
+    ${lead ? `<p class="byline">${partyOf(lead.data, ctx.parties)}<span>${districtLink(lead.data.district_id)}</span></p>` : ''}
     ${summaryCard(facts, { offices, inters, written, videos, jump })}
     ${cand ? `<section aria-labelledby="k-cand"><h2 id="k-cand">2026 參選</h2>${cand}</section>` : ''}
     ${criminalRecordSection(facts)}
