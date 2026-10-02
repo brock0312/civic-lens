@@ -55,7 +55,7 @@ def match(records, candidates):
         cands[(iso, k)].append(c)
         han_idx[(iso, k[0])].append(c)
         var_idx[(iso, k[0].translate(_VAR))].append(c)
-    rec_count = Counter((r["iso"], name_key(r["name"])) for r in records)
+    rec_count = Counter((r["iso"], name_key(r["name"])[0]) for r in records)
 
     links, review, unregistered = [], [], []
     for r in records:
@@ -72,7 +72,7 @@ def match(records, candidates):
                 unregistered.append(r["key"])
             continue
         ids = [c["person_id"] for c in exact]
-        if len(exact) > 1 or rec_count[k] > 1:
+        if len(han_idx[(r["iso"], k[1][0])]) > 1 or rec_count[(r["iso"], k[1][0])] > 1:  # 漢字相同者超過 1 人（含「X」與「X Abc」）
             review.append({"key": r["key"], "person_ids": ids, "reason": "duplicate_name"})
         elif _overlap(r, exact[0]["district_id"]):
             links.append({"key": r["key"], "person_id": ids[0]})

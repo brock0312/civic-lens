@@ -63,6 +63,11 @@ class MatchTest(unittest.TestCase):
         o = self.one(rec(1, "kee", "王大明", 3), [cand("p1", "王大明", "hsz-council-03")])
         self.assertEqual(o["unregistered"], [1])
 
+    def test_han_name_shared_with_romanized_candidate_goes_to_review(self):
+        o = match([rec(0, "tao", "王大明", 3)],
+                  [cand("p1", "王大明", "tao-council-03"), cand("p2", "王大明 Abc", "tao-council-03")])
+        self.assertEqual((o["links"], [x["reason"] for x in o["review"]]), ([], ["duplicate_name"]))
+
 
 if __name__ == "__main__":
     unittest.main()
