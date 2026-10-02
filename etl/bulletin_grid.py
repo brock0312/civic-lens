@@ -56,6 +56,7 @@ LABELS = [("district", "選舉區"), ("district", "選舉類別"), ("district", 
           ("no", "號次"), ("name", "姓名"), ("sex", "性別"), ("sex", "別"), ("photo", "相片")]
 TEXT_FIELDS = ("education", "experience", "platform")
 NOT_HERE = "選區不在此檔"
+NAME_ONLY = ("姓名不符", "號次或姓名有看不見的文字")  # identify() 回這兩種時，號次、出生年、黨籍都已一致
 OTHER = "其他選舉（鄉鎮長、代表、村里長）"
 FULLWIDTH = str.maketrans("０１２３４５６７８９", "0123456789")
 
@@ -213,6 +214,31 @@ def section_of(text):
     return None
 
 
+def _svg(pdf, pno):
+    return subprocess.run(["pdftocairo", "-svg", "-f", str(pno), "-l", str(pno), str(pdf), "-"],
+                          check=True, capture_output=True).stdout.decode("utf-8", "replace")
+
+
+def blank_glyphs(svg):
+    """pdftocairo -svg 的一頁 → 字形沒有輪廓（畫不出任何筆畫）的字的原點 [(x, 基線 y)]（pt）。
+    同一原點（1pt 內）另有畫得出來的字形就不算：嘉義市、新竹縣在字前面有不佔寬度的空白（空字形），原點和字相同。"""
+    empty = set(re.findall(r'<g id="(glyph-[\d-]+)">\s*</g>', svg))
+    uses = [(g, float(x), float(y)) for g, x, y in re.findall(r'<use xlink:href="#(glyph-[\d-]+)" x="([-\d.]+)" y="([-\d.]+)"', svg)]
+    inked = {(round(x), round(y)) for g, x, y in uses if g not in empty}
+    return [(x, y) for g, x, y in uses if g in empty
+            and not any((round(x) + i, round(y) + j) in inked for i in (-1, 0, 1) for j in (-1, 0, 1))]
+
+
+def drop_blank(words, origins):
+    """去掉字形是空的單字字詞：高雄議員公報範本殘留一個空字形的「媖」，疊在第 5、10、13 列的姓名格裡，
+    算圖時旁邊的姓名字有墨跡，has_ink 看不出來，會讀成「湯詠瑜媖」。
+    原點要在字框下段（基線）：上一行的空白字元（也是空字形）原點會落在下一行字框的上緣（南投姓名「洪」）。
+    只看文字（isalnum）：臺南有「•」的文字是空字形、看得見的圓點是另一個沒有對應文字的字形，丟掉「•」反而對不上 -raw。
+    ponytail: 只看單字字詞；多字字詞夾空字形就留著，由 -raw 與身分關卡擋下。"""
+    return [w for w in words
+            if not (len(w[4]) == 1 and w[4].isalnum() and any(abs(x - w[0]) < 1 and w[1] + 0.6 * (w[3] - w[1]) <= y <= w[3] + 1 for x, y in origins))]
+
+
 # ---------- 切格 ----------
 
 def _center_in(w, x0, y0, x1, y1):
@@ -282,8 +308,9 @@ def _own(words, boxes):
 
 
 def _fits(group, cells):
-    """資料列的格線要涵蓋表頭每一欄的左緣（政見格內多出的分隔線不影響）；投開票所一覽表之類的別的表格不會符合。"""
-    return all(any(abs(c[0] - x0) < 4 for c in cells) for x0, _, _ in group)
+    """資料列的格線要涵蓋表頭每一欄的左緣（政見格內多出的分隔線不影響）；投開票所一覽表之類的別的表格不會符合。
+    容差 6pt：桃園第 2 區第 3 號那列的經歷／政見分隔線比表頭偏右 5pt。"""
+    return all(any(abs(c[0] - x0) < 6 for c in cells) for x0, _, _ in group)
 
 
 def _cut_group(page, words, pno, group, sy0, sy1, title):
@@ -306,8 +333,17 @@ def _cut_group(page, words, pno, group, sy0, sy1, title):
             else:
                 side.append((w[1], w[3], [w]))
     owned = _own(words, [(x0, y0, x1, y1) for y0, y1, cells in bands for x0, x1 in cells])
+    # 同一表頭下接著印下一區（高雄合併檔：「第13選舉區：…」印在兩列之間、沒有直線的橫帶）：列上方最近的區標題優先
+    marks = []
+    for y0, y1, cells in page.bands(rules, gx0, gx1):
+        if len(cells) <= 1:
+            lines = to_lines([w for w in words if gx0 <= (w[0] + w[2]) / 2 < gx1 and y0 <= (w[1] + w[3]) / 2 < y1])
+            sec = next((s for s in map(section_of, map(line_text, lines)) if s), None)
+            if sec:
+                marks.append((y0, sec))
     out = []
     for y0, y1, cells in bands:
+        title = next((sec for my, sec in reversed(marks) if my < y0), title)
         fields = {}
         for x0, x1 in cells:
             f = _field_at(group, (x0 + x1) / 2)
@@ -479,14 +515,15 @@ def identify(row, iso, districts, cec):
     c = cec.get((iso, *sec), {}).get(int(no_t))
     if c is None:
         return sec, int(no_t), None, "號次不在開票名單"
-    if any(w in row["suspect"] for _, ws in f["no"] + f["name"] for w in ws):
-        return sec, int(no_t), c, "號次或姓名有看不見的文字"
-    if norm_name(c["name"]) not in {norm_name(t) for t in readings(f["name"])}:
-        return sec, int(no_t), c, "姓名不符"
+    # 出生年、黨籍先比：之後的兩種原因（NAME_ONLY）就代表號次、出生年、黨籍都已和該號次的候選人一致
     if c["birth_year"] not in {roc_birth_year(t) for t in readings(f.get("birth", []))}:
         return sec, int(no_t), c, "出生年不符"
     if c["party"] not in {NO_PARTY.get(t, t) for t in readings(f.get("party", []))}:
         return sec, int(no_t), c, "黨籍不符"
+    if any(w in row["suspect"] for _, ws in f["no"] + f["name"] for w in ws):
+        return sec, int(no_t), c, "號次或姓名有看不見的文字"
+    if norm_name(c["name"]) not in {norm_name(t) for t in readings(f["name"])}:
+        return sec, int(no_t), c, "姓名不符"
     return sec, int(no_t), c, None
 
 
@@ -494,11 +531,12 @@ def process(pdf, iso, districts, cec, cutter=cut_pages):
     """一份公報 → {rows: [通過身分關卡的列], rejects: Counter, drops: {欄: Counter}, cut, no_text, unreliable}。
     cutter：cut_pages（C、D 家族）或 cut_pages_b（B 家族）。"""
     bbox, raw, xml, grays = pdf_layers(pdf.read_bytes())
-    pages = parse_pages(bbox, xml, grays)
+    pages = [{**pg, "words": drop_blank(pg["words"], blank_glyphs(_svg(pdf, i)))}
+             for i, pg in enumerate(parse_pages(bbox, xml, grays), 1)]
     flat = _plain(raw)
     cut = cutter(pages, grays)
     rep = {"cut": 0, "no_text": 0, "rows": [], "rejects": Counter(), "drops": {f: Counter() for f in TEXT_FIELDS},
-           "suspect_in_cells": 0}
+           "suspect_in_cells": 0, "name_only": 0}
     seen = Counter()
     staged = []
     for r in cut:
@@ -510,12 +548,14 @@ def process(pdf, iso, districts, cec, cutter=cut_pages):
                 continue
             rep["cut"] += 1
             rep["rejects"]["姓名格沒有字"] += 1
+            rep["name_only"] += identify(r, iso, districts, cec)[3] in NAME_ONLY
             continue
         rep["cut"] += 1
         rep["suspect_in_cells"] += sum(w in pg["suspect"] for parts in r["fields"].values() for _, ws in parts for w in ws)
         sec, no, c, why = identify(r, iso, districts, cec)
         if why:
             rep["rejects"][why] += 1
+            rep["name_only"] += why in NAME_ONLY
             continue
         seen[(sec, no)] += 1
         staged.append((r, sec, no, c, pg))
@@ -532,9 +572,13 @@ def process(pdf, iso, districts, cec, cutter=cut_pages):
                 rep["drops"][f][why] += 1
                 out["dropped"][f] = why
         rep["rows"].append(out)
-    # 印明是別的選舉（臺中議員檔第 1 頁的市長、連江議員檔後面的鄉長與村長），不是切錯，不計入
-    bad = sum(n for why, n in rep["rejects"].items() if why not in (NOT_HERE, OTHER))
-    rep["unreliable"] = rep["cut"] == 0 or (bad >= UNRELIABLE_MIN and bad > UNRELIABLE_SHARE * rep["cut"])
+    # 印明是別的選舉（臺中議員檔第 1 頁的市長、連江議員檔後面的鄉長與村長），不是切錯，不計入；
+    # 只有姓名格出問題（號次、出生年、黨籍都和該號次一致）的列也不計入：那是姓名字的問題（異體字、罕用字缺字、
+    # 疊字），不是欄位錯位。這些列本身照樣不收。
+    # 但過半的列都只有姓名格出問題，就像新竹市整檔直排字框偏移，仍算整檔不可靠。
+    bad = sum(n for why, n in rep["rejects"].items() if why not in (NOT_HERE, OTHER)) - rep["name_only"]
+    rep["unreliable"] = (rep["cut"] == 0 or (bad >= UNRELIABLE_MIN and bad > UNRELIABLE_SHARE * rep["cut"])
+                         or 2 * rep["name_only"] > rep["cut"])
     if rep["unreliable"]:
         rep["rows"] = []
     return rep

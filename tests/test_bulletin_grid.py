@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 
 from etl import bulletin_grid as bg
 
@@ -158,6 +159,109 @@ class BFamilyTest(unittest.TestCase):
         rows = bg.cut_pages_b(*self.page())
         self.assertEqual([(r["title"], bg._text(r["fields"]["name"])) for r in rows],
                          [(("councilor", 12), "王小明"), (("councilor", 13), "李大華")])
+
+
+class FitsTest(unittest.TestCase):
+    GROUP = [(10, 50, "no"), (50, 100, "name"), (100, 200, "platform")]
+
+    def test_row_with_slightly_shifted_divider_still_fits(self):
+        self.assertTrue(bg._fits(self.GROUP, [(10, 50), (50, 105), (105, 200)]))
+
+    def test_other_table_does_not_fit(self):
+        self.assertFalse(bg._fits(self.GROUP, [(10, 30), (30, 120), (120, 200)]))
+
+
+class BlankGlyphTest(unittest.TestCase):
+    SVG = """<defs><g><g id="glyph-0-0"><path d="M 0 0 L 1 1"/></g><g id="glyph-1-0">
+</g></g></defs><g fill="rgb(0%,0%,0%)"><use xlink:href="#glyph-0-0" x="332.1" y="1931.7"/>
+<use xlink:href="#glyph-1-0" x="298.983576" y="1959.088016"/></g>"""
+
+    def test_finds_origins_of_glyphs_without_outline(self):
+        self.assertEqual(bg.blank_glyphs(self.SVG), [(298.983576, 1959.088016)])
+
+    def test_drops_single_char_word_drawn_with_blank_glyph(self):
+        # 高雄：空字形「媖」疊在「湯詠瑜」的姓名格裡
+        ghost, real = word(299.0068, 1929.4563, 332.0068, 1964.1063, "媖"), word(332.1, 1896.7, 367.1, 1931.7, "瑜")
+        self.assertEqual(bg.drop_blank([ghost, real], bg.blank_glyphs(self.SVG)), [real])
+
+    def test_keeps_word_under_a_line_of_blank_spaces(self):
+        # 南投：上一行空白字元（空字形）的基線剛好落在「洪」字框上緣
+        hung = word(298.6, 1958.0, 341.6, 2001.0, "洪")
+        self.assertEqual(bg.drop_blank([hung], bg.blank_glyphs(self.SVG)), [hung])
+
+    def test_blank_glyph_sharing_origin_with_a_drawn_glyph_is_ignored(self):
+        # 嘉義市：字前面有不佔寬度的空白（空字形），原點與「嘉」相同
+        svg = self.SVG + '<use xlink:href="#glyph-0-0" x="299.2" y="1959.3"/>'
+        self.assertEqual(bg.blank_glyphs(svg), [])
+
+    def test_keeps_blank_bullet(self):
+        # 臺南：文字層的「•」是空字形，看得見的圓點是另一個字形；「•」要留著，-raw 才對得上
+        bullet = word(298.5, 1950, 309.5, 1961.5, "•")
+        self.assertEqual(bg.drop_blank([bullet], bg.blank_glyphs(self.SVG)), [bullet])
+
+
+class MidTableTitleTest(unittest.TestCase):
+    # C 家族一頁：表頭上方「第12選舉區」，第 1 列之後隔一條沒有直線的橫帶印「第13選舉區」，再接第 2 列（高雄合併檔）
+    def page(self):
+        w, h = 300, 120
+        px = bytearray([255]) * (w * h)
+        for y in (10, 30, 55, 70, 95):
+            px[y * w:(y + 1) * w] = bytes(w)
+        for x in (5, 50, 100, 150, 200, 250, 295):
+            for y in range(10, 96):
+                if x in (5, 295) or not 55 < y < 70:
+                    px[y * w + x] = 0
+        words = [px_word(10, 2, 80, 8, "第12選舉區")]
+        words += [px_word(x + 5, 15, x + 40, 25, t)
+                  for x, t in zip((5, 50, 100, 150, 200, 250), ("號次", "姓名", "出生年月日", "推薦之政黨", "學歷", "政見"))]
+        words += [px_word(10, 58, 80, 67, "第13選舉區：甲仙區")]
+        for y, no, name in ((35, "1", "王小明"), (75, "1", "李大華")):
+            words += [px_word(10, y, 40, y + 10, no), px_word(55, y, 95, y + 10, name)]
+        return [{"words": words}], [(w, h, bytes(px))]
+
+    def test_title_between_rows_switches_district(self):
+        rows = bg.cut_pages(*self.page())
+        self.assertEqual([(r["title"], bg._text(r["fields"]["name"])) for r in rows],
+                         [(("councilor", 12), "王小明"), (("councilor", 13), "李大華")])
+
+
+class NameOnlyRejectTest(unittest.TestCase):
+    CEC = {("khh", "councilor", 3): {n: {"name": name, "birth_year": 1980, "party": "無黨籍及未經政黨推薦"}
+                                     for n, name in ((1, "王小明"), (2, "李大華"), (3, "陳一"), (4, "林二"))}}
+
+    def row(self, no, name, birth="69年1月1日"):
+        cell = lambda t: [((0, 0, 10, 10), [word(1, 1, 9, 9, t)] if t else [])]
+        return {"page": 1, "box": (0, 0, 10, 10), "district_text": None, "title": None,
+                "fields": {"no": cell(no), "name": cell(name), "birth": cell(birth), "party": cell("無")}}
+
+    def run_rows(self, rows):
+        page = {"words": [], "images": [], "suspect": set()}
+        with mock.patch.object(bg, "pdf_layers", return_value=("", "", "", [])), \
+                mock.patch.object(bg, "parse_pages", return_value=[page]), mock.patch.object(bg, "_svg", return_value=""):
+            return bg.process(mock.Mock(**{"read_bytes.return_value": b""}), "khh", [["councilor", 3]], self.CEC, cutter=lambda p, g: rows)
+
+    def test_name_check_comes_after_birth_and_party(self):
+        _, _, _, why = bg.identify({**self.row("1", "王大明", "70年1月1日"), "suspect": set()}, "khh", [["councilor", 3]], self.CEC)
+        self.assertEqual(why, "出生年不符")
+
+    def test_name_only_rejects_do_not_make_the_file_unreliable(self):
+        # 罕用字缺字（「李大」）、姓名格整格是圖：號次、出生年、黨籍都對，只擋該列
+        rep = self.run_rows([self.row("1", "王小明"), self.row("2", "李大"), self.row("3", ""), self.row("4", "林二")])
+        self.assertFalse(rep["unreliable"])
+        self.assertEqual([r["cand_no"] for r in rep["rows"]], [1, 4])
+
+    def test_mostly_empty_name_cells_make_the_file_unreliable(self):
+        # 新竹市：直排字框偏移，大多數姓名格切不到字
+        rep = self.run_rows([self.row("1", "王小明"), self.row("2", ""), self.row("3", ""), self.row("4", "林二")])
+        self.assertFalse(rep["unreliable"])
+        rep = self.run_rows([self.row("1", "王小明"), self.row("2", ""), self.row("3", ""), self.row("4", "")])
+        self.assertTrue(rep["unreliable"])
+
+    def test_birth_mismatches_still_make_the_file_unreliable(self):
+        rep = self.run_rows([self.row("1", "王小明"), self.row("2", "李大華", "70年1月1日"),
+                             self.row("3", "陳一", "70年1月1日"), self.row("4", "林二")])
+        self.assertTrue(rep["unreliable"])
+        self.assertEqual(rep["rows"], [])
 
 
 if __name__ == "__main__":
