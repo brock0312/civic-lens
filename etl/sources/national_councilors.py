@@ -14,6 +14,7 @@ from etl.db import upsert, upsert_fact
 from etl.fetch import get_json, now_utc
 from etl.match import VARIANTS, han, match
 from etl.rosters import ROSTER_URLS, fetch_roster
+from etl.sources.national_heads import MOI_INAUGURATION
 from etl.sources.national_districts import COUNTIES, council_id
 
 SOURCE = "roster_2026"
@@ -78,6 +79,10 @@ def plan(roster, won, candidates, identity):
             data["party"] = r["party"]
         elif w:  # 名錄沒有政黨時用 2022 推薦政黨，前端標「2022 推薦」，避免換黨者顯示成目前政黨
             data["party"], data["party_year"] = w["party"], 2022
+            if w.get("source_url"):
+                data["party_source_url"], data["party_source_label"] = w["source_url"], "中選會 2022 開票結果"
+        if w:
+            data["inauguration_source_url"], data["inauguration_source_label"] = MOI_INAUGURATION
         # 2022 當選人才寫任職起日；其餘（遞補或補選，依據未查）留空
         rows.append({"row": r, "person_id": person_id, "verified_by": verified_by, "data": data,
                      "date": TERM_START if w else None})
@@ -91,7 +96,8 @@ def fetch_won():
         if kind == "mayor":
             continue
         time.sleep(1.1)
-        won += [c for c in parse_candidates(get_json(f"{TICKETS}/{path}"), kind) if c["elected"] and c["iso"] in ISOS]
+        url = f"{TICKETS}/{path}"
+        won += [{**c, "source_url": url} for c in parse_candidates(get_json(url), kind) if c["elected"] and c["iso"] in ISOS]
     return won
 
 

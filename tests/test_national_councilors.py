@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from etl.sources.national_heads import MOI_INAUGURATION
 from etl.sources.national_councilors import IDENTITY_PATH, load_identity, plan, roster_url
 
 
@@ -32,7 +33,14 @@ class NationalCouncilorsTest(unittest.TestCase):
         x = rows[0]
         self.assertEqual((x["person_id"], x["date"]), ("p1", "2022-12-25"))
         self.assertEqual(x["data"], {"office": "nwt_councilor", "district_id": "nwt-council-03",
-                                     "title": "新北市議員", "party": "民主進步黨", "party_year": 2022})
+                                     "title": "新北市議員", "party": "民主進步黨", "party_year": 2022,
+                                     "inauguration_source_url": MOI_INAUGURATION[0],
+                                     "inauguration_source_label": MOI_INAUGURATION[1]})
+
+    def test_party_from_2022_cites_cec_file(self):
+        w = {**won("nwt", 3, "王大明", "民主進步黨"), "source_url": "https://cec/x.json"}
+        x = plan([ros("nwt", 3, "王大明")], [w], [], {})[0][0]["data"]
+        self.assertEqual((x["party_source_url"], x["party_source_label"]), ("https://cec/x.json", "中選會 2022 開票結果"))
 
     def test_former_members_are_skipped(self):
         rows, _ = plan([ros("khh", 4, "李四", current=False)], [], [], {})

@@ -356,6 +356,13 @@ export function partyOf(data, parties) {
   return `${party(data.party, parties)}${data.party_year ? `<span class="muted small">${esc(data.party_year)} 推薦</span>` : ''}`;
 }
 
+// 議員任職：2022 推薦政黨與任職起日各自的出處（臺北議員沒有這些欄位，不多註腳）
+export function officeExtraRefs(f, notes) {
+  const d = f.data || {};
+  return [[d.party_source_url, d.party_source_label], [d.inauguration_source_url, d.inauguration_source_label]]
+    .filter(([u, label]) => u && label).map(([u, label]) => notes.ref(u, f.fetched_at, label)).join('');
+}
+
 function rosterRow(p, fn, parties, tag) {
   return `<li><a class="name" href="#/p/${esc(p.person_id)}">${esc(p.name)}</a>
     ${partyOf(p.data, parties)}
@@ -384,7 +391,7 @@ async function renderDistrict(main, ctx, id) {
   const registered = cands.some((p) => p.data.status === 'registered');
   const seatsFn = notes.ref(d.source_url, d.fetched_at, '應選名額公告');
   const candRows = cands.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '候選人登記名冊', p.data.publisher), ctx.parties, candTag(p.person_id))).join('');
-  const officeRows = office.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, officeSourceLabel(p.data.office)), ctx.parties, suspendedIds.has(p.person_id) ? '停職中' : '')).join('');
+  const officeRows = office.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, officeSourceLabel(p.data.office)) + officeExtraRefs(p, notes), ctx.parties, suspendedIds.has(p.person_id) ? '停職中' : '')).join('');
   const acting = office.map((p) => suspensionOf(p.data)).filter(Boolean).map((e) => `<p class="small">${esc(e.acting_title)}：${esc(e.acting_name)}（<span class="num">${esc(e.date)}</span> 起）${notes.ref(e.source_url, e.fetched_at, e.source_label)}</p>`).join('');
   const title = districtTitle(d, county);
 
@@ -643,7 +650,7 @@ async function renderPerson(main, ctx, id) {
 
   const office = offices.map((f) => (f.data.elected_on ? headOfficeItem(f, districtLink(f.data.district_id)) : `<li><span class="name">${esc(f.data.title || label(f.data.office))}</span>
       <span>${districtLink(f.data.district_id)}</span>
-      <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office))}</span></li>`)).join('');
+      <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office))}${officeExtraRefs(f, notes)}</span></li>`)).join('');
 
   const bulletin = bulletinSection(facts, notes);
   const jump = facts.profile?.length || facts.platform?.length ? 'k-platform' : bulletin && 'k-bulletin';

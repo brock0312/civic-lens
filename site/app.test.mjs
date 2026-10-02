@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -439,4 +439,11 @@ test('home note lists non-Taipei counties with an incumbent councillor list, fro
 test('a party taken from the 2022 results is labelled with the year', () => {
   assert.match(partyOf({ party: '民主進步黨', party_year: 2022 }, {}), /2022 推薦/);
   assert.doesNotMatch(partyOf({ party: '民主進步黨' }, {}), /推薦/);
+});
+
+test('office extra refs add 2022 party and inauguration sources only when the fields exist', () => {
+  const notes = { ref: (u, t, label) => `[${label}]` };
+  const f = { fetched_at: 't', data: { party_source_url: 'https://c', party_source_label: 'CEC', inauguration_source_url: 'https://m', inauguration_source_label: 'MOI' } };
+  assert.equal(officeExtraRefs(f, notes), '[CEC][MOI]');
+  assert.equal(officeExtraRefs({ fetched_at: 't', data: { party: 'x' } }, notes), '');
 });
