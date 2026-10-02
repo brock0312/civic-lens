@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -353,4 +353,69 @@ test('summarySection links the transcript and the video of the same date and gro
 test('footer carries the summary disclaimer once', () => {
   const page = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
   assert.equal(page.split(SUMMARY_DISCLAIMER).length - 1, 1);
+});
+
+// V14 §3：縣市長任職
+const CEC = 'https://db.cec.gov.tw/static/elections/data/tickets/ELC/C2/x.json';
+const headFact = (iso, title, events, extra = {}) => ({
+  date: '2022-12-25', source_url: CEC, fetched_at: '2026-10-01T03:00:00Z',
+  data: { office: `${iso}_mayor`, district_id: `${iso}-mayor`, title, elected_on: '2022-11-26', source_label: '中選會 2022 開票結果',
+    inauguration_source_url: 'https://www.moi.gov.tw/News_Content.aspx?n=4&s=274773', inauguration_source_label: '內政部 2022-12-25 新聞稿',
+    ...(events ? { status_events: events } : {}), ...extra },
+});
+const ILA = [{ date: '2024-12-31', event: 'suspended', acting_name: '林茂盛', acting_position: '副縣長', acting_title: '代理縣長',
+  source_url: 'https://www.moi.gov.tw/News_Content.aspx?n=4&s=324430', source_label: '內政部 2024-12-31 公告',
+  acting_source_url: 'https://www.e-land.gov.tw/cp.aspx?n=2700', acting_source_label: '宜蘭縣政府代理縣長介紹', fetched_at: '2026-10-02' }];
+const HSZ = [
+  { date: '2024-07-26', event: 'suspended', acting_name: '邱臣遠', acting_position: '副市長', acting_title: '代理市長',
+    source_url: 'https://www.moi.gov.tw/News_Content.aspx?n=4&s=318288', source_label: '內政部 2024-07-26 公告', fetched_at: '2026-10-02' },
+  { date: '2025-12-17', event: 'reinstated', source_url: 'https://www.moi.gov.tw/News_Content.aspx?n=4&s=335771', source_label: '內政部 2026-01-04 說明', fetched_at: '2026-10-02' },
+];
+const text = (html) => html.replace(/<[^>]+>/g, '').replace(/[ \n]+/g, ' ');
+
+test('a suspended head is titled 停職中 with the acting deputy, never 現任 or 前縣長', () => {
+  const t = text(headOfficeItem(headFact('ila', '宜蘭縣長', ILA)));
+  assert.match(t, /宜蘭縣長（停職中）/);
+  assert.match(t, /2022-11-26 當選　2022-12-25 就職/);
+  assert.match(t, /2024-12-31 起停止職務，由副縣長林茂盛代理縣長/);
+  assert.match(t, /出處：中選會 2022 開票結果；內政部 2022-12-25 新聞稿；內政部 2024-12-31 公告；宜蘭縣政府代理縣長介紹｜資料截至 2026-10-02/);
+  assert.doesNotMatch(t, /現任|前縣長|解職|涉|因案/);
+});
+
+test('a reinstated head lists the past suspension without 起 and is not titled 停職中', () => {
+  const t = text(headOfficeItem(headFact('hsz', '新竹市長', HSZ)));
+  assert.match(t, /新竹市長 /);
+  assert.doesNotMatch(t, /停職中/);
+  assert.match(t, /2024-07-26 停止職務，由副市長邱臣遠代理市長/);
+  assert.match(t, /2025-12-17 內政部同意復職/);
+  assert.equal(suspensionOf(headFact('hsz', '新竹市長', HSZ).data), null);
+  assert.equal(suspensionOf(headFact('ila', '宜蘭縣長', ILA).data).acting_name, '林茂盛');
+});
+
+test('a head without changes shows only election and inauguration; Chiayi City shows the rerun note', () => {
+  const t = text(headOfficeItem(headFact('kee', '基隆市長')));
+  assert.match(t, /基隆市長 .*2022-11-26 當選　2022-12-25 就職 出處：中選會 2022 開票結果；內政部 2022-12-25 新聞稿｜資料截至 2026-10-01/);
+  const c = text(headOfficeItem(headFact('cyi', '嘉義市長', null, { elected_on: '2022-12-18', election_note: '重行選舉' })));
+  assert.match(c, /2022-12-18 當選（重行選舉）　2022-12-25 就職/);
+});
+
+test('data as-of date is the latest of the fact and its status events', () => {
+  const f = { ...headFact('ila', '宜蘭縣長', ILA), fetched_at: '2026-10-05T01:00:00Z' };
+  assert.match(text(headOfficeItem(f)), /資料截至 2026-10-05/);
+});
+
+test('the suspension glossary is needed only when a suspension appears, and names no one', () => {
+  assert.equal(hasSuspension([headFact('ila', '宜蘭縣長', ILA)]), true);
+  assert.equal(hasSuspension([headFact('hsz', '新竹市長', HSZ)]), true);
+  assert.equal(hasSuspension([headFact('kee', '基隆市長')]), false);
+  assert.equal(hasSuspension([{ data: { office: 'tpe_mayor', title: '臺北市長（第8屆）' } }]), false);
+  assert.doesNotMatch(SUSPENSION_NOTE, /林|高|宜蘭|新竹/);
+  assert.match(SUSPENSION_NOTE, /停職不代表判決確定/);
+});
+
+test('non-Taipei county note lists what is provided, neutrally', () => {
+  const n = countyNote(hsq);
+  assert.match(n, /2026 候選人名單、選區與新竹縣長任職資料/);
+  assert.match(n, /新竹縣議會的問政紀錄仍在建置中/);
+  assert.doesNotMatch(n, /只提供|深度資料/);
 });

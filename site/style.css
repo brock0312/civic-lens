@@ -138,6 +138,8 @@ select {
   padding: 10px 0; border-bottom: 1px solid var(--line);
 }
 .roster.office li { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+.roster.office .lines { grid-column: 1 / -1; }
+.roster.office .lines p { margin: 2px 0; }
 .roster .name { font-weight: 700; font-size: 1.0625rem; }
 .roster .meta { display: inline-flex; align-items: center; gap: 10px; justify-self: end; color: var(--muted); font-size: 0.875rem; }
 .tag { border: 1px solid var(--ink-2); color: var(--ink); font-size: 0.8125rem; line-height: 1; padding: 4px 6px; }
