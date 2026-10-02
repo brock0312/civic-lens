@@ -169,8 +169,9 @@ def header_groups(cells):
 
 
 def roc_birth_year(text):
-    """「44年1月4日」→ 1955；直排拆行也可；找不到回 None。"""
-    m = re.search(r"(\d{2,3})年(\d{1,2})月(\d{1,2})日", squeeze(text).translate(FULLWIDTH))
+    """「44年1月4日」→ 1955；直排拆行也可；找不到回 None。
+    只取年：公報原文有月日錯字（臺南「54年l月6日」「79年6年29日」），身分關卡只比出生年。"""
+    m = re.search(r"(\d{2,3})年", squeeze(text).translate(FULLWIDTH))
     return int(m.group(1)) + 1911 if m else None
 
 

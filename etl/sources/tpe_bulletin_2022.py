@@ -411,8 +411,9 @@ def flatten(obj):
 
 
 def norm_name(name):
-    # 原住民姓名：開票 JSON「高為人Sayun Watan」、公報「高為人 Sayun Watan」，比對時去掉全部空白
-    return squeeze(name)
+    # 原住民姓名：開票 JSON「高為人Sayun Watan」、公報「高為人 Sayun Watan」，比對時去掉全部空白；
+    # 間隔點各來源不同（開票 JSON「．」、公報「•」「・」），一併去掉（同 etl/match.py）
+    return re.sub(r"[・·‧•．.]", "", squeeze(name))
 
 
 def check_against_cec(cands, rows, label):

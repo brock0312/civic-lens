@@ -92,6 +92,8 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(bg.roc_birth_year("44年1月4日"), 1955)
         self.assertEqual(bg.roc_birth_year("１０１年\n２月\n３日"), 2012)
         self.assertIsNone(bg.roc_birth_year("年月日\n47125"))
+        self.assertEqual(bg.roc_birth_year("54年l月6日"), 1965)
+        self.assertEqual(bg.roc_birth_year("79年6年29日"), 1990)
 
     def test_garble_ratio(self):
         self.assertEqual(bg.garble_ratio("1.爭取（市區）道路拓寬，A+計畫！"), 0.0)
