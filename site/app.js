@@ -482,7 +482,7 @@ function bulletinSection(facts, notes) {
 // 沒有資料時只說「尚未收錄」，任何情況都不寫成沒有前科（見 docs/PLAN.md §6 G5）
 export const JUDICIAL_SEARCH = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
 export const TAIWANGOGO = 'https://council2026.taiwangogo.tw/';
-export const TAIWANGOGO_NOTE = '該網站由台灣前進經營，時代力量代管，並與時代力量、台灣基進、台灣綠黨、小民參政歐巴桑聯盟合作。收錄範圍包含起訴、行政罰、民事判決與新聞報導。起訴不等於有罪，行政罰與民事判決也不是刑事前科。本站未查證其內容，提供連結不代表本站認同或背書。';
+export const TAIWANGOGO_NOTE = '該網站由台灣前進經營，時代力量代管，並與時代力量、台灣基進、台灣綠黨、小民參政歐巴桑聯盟合作。收錄範圍包含起訴、行政罰、民事判決與新聞報導。起訴不等於有罪，行政罰與民事判決也不是刑事前科。本站未查證其內容，提供連結不代表本站認同或背書；使用其內容前，請對照原始來源查證。';
 
 export function criminalRecordSection(facts) {
   if (!(facts.candidacy || []).length) return '';

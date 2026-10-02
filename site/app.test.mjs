@@ -241,7 +241,7 @@ test('without convictions shows the status line, both portals in order and the f
   assert.match(html, /本站尚未收錄經查證的確定有罪判決。/);
   assert.match(html, /選舉公報依法不刊登前科（公職人員選舉罷免法第47條）。/);
   assert.ok(html.includes(TAIWANGOGO_NOTE));
-  assert.ok(TAIWANGOGO_NOTE.endsWith('本站未查證其內容，提供連結不代表本站認同或背書。'));
+  assert.ok(TAIWANGOGO_NOTE.endsWith('本站未查證其內容，提供連結不代表本站認同或背書；使用其內容前，請對照原始來源查證。'));
   const j = html.indexOf(`href="${JUDICIAL_SEARCH}"`);
   const g = html.indexOf('href="https://council2026.taiwangogo.tw/"');
   assert.ok(j > 0 && g > j, 'judicial portal comes first');
