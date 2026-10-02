@@ -9,3 +9,4 @@
 - ETL 只能在本機（臺灣網路）跑，GitHub Actions 只負責測試與部署。
 - 不轉載第三方前科資料庫內容；不顯示「無前科」；不評分、不排名。
 - 測試是否通過一律看 exit code。
+- 研究知識庫：本專案研究前不查 ~/dev/projects/research（沒有 civic 領域），專案知識以 docs/validation/ 與 docs/HANDOFF.md 為準；[kb] hook 的查庫提醒在本專案不適用。研究完成後不自動回寫，於 session 結束時一次列出可回寫的結論，問使用者是否用 kb.py inbox 回寫；subagent 不自行回寫。
