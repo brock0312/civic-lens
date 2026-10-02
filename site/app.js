@@ -75,8 +75,10 @@ export function bulletinGaps(facts) {
 
 // 現任者的段落標題與出處標籤依職位決定：首長選區用市長／縣長（依選區名稱有無「縣」），其餘為議員
 const isHead = (office) => String(office || '').endsWith('_mayor');
-export function incumbentHeading(d) {
+// 停職中的首長不寫「現任」（V14 §3.3）
+export function incumbentHeading(d, suspended = false) {
   if (!isHead(d.office)) return '現任議員';
+  if (suspended) return `${d.name}長（停職中）`;
   return String(d.name || '').includes('縣') ? '現任縣長' : '現任市長';
 }
 // 議員來自議會名冊；首長來自中選會選舉結果
@@ -383,14 +385,14 @@ async function renderDistrict(main, ctx, id) {
     <dl class="stats">
       ${stat('應選', d.seats, ` 席${seatsFn}`)}
       ${stat('候選人', cands.length, ' 人')}
-      ${office.length ? stat('現任', office.length, ' 人') : ''}
+      ${office.length && !suspendedIds.size ? stat('現任', office.length, ' 人') : ''}
     </dl>
     <section aria-labelledby="cand-h">
       <h2 id="cand-h">2026 候選人</h2>
       ${registered ? `<p class="status" role="note">${REGISTERED_NOTE}</p>` : ''}
       ${cands.length ? `<ol class="roster">${candRows}</ol><p class="small muted">依官方登記名冊順序排列，非選票號次。</p>` : '<p class="muted">尚無候選人資料。</p>'}
     </section>
-    ${office.length ? `<section aria-labelledby="office-h"><h2 id="office-h">${incumbentHeading(d)}</h2>
+    ${office.length ? `<section aria-labelledby="office-h"><h2 id="office-h">${incumbentHeading(d, suspendedIds.size > 0)}</h2>
       <ul class="roster">${officeRows}</ul>${acting}${acting ? suspensionNote() : ''}</section>` : ''}
     ${notes.render()}`;
 }
@@ -564,7 +566,10 @@ function summaryCard(facts, { offices, inters, written, videos, jump }) {
     <p class="muted small">2026 選舉公報預計 11/25 前公布。</p></div>`;
   if (!offices.length && !inters.length) return `<section class="summary" aria-label="摘要">${said}</section>`;
 
-  const term = offices.filter((f) => f.date).map((f) => `<span class="num">${esc(f.date)}</span> 起`).join('、');
+  const term = offices.filter((f) => f.date).map((f) => {
+    const s = suspensionOf(f.data);
+    return `<span class="num">${esc(f.date)}</span> 起${s ? `（<span class="num">${esc(s.date)}</span> 起停止職務）` : ''}`;
+  }).join('、');
   let did = term ? `<dl class="kv"><dt>任職期間</dt><dd>${term}</dd></dl>` : '';
   if (inters.length) {
     const { counts, other } = deptCounts(inters);

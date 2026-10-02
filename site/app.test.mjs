@@ -283,6 +283,7 @@ test('incumbent heading follows the district office: mayor, county magistrate or
   assert.equal(incumbentHeading({ office: 'tpe_mayor', name: '臺北市' }), '現任市長');
   assert.equal(incumbentHeading({ office: 'hsq_mayor', name: '新竹縣' }), '現任縣長');
   assert.equal(incumbentHeading({ office: 'tpe_councilor', name: '臺北市第01選舉區' }), '現任議員');
+  assert.equal(incumbentHeading({ office: 'ila_mayor', name: '宜蘭縣' }, true), '宜蘭縣長（停職中）');
 });
 
 test('office source label is the election result for mayors and the council roster otherwise', () => {
