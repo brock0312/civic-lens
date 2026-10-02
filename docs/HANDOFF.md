@@ -95,4 +95,4 @@ git push origin main
 - 主 session 負責規劃、判斷與最終審查；搜尋交給 scout，實作交給 executor／mech-executor，安全與法遵交給 security-executor，非瑣碎的完成品交給 verifier。
 - agent 回報後就停掉（若還在背景執行）。
 - 平行的前端工作用獨立 worktree；只 add 自己的檔案；遇到 index.lock 就等幾秒重試。
-- 研究類工作完成後，依使用者的全域規則用 `kb.py inbox` 回寫研究知識庫。
+- 研究知識庫：本專案研究前不查，研究完成也不自動回寫；session 結束時一次列出可回寫的結論，問使用者要不要回寫（見 CLAUDE.md）。
