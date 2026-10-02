@@ -1,5 +1,6 @@
 """五都議會官網的現任議員名錄解析（純函式）。以官網名錄為現任依據。"""
 import re
+from pathlib import Path
 
 from etl.fetch import get
 
@@ -26,7 +27,21 @@ ROSTER_URLS = {
     "txg": "https://www.tccc.gov.tw/wb_introduction01.asp",
     "tnn": [_TNN + g for g in TNN_GUIDS],
     "khh": "https://www.kcc.gov.tw/Member_List3.aspx?n=39&sms=9028",
+    # 單頁靜態縣市（V13 §3.2；robots 都未擋名錄路徑）
+    "hsq": "https://www.hcc.gov.tw/member?lang=&program=190",
+    "cha": "https://www.chcc.gov.tw/member/index.aspx?Parser=99,6,40",
+    "nan": "https://www.ntcc.gov.tw/tw/rep/index.aspx",
+    "yun": "https://www.ylcc.gov.tw/cp.aspx?n=22126",
+    "pif": "https://www.ptcc.gov.tw/?Page=Persional&Guid=1c445ed1-8f2f-4c7f-75f6-6d6aafa3516e",
+    "ila": "https://www.ilcc.gov.tw/Html/H_05/H_05.asp",
+    "hua": "https://www.hlcc.gov.tw/councillor.php",
+    "pen": "https://www.phcouncil.gov.tw/meet.php",
+    "kin": "https://www.kmcc.gov.tw/8844/54357/55476/",
+    "lie": "https://www.mtcc.gov.tw/ch/counciler_introlist/7190",
+    "kee": "https://www.kmc.gov.tw/index.php/mac/mi",
 }
+_OLD = {"nwt", "tao", "txg", "tnn", "khh"}
+_ENC = {"ila": "big5"}
 # 臺南、高雄在姓名後加註離職
 _MARK = re.compile(r"\((歿|解職[^)]*|轉任[^)]*)\)")
 _NUM = {c: i for i, c in enumerate("一二三四五六七八九十", 1)}
@@ -79,7 +94,94 @@ def parse_khh(html):
     return out
 
 
-PARSERS = {"nwt": parse_nwt, "tao": parse_tao, "txg": parse_txg, "tnn": parse_tnn, "khh": parse_khh}
+def _nm(x):  # 去掉所有空白（含全形），「林 麗」「陳　宜」→ 無空白
+    return re.sub(r"\s", "", x)
+
+
+def parse_hsq(html):
+    out = []
+    for sec in re.split(r'member-container-title">第', html)[1:]:
+        n = _cn(re.match(r"[一二三四五六七八九十]+", sec).group())
+        out += [_row("hsq", n, _nm(x)) for x in re.findall(r'<li class="member-container-bottom"><a [^>]*title="([^"]*)"', sec)]
+    return out
+
+
+def parse_cha(html):
+    out = []
+    for n, body in re.findall(r"key: 'area(\d+)',toolTip: '<strong[^>]*>[^<]*</strong><br/><span[^>]*>(.*?)</span>", html):
+        out += [_row("cha", int(n), _nm(x)) for x in re.split(r"、|<br/>", body) if x.strip()]
+    return out
+
+
+def parse_nan(html):  # 正副議長在頁面上出現兩次，去重
+    pairs = dict.fromkeys(re.findall(r'p02\.aspx\?district=(\d+)&period=\d+#([^"]+)"', html))
+    return [_row("nan", int(n), _nm(x)) for n, x in pairs]
+
+
+def parse_yun(html):
+    out = []
+    for n, sec in re.findall(r'<a\s+href="#"\s+title="第([一二三四五六七八九十]+)選區"(.*?)(?=<a\s+href="#"\s+title="第|$)', html, re.S):
+        out += [_row("yun", _cn(n), _nm(x)) for x in re.findall(r'<div class="caption">([^<]*)</div>', sec)]
+    return out
+
+
+def parse_pif(html):
+    out = []
+    for sec in re.split(r'evacategory"[^>]*>第', html)[1:]:
+        n = _cn(re.match(r"[一二三四五六七八九十]+", sec).group())
+        out += [_row("pif", n, _nm(x)) for x in re.findall(r'PersionalDetail&Guid=[^"]*">([^<]*)<', sec)]
+    return out
+
+
+def parse_ila(html):
+    out = []
+    for sec in re.split(r'alt="第(?=\d+選區)', html)[1:]:
+        n = int(re.match(r"\d+", sec).group())
+        out += [_row("ila", n, _nm(x)) for x in re.findall(r'title="([^"]*?)議員相關資料"', sec)]
+    return out
+
+
+def parse_hua(html):
+    out = []
+    for sec in re.split(r'<h3 class="text-normal">第', html)[1:]:
+        n = _cn(re.match(r"[一二三四五六七八九十]+", sec).group())
+        out += [_row("hua", n, re.sub(r"副?議[長員]|\s", "", x)) for x in re.findall(r'text-header"><a[^>]*>([^<]*)<', sec)]
+    return out
+
+
+def parse_pen(html):
+    # 名錄頁沒有選區資訊，district_n 一律 None
+    return [_row("pen", None, _nm(re.sub(r"副?議[長員]$", "", x.strip())))
+            for x in re.findall(r'meet\.php\?councillor=M\d+">([^<]*)<', html)]
+
+
+def parse_kin(html):
+    out = []
+    for sec in re.split(r"<h3>第", html)[1:]:
+        m = re.match(r"([一二三四五六七八九十]+)選區/", sec)
+        if m:
+            out += [_row("kin", _cn(m.group(1)), _nm(x)) for x in re.findall(r'<li>\s*<a [^>]*title="([^"]*)"', sec.split("</ul>")[0])]
+    return out
+
+
+def parse_lie(html):
+    out = []
+    for sec in re.split(r'alt="第(?=[一二三四五六七八九十]+選區－)', html)[1:]:
+        n = _cn(re.match(r"[一二三四五六七八九十]+", sec).group())
+        out += [_row("lie", n, _nm(x)) for x in re.findall(r"(?:副?議長|議員)\s*：\s*([^<]*)<", sec.split("</ul>")[0])]
+    return out
+
+
+def parse_kee(html):
+    out = []
+    for n, sec in enumerate(re.split(r'<i class="fa fa-square" aria-hidden="true"></i>', html)[1:], 1):
+        out += [_row("kee", n, _nm(re.sub(r"議員$", "", x.strip()))) for x in re.findall(r'itemprop="url">([^<]*議員)</a></h3>', sec)]
+    return out
+
+
+PARSERS = {"nwt": parse_nwt, "tao": parse_tao, "txg": parse_txg, "tnn": parse_tnn, "khh": parse_khh,
+           "hsq": parse_hsq, "cha": parse_cha, "nan": parse_nan, "yun": parse_yun, "pif": parse_pif, "ila": parse_ila,
+           "hua": parse_hua, "pen": parse_pen, "kin": parse_kin, "lie": parse_lie, "kee": parse_kee}
 
 
 def fetch_roster(iso):
@@ -87,13 +189,14 @@ def fetch_roster(iso):
     if isinstance(url, list):
         pages = [get(u).decode("utf-8") for u in url]
         return PARSERS[iso](pages)
-    return PARSERS[iso](get(url).decode("utf-8"))
+    html = get(url).decode(_ENC.get(iso, "utf-8"))
+    if iso not in _OLD:  # 新縣市存快取供測試與重跑；單頁、每縣市一個主機，不需間隔
+        (Path("data/cache/rosters") / f"{iso}.html").write_text(html, encoding="utf-8")
+    return PARSERS[iso](html)
 
 
 if __name__ == "__main__":
     import json
-    import re
-    from pathlib import Path
 
     from etl.cec2022 import SOURCES, parse_candidates
     from etl.match import _norm
@@ -110,19 +213,22 @@ if __name__ == "__main__":
         "tao": [rd(f"tao_a{i}.html") for i in range(1, 15)],
         "tnn": [rd(f"tnn_a{i}.html") for i in range(1, 14)],
     }
-    VAR = str.maketrans("黄啓釆", "黃啟采")
-    han = lambda name: re.sub(r"[^一-鿿]", "", _norm(name))  # 原住民姓名中英並列，只比漢字
-    key = lambda n, name: (n, han(name).translate(VAR))
+    for iso in PARSERS.keys() - _OLD:
+        pages[iso] = (Path("data/cache/rosters") / f"{iso}.html").read_text(encoding="utf-8")
+    VAR = str.maketrans("黄啓釆姫", "黃啟采姬")
+    han = lambda name: re.sub(r"[^一-鿿]", "", _norm(name.replace("@FA3E@", "慨")))  # 原住民姓名中英並列，只比漢字
+    key = lambda n, name: (None if iso == "pen" else n,  # 澎湖名錄無選區
+                            han(name).translate(VAR))
     for iso, parse in PARSERS.items():
         rows = parse(pages[iso])
         cur = [r for r in rows if r["current"]]
         w = [c for c in won if c["iso"] == iso]
         wk = {key(c["district_n"], c["name"]) for c in w}
         rk = {key(r["district_n"], r["name"]) for r in rows}
-        raw = {(c["district_n"], han(c["name"])) for c in w}
+        raw = {(key(c["district_n"], "")[0], han(c["name"])) for c in w}
         var = [r["name"] for r in rows if key(r["district_n"], r["name"]) in wk
-               and (r["district_n"], han(r["name"])) not in raw]
+               and (key(r["district_n"], "")[0], han(r["name"])) not in raw]
         gone = [c["name"] for c in w if key(c["district_n"], c["name"]) not in rk]
         left = [r["name"] for r in rows if not r["current"]]
         new = [(r["district_n"], r["name"]) for r in cur if key(r["district_n"], r["name"]) not in wk]
-        print(f"{iso}: 列出 {len(rows)} 現任 {len(cur)} 離職 {left + gone} 遞補 {new} 異體字 {var}")
+        print(f"{iso}: 列出 {len(rows)} 現任 {len(cur)} 當選 {len(w)} 離職 {left + gone} 遞補 {new} 異體字 {var}")

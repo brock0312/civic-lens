@@ -41,6 +41,64 @@ class RosterTest(unittest.TestCase):
         self.assertEqual((a["district_n"], a["name"], a["note"], a["current"]), (4, "李柏毅", "轉任立委", False))
         self.assertTrue(b["current"])
 
+    def _dn(self, rows):
+        return [(x["district_n"], x["name"]) for x in rows]
+
+    def test_hsq_reads_names_per_chinese_district(self):
+        h = ('<h3 class="member-container-title">第二選區：竹北市：</h3><ul>'
+             '<li class="member-container-bottom"><a href="m?C=1" title="陳栢誠">陳栢誠</a></li></ul>')
+        self.assertEqual(self._dn(r.parse_hsq(h)), [(2, "陳栢誠")])
+
+    def test_cha_splits_tooltip_names_on_separators(self):
+        h = ("{key: 'area3',toolTip: '<strong style=x >第三選區&nbsp;和美鎮</strong><br/>"
+             "<span style=y >甲乙、丙丁<br/>戊己</span>' }")
+        self.assertEqual(self._dn(r.parse_cha(h)), [(3, "甲乙"), (3, "丙丁"), (3, "戊己")])
+
+    def test_nan_reads_district_from_href_and_dedups(self):
+        a = '<a href="p02.aspx?district=8&period=20#林庭秝(AliWalis)">'
+        self.assertEqual(self._dn(r.parse_nan(a + a)), [(8, "林庭秝(AliWalis)")])
+
+    def test_yun_reads_caption_names_under_district_tab(self):
+        h = ('<a  href="#"   title="第四選區" data-name="x"  >第四選區</a>'
+             '<div class="caption">蕭慧敏</div><a  href="#"  title="第五選區">x</a><div class="caption">王又民</div>')
+        self.assertEqual(self._dn(r.parse_yun(h)), [(4, "蕭慧敏"), (5, "王又民")])
+
+    def test_pif_reads_names_per_district_row(self):
+        h = ('<td rowspan="2" class="list evacategory" nowrap>第十六選區</td>'
+             '<a href="?Page=PersionalDetail&Guid=ab-1">甲乙</a> <a href="?Page=PersionalDetail&Guid=ab-2">丙丁</a>')
+        self.assertEqual(self._dn(r.parse_pif(h)), [(16, "甲乙"), (16, "丙丁")])
+
+    def test_ila_strips_spaces_inside_name(self):
+        h = ('<img src="x" alt="第1選區(宜蘭)"><a target="_parent" title="林 麗議員相關資料">林 麗</a>'
+             '<img src="x" alt="第2選區(頭城)"><a title="黃雯如議員相關資料">黃雯如</a>')
+        self.assertEqual(self._dn(r.parse_ila(h)), [(1, "林麗"), (2, "黃雯如")])
+
+    def test_hua_removes_title_inserted_between_surname_and_given_name(self):
+        h = ('<h3 class="text-normal">第三選區</h3><p class="text-header"><a href="c?1">魏議員 嘉賢</a></p>'
+             '<p class="text-header"><a href="c?2">張議長峻</a></p>')
+        self.assertEqual(self._dn(r.parse_hua(h)), [(3, "魏嘉賢"), (3, "張峻")])
+
+    def test_pen_has_no_district_and_drops_officer_title(self):
+        h = ('<a href="meet.php?councillor=M24080001">陳毓仁 議長</a>'
+             '<a href="meet.php?councillor=M24080003">陳海山</a><a href="meet.php?x=1">議場</a>')
+        self.assertEqual(self._dn(r.parse_pen(h)), [(None, "陳毓仁"), (None, "陳海山")])
+
+    def test_kin_ignores_menu_links_after_last_district_list(self):
+        h = ('<h3>第三選區/烈嶼鄉</h3><ul><li> <a target="_self" title="吳佩雯">吳佩雯</a> </li></ul>'
+             '<ul><li><a title="公告資訊">公告資訊</a></li></ul>')
+        self.assertEqual(self._dn(r.parse_kin(h)), [(3, "吳佩雯")])
+
+    def test_lie_reads_officers_and_members_per_district(self):
+        h = ('<img alt="第一選區－南竿鄉" /><div class="group"><a>副議長 ：林明揚 </a><a>議員：曹以標</a></div>'
+             '<img alt="第四選區－東引鄉" /><div class="group"><a>議長：張永江</a></div></ul>')
+        self.assertEqual(self._dn(r.parse_lie(h)), [(1, "林明揚"), (1, "曹以標"), (4, "張永江")])
+
+    def test_kee_numbers_districts_by_order_and_drops_fullwidth_space(self):
+        sq = '<i class="fa fa-square" aria-hidden="true"></i> '
+        h = (sq + '中正區</h2><h3><a href="x" itemprop="url">藍敏煌 議員</a></h3>'
+             + sq + '信義區</h2><h3><a href="x" itemprop="url">陳\u3000宜 議員</a></h3>')
+        self.assertEqual(self._dn(r.parse_kee(h)), [(1, "藍敏煌"), (2, "陳宜")])
+
 
 if __name__ == "__main__":
     unittest.main()
