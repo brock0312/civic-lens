@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, incumbentHeading, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -279,11 +279,23 @@ test('criminal record section never says the person has no record', () => {
   }
 });
 
-test('incumbent heading follows the district office: mayor, county magistrate or councilor', () => {
-  assert.equal(incumbentHeading({ office: 'tpe_mayor', name: '臺北市' }), '現任市長');
-  assert.equal(incumbentHeading({ office: 'hsq_mayor', name: '新竹縣' }), '現任縣長');
-  assert.equal(incumbentHeading({ office: 'tpe_councilor', name: '臺北市第01選舉區' }), '現任議員');
-  assert.equal(incumbentHeading({ office: 'ila_mayor', name: '宜蘭縣' }, true), '宜蘭縣長（停職中）');
+const COUNTIES = new Map([['nwt', { iso: 'nwt', name: '新北市' }], ['ila', { iso: 'ila', name: '宜蘭縣' }]]);
+const inc = (office, district_id, suspended = false) => ({ office, district_id, suspended });
+
+test('candidate holding office in the same district is tagged 現任, or 停職中 when suspended', () => {
+  assert.equal(candidateTag([inc('nwt_councilor', 'nwt-council-01')], 'nwt-council-01', COUNTIES), '現任');
+  assert.equal(candidateTag([inc('ila_mayor', 'ila-mayor', true)], 'ila-mayor', COUNTIES), '停職中');
+});
+
+test('candidate holding office elsewhere is tagged with that office title', () => {
+  assert.equal(candidateTag([inc('nwt_councilor', 'nwt-council-03')], 'nwt-mayor', COUNTIES), '現任新北市議員');
+  assert.equal(candidateTag([inc('ila_mayor', 'ila-mayor', true)], 'ila-council-01', COUNTIES), '宜蘭縣長（停職中）');
+  assert.equal(candidateTag([inc('nwt_councilor', 'nwt-council-03'), inc('nwt_mayor', 'nwt-mayor')], 'nwt-mayor', COUNTIES), '現任');
+});
+
+test('candidate without office has no tag', () => {
+  assert.equal(candidateTag([], 'nwt-mayor', COUNTIES), '');
+  assert.equal(candidateTag(undefined, 'nwt-mayor', COUNTIES), '');
 });
 
 test('office source label is the election result for mayors and the council roster otherwise', () => {
@@ -416,23 +428,25 @@ test('the suspension glossary is needed only when a suspension appears, and name
 
 test('non-Taipei county note lists what is provided, neutrally', () => {
   const n = countyNote(hsq);
-  assert.match(n, /2026 候選人名單、選區與新竹縣長任職資料/);
+  assert.match(n, /2026 候選人名單與選區，候選人中的現任新竹縣長會標示/);
   assert.match(n, /新竹縣議會的問政紀錄仍在建置中/);
   assert.doesNotMatch(n, /只提供|深度資料/);
 });
 
-test('county note mentions the incumbent councillor list only when the data has one', () => {
+test('county note says incumbent councillors are tagged only when the data has a roster', () => {
   const nwt = { iso: 'nwt', name: '新北市', councilor_roster: true };
-  assert.match(countyNote(nwt), /2026 候選人名單、選區、現任議員名單與新北市長任職資料/);
+  assert.match(countyNote(nwt), /候選人中的現任議員與新北市長會標示/);
+  assert.doesNotMatch(countyNote(nwt), /名單、選區、現任|任職資料/);
   assert.match(countyNote(nwt), /新北市議會的問政紀錄仍在建置中/);
   assert.doesNotMatch(countyNote(hsq), /現任議員/);
 });
 
-test('home note lists non-Taipei counties with an incumbent councillor list, from data', () => {
+test('home note lists non-Taipei counties whose incumbent councillors are tagged, from data', () => {
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
   const nwt = { iso: 'nwt', name: '新北市', councilor_roster: true };
   const khh = { iso: 'khh', name: '高雄市', councilor_roster: true };
-  assert.match(homeNote([tpe, nwt, hsq, khh]), /縣市長任職資料，新北市、高雄市另有現任議員名單，議員問政紀錄仍在建置中/);
+  assert.match(homeNote([tpe, nwt, hsq, khh]), /候選人中的現任縣市長與新北市、高雄市的現任議員會標示，議員問政紀錄仍在建置中/);
+  assert.doesNotMatch(homeNote([tpe, nwt]), /現任議員名單/);
   assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
 });
 

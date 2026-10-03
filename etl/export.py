@@ -28,8 +28,22 @@ def export(conn, out_dir):
         )
     }
 
+    # 網站只呈現 2026 候選人：沒有 candidacy 的現任不輸出人物檔，也不進選區（2026-10-03 使用者決定）
+    candidates = {r["person_id"] for r in facts if r["kind"] == "candidacy"}
+    # 候選人本人的現任職位（含別的選區），前端據此標「現任」或「現任＋職稱」
+    incumbent = {
+        pid: [
+            {"office": d.get("office"), "district_id": d.get("district_id"),
+             "suspended": (d.get("status_events") or [{}])[-1].get("event") == "suspended"}
+            for d in (json.loads(r["data"]) for r in _sort_facts(facts_by_person[pid]) if r["kind"] == "office")
+        ]
+        for pid in candidates
+    }
+
     for person in people:
         person_id = person["person_id"]
+        if person_id not in candidates:
+            continue
         person_facts = facts_by_person.get(person_id, [])
         by_kind = {}
         for row in person_facts:
@@ -73,6 +87,7 @@ def export(conn, out_dir):
                     "name": person["name"],
                     "kind": row["kind"],
                     "data": data,
+                    **({"incumbent": incumbent[person_id]} if row["kind"] == "candidacy" else {}),
                     "source_url": row["source_url"],
                     "fetched_at": row["fetched_at"],
                 }
@@ -110,9 +125,13 @@ def export(conn, out_dir):
             },
         )
 
-    # 有現任議員名錄（議員任職 fact）的縣市，前端縣市頁的說明依此列出
-    rosters = {_iso_of(d["district_id"]) for d in districts.values()
-               if any(p["kind"] == "office" and str(p["data"].get("office")).endswith("_councilor") for p in d["people"])}
+    # 有現任議員名錄（議員任職 fact，含沒參選者）的縣市：代表該縣市候選人的現任身分已標示
+    rosters = set()
+    for row in facts:
+        if row["kind"] == "office":
+            d = json.loads(row["data"])
+            if str(d.get("office")).endswith("_councilor") and d.get("district_id"):
+                rosters.add(_iso_of(d["district_id"]))
     districts_by_county = {}
     for district_id in sorted(districts):
         d = districts[district_id]

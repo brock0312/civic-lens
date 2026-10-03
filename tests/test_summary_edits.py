@@ -1,9 +1,11 @@
+import sqlite3
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "summaries"))
-from batch import EditMismatch, apply_edits  # noqa: E402
+from batch import EditMismatch, apply_edits, candidate_ids  # noqa: E402
 from check_report import bigram_idf, filter_citations  # noqa: E402
 
 SUMMARY = {"person_id": "p1", "name": "甲", "issues": [
@@ -52,6 +54,19 @@ class TestRelevanceFilter(unittest.TestCase):
         ]}, idf=bigram_idf(corpus))
         self.assertEqual([i["topic"] for i in s["issues"]], ["捷運漏水"])
         self.assertEqual([x["topic"] for x in f["irrelevant_issues"]], ["公園照明"])
+
+
+class TestCandidateIds(unittest.TestCase):
+    def test_returns_only_people_with_a_candidacy_fact(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db = Path(tmp) / "civic.db"
+            conn = sqlite3.connect(db)
+            conn.execute("CREATE TABLE fact (person_id TEXT, kind TEXT)")
+            conn.executemany("INSERT INTO fact VALUES (?, ?)",
+                             [("run", "candidacy"), ("run", "office"), ("stay", "office"), ("stay", "summary")])
+            conn.commit()
+            conn.close()
+            self.assertEqual(candidate_ids(db), {"run"})
 
 
 if __name__ == "__main__":

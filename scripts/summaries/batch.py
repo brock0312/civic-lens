@@ -9,6 +9,7 @@
 前置：`notebooklm auth check --test --json` 的 token_fetch 為 true。
 
 每個會期依序：抓速記錄（fetch_transcripts）→ 切分（segment）→ NotebookLM 摘要（summarize）→ 檢查與過濾（check_report）→ 輸出。
+  - 只做 2026 候選人：data/civic.db 沒有 candidacy fact 的議員跳過（--names 指定時不過濾），他們的人工修訂也不套用。
   - 可中斷續跑：切分檔、NotebookLM 來源與回答都留在 cache（data/cache/transcripts/14-0N/），已完成的議員直接沿用。
   - 一位議員失敗不中斷整批，記進報告；NotebookLM 登入失效（SystemExit）才整批停下。
   - 整個會期速記錄裡沒有本人發言的議員輸出 status 'no_speech'，不送 NotebookLM。
@@ -22,6 +23,7 @@
 """
 import json
 import pathlib
+import sqlite3
 import sys
 import traceback
 
@@ -30,7 +32,7 @@ import fetch_transcripts  # noqa: E402
 import summarize  # noqa: E402
 from check_report import DISCLAIMER, bigram_idf, build_summary, checked, review_md, sources_of  # noqa: E402
 from segment import (  # noqa: E402
-    CACHE, ROOT, build, known_names, load_docs, load_identity, resolve_group, session_label, video_groups,
+    CACHE, DB, ROOT, build, known_names, load_docs, load_identity, resolve_group, session_label, video_groups,
 )
 
 SESSIONS = ["01", "02", "03", "04", "05"]  # 第 6–8 次公報速記錄還沒刊完
@@ -64,6 +66,15 @@ def apply_edits(summary, edits):
         else:
             raise EditMismatch(f"不認得的修訂 action：{e['action']}")
     return {**summary, "issues": issues}
+
+
+def candidate_ids(db=DB):
+    """有 2026 candidacy fact 的 person_id。網站只呈現 2026 候選人，沒參選的議員不做摘要（省 NotebookLM 額度）。"""
+    conn = sqlite3.connect(f"file:{db}?immutable=1", uri=True)
+    try:
+        return {r[0] for r in conn.execute("SELECT DISTINCT person_id FROM fact WHERE kind = 'candidacy'")}
+    finally:
+        conn.close()
 
 
 def load_edits(tag):
@@ -138,9 +149,14 @@ def run_session(session, only=None, cached=False):
     identity, docs, vgroups = load_identity(), load_docs(session), video_groups(session_label(session))
     known = known_names(identity, vgroups)
     scheduled = {n for _, p in docs for n in resolve_group(p, vgroups, known)[0]}
-    names = sorted(scheduled & set(identity)) if only is None else only
+    # --names 是明確指定，不過濾；預設名單跳過沒有 2026 參選的議員，他們的修訂也不套用、不算 stray
+    running = candidate_ids()
+    skipped = sorted(n for n in scheduled & set(identity) if identity[n] not in running) if only is None else []
+    if skipped:
+        print(f"[{tag}] 跳過沒有 2026 參選的議員：{'、'.join(skipped)}", flush=True)
+    names = sorted(scheduled & set(identity) - set(skipped)) if only is None else only
     dates = [g["date"] for g in vgroups] or [t["date"] for _, p in docs for t in p["turns"] if t["date"]]
-    edits = load_edits(tag)
+    edits = [e for e in load_edits(tag) if e["person_id"] not in {identity[n] for n in skipped}]
     stray = {e["person_id"] for e in edits} - {identity[n] for n in names}
     if only is None and stray:
         raise EditMismatch(f"修訂的議員不在本會期名單：{sorted(stray)}")

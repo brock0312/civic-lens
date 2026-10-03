@@ -222,6 +222,45 @@ class TestCountyRosterFlag(unittest.TestCase):
             self.assertEqual({c["iso"]: c["councilor_roster"] for c in out["counties"]},
                              {"nwt": True, "kee": False, "ila": False})
 
+    def test_roster_flag_counts_incumbents_who_are_not_running(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
+            upsert(conn, "county", {"iso": "nwt", "moi_code": "1", "name": "nwt", "source_url": "http://m",
+                                    "fetched_at": "2024-01-01T00:00:00Z"}, ("iso",))
+            _add_district(conn, "nwt-council-01")
+            upsert_person(conn, "p1", "甲")
+            upsert_fact(conn, "o1", "p1", "office", {"office": "nwt_councilor", "district_id": "nwt-council-01"},
+                        "http://a", "2024-01-01T00:00:00Z")
+            export(conn, Path(tmp) / "out")
+            out = json.loads((Path(tmp) / "out" / "counties.json").read_text(encoding="utf-8"))
+            self.assertTrue(out["counties"][0]["councilor_roster"])
+
+
+class TestCandidatesOnly(unittest.TestCase):
+    def test_incumbents_not_running_in_2026_are_left_out_of_people_and_districts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
+            for did in ("nwt-council-01", "nwt-mayor"):
+                _add_district(conn, did)
+            upsert_person(conn, "run", "甲")
+            upsert_person(conn, "stay", "乙")
+            upsert_fact(conn, "o1", "run", "office", {"office": "nwt_councilor", "district_id": "nwt-council-01"},
+                        "http://a", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "c1", "run", "candidacy", {"district_id": "nwt-mayor"}, "http://a", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "o2", "stay", "office", {"office": "nwt_councilor", "district_id": "nwt-council-01"},
+                        "http://a", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "o3", "stay", "office", {"office": "nwt_mayor", "district_id": "nwt-mayor"},
+                        "http://a", "2024-01-01T00:00:00Z")
+            export(conn, Path(tmp) / "out")
+            out = Path(tmp) / "out"
+            self.assertEqual(sorted(p.name for p in (out / "people").iterdir()), ["run.json"])
+            council = json.loads((out / "districts" / "nwt-council-01.json").read_text(encoding="utf-8"))
+            self.assertEqual([(p["person_id"], p["kind"]) for p in council["people"]], [("run", "office")])
+            mayor = json.loads((out / "districts" / "nwt-mayor.json").read_text(encoding="utf-8"))
+            self.assertEqual([(p["person_id"], p["kind"]) for p in mayor["people"]], [("run", "candidacy")])
+            self.assertEqual(mayor["people"][0]["incumbent"],
+                             [{"office": "nwt_councilor", "district_id": "nwt-council-01", "suspended": False}])
+
 
 def _add_district(conn, district_id):
     upsert(conn, "district", {

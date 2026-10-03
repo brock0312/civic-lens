@@ -7,12 +7,12 @@ import {
 const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['tcc.gov.tw', '臺北市議會']];
 export const INTERPELLATION_PAGE = 20;
 const NO_RECORD ='本站目前沒有此人的任內問政紀錄（收錄範圍：第14屆臺北市議員書面質詢與口頭質詢影片）';
-// 非深度縣市的縣市頁說明：列出目前提供的資料，措辭中性；現任議員名單依 counties.json 的 councilor_roster
-export const countyNote = (county) => `目前提供 2026 候選人名單、選區${county.councilor_roster ? '、現任議員名單' : ''}與${county.name}長任職資料；${county.name}議會的問政紀錄仍在建置中。`;
+// 非深度縣市的縣市頁說明：列出目前提供的資料，措辭中性；候選人中的現任議員有沒有標示依 counties.json 的 councilor_roster
+export const countyNote = (county) => `目前提供 2026 候選人名單與選區，候選人中的現任${county.councilor_roster ? '議員與' : ''}${county.name}長會標示；${county.name}議會的問政紀錄仍在建置中。`;
 // 首頁縣市清單下的說明（counties 已依顯示順序排好）
 export function homeNote(counties) {
   const roster = counties.filter((c) => c.councilor_roster && !DEEP_COUNTIES.has(c.iso)).map((c) => c.name);
-  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；其他縣市目前提供 2026 候選人名單、選區與縣市長任職資料${roster.length ? `，${roster.join('、')}另有現任議員名單` : ''}，議員問政紀錄仍在建置中。`;
+  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${roster.length ? `與${roster.join('、')}的現任議員` : ''}會標示，議員問政紀錄仍在建置中。`;
 }
 // 非深度縣市：問政紀錄還沒建置，措辭不能讓人以為此人沒有問政
 export const noRecordNote = (county) => `${county.name}議會的問政紀錄仍在建置中，本站目前尚未收錄。`;
@@ -91,15 +91,8 @@ export function bulletinGaps(facts) {
 export const BULLETIN_MISSING = (what) => `本站未收錄文字${what}，請見`;
 const pageNote = (facts) => (facts.bulletin?.[0]?.data?.page ? `（第 ${Number(facts.bulletin[0].data.page)} 頁）` : '');
 
-// 現任者的段落標題與出處標籤依職位決定：首長選區用市長／縣長（依選區名稱有無「縣」），其餘為議員
+// 出處標籤依職位決定：議員來自議會名冊；首長來自中選會選舉結果
 const isHead = (office) => String(office || '').endsWith('_mayor');
-// 停職中的首長不寫「現任」（V14 §3.3）
-export function incumbentHeading(d, suspended = false) {
-  if (!isHead(d.office)) return '現任議員';
-  if (suspended) return `${d.name}長（停職中）`;
-  return String(d.name || '').includes('縣') ? '現任縣長' : '現任市長';
-}
-// 議員來自議會名冊；首長來自中選會選舉結果
 export const officeSourceLabel = (office) => (isHead(office) ? '選舉結果' : '議員名冊');
 
 // ---------- 縣市長任職異動（V14 §3） ----------
@@ -112,6 +105,15 @@ const suspensionNote = () => `<p class="small muted"><strong>停止職務</stron
 export function suspensionOf(data) {
   const last = (data?.status_events || []).at(-1);
   return last?.event === 'suspended' ? last : null;
+}
+// 候選人標籤：本人在同一選區現任 →「現任」；別的選區或職位 →「現任新北市議員」；停職中不寫「現任」（V14 §3.3）
+export function candidateTag(incumbent, districtId, counties) {
+  const list = incumbent || [];
+  const o = list.find((x) => x.district_id === districtId) || list[0];
+  if (!o) return '';
+  if (o.district_id === districtId) return o.suspended ? '停職中' : '現任';
+  const label = officeLabel(o.office, counties.get(isoOf(o.district_id)));
+  return o.suspended ? `${label}（停職中）` : `現任${label}`;
 }
 export const hasSuspension = (offices) => offices.some((f) => (f.data?.status_events || []).some((e) => e.event === 'suspended'));
 
@@ -396,16 +398,9 @@ async function renderDistrict(main, ctx, id) {
   track(d.fetched_at, ...d.people.map((p) => p.fetched_at));
   const notes = footnotes();
   const cands = candidateOrder(d.people.filter((p) => p.kind === 'candidacy'));
-  const office = d.people.filter((p) => p.kind === 'office');
-  const officeIds = new Set(office.map((p) => p.person_id));
-  // 停職中的首長不列成未加註的「現任」（V14 §3.3）
-  const suspendedIds = new Set(office.filter((p) => suspensionOf(p.data)).map((p) => p.person_id));
-  const candTag = (id) => (suspendedIds.has(id) ? '停職中' : officeIds.has(id) ? '現任' : '');
   const registered = cands.some((p) => p.data.status === 'registered');
   const seatsFn = notes.ref(d.source_url, d.fetched_at, '應選名額公告');
-  const candRows = cands.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '候選人登記名冊', p.data.publisher), ctx.parties, candTag(p.person_id))).join('');
-  const officeRows = office.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, officeSourceLabel(p.data.office)) + officeExtraRefs(p, notes), ctx.parties, suspendedIds.has(p.person_id) ? '停職中' : '')).join('');
-  const acting = office.map((p) => suspensionOf(p.data)).filter(Boolean).map((e) => `<p class="small">${esc(e.acting_title)}：${esc(e.acting_name)}（<span class="num">${esc(e.date)}</span> 起）${notes.ref(e.source_url, e.fetched_at, e.source_label)}</p>`).join('');
+  const candRows = cands.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '候選人登記名冊', p.data.publisher), ctx.parties, candidateTag(p.incumbent, id, ctx.counties))).join('');
   const title = districtTitle(d, county);
 
   main.innerHTML = `
@@ -415,15 +410,12 @@ async function renderDistrict(main, ctx, id) {
     <dl class="stats">
       ${stat('應選', d.seats, ` 席${seatsFn}`)}
       ${stat('候選人', cands.length, ' 人')}
-      ${office.length && !suspendedIds.size ? stat('現任', office.length, ' 人') : ''}
     </dl>
     <section aria-labelledby="cand-h">
       <h2 id="cand-h">2026 候選人</h2>
       ${registered ? `<p class="status" role="note">${REGISTERED_NOTE}</p>` : ''}
       ${cands.length ? `<ol class="roster">${candRows}</ol><p class="small muted">依官方登記名冊順序排列，非選票號次。</p>` : '<p class="muted">尚無候選人資料。</p>'}
     </section>
-    ${office.length ? `<section aria-labelledby="office-h"><h2 id="office-h">${incumbentHeading(d, suspendedIds.size > 0)}</h2>
-      <ul class="roster">${officeRows}</ul>${acting}${acting ? suspensionNote() : ''}</section>` : ''}
     ${notes.render()}`;
 }
 
