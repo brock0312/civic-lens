@@ -25,7 +25,7 @@ from etl.sources.tpe_bulletin_2022 import ELECTION, VOTE_DATE, bulletin_url, nor
 ROOT = Path(__file__).resolve().parents[2]
 PDF_ROOT = ROOT / "data" / "cache" / "bulletin2022"
 INDEX = ROOT / "tests" / "fixtures" / "bulletin2022_index.json"
-ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua"]
+ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua", "cha", "hsq", "hsz", "kin", "lie"]
 NAMES = dict(COUNTIES)
 KINDS = ("platform", "profile", "bulletin")
 _VAR = str.maketrans(VARIANTS)

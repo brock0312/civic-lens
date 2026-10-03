@@ -86,8 +86,9 @@ class NationalCouncilorsTest(unittest.TestCase):
 
     def test_every_roster_county_has_expected_incumbent_count(self):
         self.assertEqual(set(nc.ISOS), set(nc.EXPECTED))
-        self.assertEqual({k: nc.EXPECTED[k] for k in ("kee", "cyq", "nan", "mia", "hua")},
-                         {"kee": 28, "cyq": 37, "nan": 34, "mia": 36, "hua": 32})
+        self.assertEqual({k: nc.EXPECTED[k] for k in ("kee", "cyq", "nan", "mia", "hua", "cha", "hsq", "hsz", "kin", "lie")},
+                         {"kee": 28, "cyq": 37, "nan": 34, "mia": 36, "hua": 32,
+                          "cha": 53, "hsq": 37, "hsz": 33, "kin": 19, "lie": 9})
 
     def test_fetch_rosters_raises_when_incumbent_count_differs(self):
         rows = lambda iso: [ros(iso, 1, f"{iso}{i}") for i in range(nc.EXPECTED[iso] - (iso == "nan"))]
