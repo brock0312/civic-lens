@@ -1,7 +1,7 @@
 // 全國縣市、選區與村里的純函式：不碰 DOM，app.js 與測試共用。
 
 // 有深度問政資料（議會質詢、出缺勤等）的縣市；其他縣市只有 2026 候選人名單與選區
-export const DEEP_COUNTIES = new Set(['tpe', 'khh']);  // 與 app.js 的 RECORDS 一致
+export const DEEP_COUNTIES = new Set(['tpe', 'khh', 'txg', 'tnn']);  // 與 app.js 的 RECORDS 一致
 
 // 各縣市議會官網：2026-10-02 逐一 curl 確認 HTTP 200 且頁面標題為該議會
 export const COUNCIL_SITES = {

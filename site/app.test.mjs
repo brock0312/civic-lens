@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
+import { TXG_DEPTS, summaryCard } from './app.js';
+import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -191,6 +193,46 @@ test('videoNote for Kaohsiung per-councillor marks says playback starts at the s
 test('video blurb names the council from the video link host', () => {
   assert.equal(videoBlurb([{ source_url: 'https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=x&num=1' }]), '連結至臺北市議會議事影音系統，影片來源：臺北市議會。');
   assert.equal(videoBlurb([{ source_url: 'https://ivod.kcc.gov.tw/watch/80/202609KCC0408R1150923143208VIDEOmp4?start=1701' }]), '連結至高雄市議會議事影音系統，影片來源：高雄市議會。');
+});
+
+test('videoNote for Taichung and Tainan clips says the video is the councillor slot or a joint interpellation', () => {
+  assert.equal(videoNote({ clip: true, group_size: 1 }), '影片即該議員的質詢時段');
+  assert.equal(videoNote({ clip: true, group_size: 3 }), '3 位議員聯合質詢的影片');
+});
+
+test('Taichung and Tainan video blurbs name the council; Tainan says the videos are on YouTube', () => {
+  assert.equal(videoBlurb([{ source_url: 'https://vod.tccc.gov.tw/index.asp?url=22&cno=24&ano=14826' }]), '連結至臺中市議會議事影音系統，影片來源：臺中市議會。');
+  assert.match(RECORDS.tnn.videoBlurb, /臺南市議會發布在 YouTube/);
+  assert.equal(RECORDS.txg.videoBlurb, undefined);
+});
+
+test('Taichung and Tainan are deep counties with neutral not-yet-collected notes', () => {
+  for (const iso of ['tpe', 'khh', 'txg', 'tnn']) assert.ok(DEEP_COUNTIES.has(iso), iso);
+  for (const iso of ['txg', 'tnn']) {
+    const r = RECORDS[iso];
+    assert.equal(r.written, false);
+    assert.match(r.noRecord, /書面質詢與出缺勤本站尚未收錄/);
+    assert.match(r.note, /出缺勤紀錄本站尚未收錄/);
+    assert.doesNotMatch(r.noRecord + r.note, /沒有問政|無問政|未質詢|缺席/);
+  }
+  assert.match(RECORDS.txg.noRecord, /第4屆臺中市議員口頭質詢影片/);
+  assert.match(RECORDS.tnn.noRecord, /第4屆臺南市議員市政總質詢影片/);
+});
+
+test('summary card skips the department chart when the council has no departments (Tainan)', () => {
+  const v = (dept) => ({ data: { dept, video_id: 'x', clip: true, group_size: 1 } });
+  const card = (rec, inters) => summaryCard({}, { offices: [], inters, written: [], videos: inters, rec });
+  const tnn = card(RECORDS.tnn, [v(null), v(null)]);
+  assert.doesNotMatch(tnn, /部門分布/);
+  assert.match(tnn, /口頭質詢影片 <span class="num">2<\/span> 筆/);
+  assert.match(tnn, /出缺勤紀錄本站尚未收錄/);
+  const txg = card(RECORDS.txg, [v('民政'), v(null)]);
+  assert.match(txg, /部門分布/);
+  assert.match(txg, /另有 <span class="num">1<\/span> 筆未分部門/);
+  assert.deepEqual(TXG_DEPTS, ['民政', '財政經濟', '教育文化', '交通地政', '警消環衛', '都發建設水利']);
+  const khh = card(RECORDS.khh, [v('民政')]);
+  assert.match(khh, /部門分布/);
+  assert.doesNotMatch(khh, /出缺勤紀錄本站尚未收錄/);
 });
 
 test('Kaohsiung departments use the council committees in a fixed order', () => {
