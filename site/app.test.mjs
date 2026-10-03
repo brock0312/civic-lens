@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, countyTag, BULLETIN_TAG, pendingRecordNotes } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -528,4 +528,20 @@ test('incumbent councillors outside deep counties get the records-pending note, 
     ['新北市議會的問政紀錄仍在建置中，本站目前尚未收錄。']);
   assert.deepEqual(pendingRecordNotes([office('tpe_councilor', 'tpe-council-01')], counties), []);
   assert.deepEqual(pendingRecordNotes([office('ila_mayor', 'ila-mayor')], counties), []);
+});
+
+test('sitting legislators running locally are tagged with their office, district or not', () => {
+  const counties = new Map([['tnn', { iso: 'tnn', name: '臺南市' }]]);
+  assert.equal(candidateTag([{ office: 'legislator', district_id: 'ly-tnn-06' }], 'tnn-mayor', counties), '現任立法委員');
+  assert.equal(candidateTag([{ office: 'legislator' }], 'tnn-mayor', counties), '現任立法委員');
+  assert.equal(officeSourceLabel('legislator'), '立法院委員資料');
+});
+
+test('legislative records are counted in a fixed order and attributed to the API licence', () => {
+  assert.deepEqual(lyCounts({ ly_bill: [1, 2], ly_interpellation: [1] }), [['質詢', 1, '筆'], ['列名提案人的議案', 2, '件']]);
+  assert.deepEqual(lyCounts({}), []);
+  assert.match(LY_NOTE, /CC BY 4\.0/);
+  assert.match(LY_NOTE, /出席與表決紀錄尚未收錄/);
+  assert.equal(publisherOf('https://ly.govapi.tw/v2/bill/1'), '立法院（經 OpenFun 立法院 API，CC BY 4.0）');
+  assert.equal(publisherOf('https://ivod.ly.gov.tw/Play/Clip/1M/1'), '立法院');
 });

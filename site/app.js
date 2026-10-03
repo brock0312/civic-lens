@@ -4,7 +4,8 @@ import {
   councilDistrictFor, officeLabel, districtTitle, candidateOrder, districtSub,
 } from './geo.js';
 
-const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['moi.gov.tw', '內政部'], ...COUNCIL_PUBLISHERS];
+const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['moi.gov.tw', '內政部'],
+  ['ly.govapi.tw', '立法院（經 OpenFun 立法院 API，CC BY 4.0）'], ['ly.gov.tw', '立法院'], ...COUNCIL_PUBLISHERS];
 export const INTERPELLATION_PAGE = 20;
 const NO_RECORD ='本站目前沒有此人的任內問政紀錄（收錄範圍：第14屆臺北市議員書面質詢與口頭質詢影片）';
 // 非深度縣市的縣市頁說明：列出目前提供的資料，措辭中性；候選人中的現任議員有沒有標示依 counties.json 的 councilor_roster
@@ -104,7 +105,7 @@ const pageNote = (facts) => (facts.bulletin?.[0]?.data?.page ? `（第 ${Number(
 
 // 出處標籤依職位決定：議員來自議會名冊；首長來自中選會選舉結果
 const isHead = (office) => String(office || '').endsWith('_mayor');
-export const officeSourceLabel = (office) => (isHead(office) ? '選舉結果' : '議員名冊');
+export const officeSourceLabel = (office) => (office === 'legislator' ? '立法院委員資料' : isHead(office) ? '選舉結果' : '議員名冊');
 
 // ---------- 縣市長任職異動（V14 §3） ----------
 
@@ -598,8 +599,34 @@ export function criminalRecordSection(facts) {
     </ul></section>`;
 }
 
+// ---------- 立法院問政紀錄（ly_records：質詢、IVOD 發言片段、列名提案的議案） ----------
+
+export const LY_NOTE = '第 11 屆立法委員任內紀錄，資料取自 OpenFun 立法院 API（CC BY 4.0），原始資料為立法院公報、議事轉播與議案系統。出席與表決紀錄尚未收錄。';
+export const LY_KINDS = {
+  ly_interpellation: { heading: '質詢', unit: '筆', blurb: '依立法院公報「質詢事項」；標題連結至該筆資料。' },
+  ly_video: { heading: '發言影片（IVOD）', unit: '段', blurb: '連結至立法院議事轉播系統的委員發言片段。' },
+  ly_bill: { heading: '列名提案人的議案', unit: '件', blurb: '不含只列名連署的議案；標題連結至該筆資料。' },
+};
+
+// 摘要卡用的計數：只列有資料的種類，依 LY_KINDS 固定順序
+export function lyCounts(facts) {
+  return Object.entries(LY_KINDS).map(([k, m]) => [m.heading, (facts[k] || []).length, m.unit]).filter(([, n]) => n);
+}
+
+function lyRows(list) {
+  return list.map((f) => {
+    const u = safeUrl(f.source_url);
+    const title = esc(f.data?.title || f.data?.bill_no || f.data?.no || '');
+    const side = f.data?.status || (f.data?.committees || []).join('、');
+    return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
+      <span class="dept">${esc(side || '')}</span>
+      <span class="title">${u ? ext(u, title) : title}</span></li>`;
+  }).join('');
+}
+
 // 摘要卡「說過什麼｜做了什麼」：只是事實計數，不排序、不比較、不評語
 function summaryCard(facts, { offices, inters, written, videos, jump, pending = [] }) {
+  const ly = lyCounts(facts);
   const said = `<div class="said"><h2>說過什麼</h2>
     ${jump ? `<p><a href="#${jump}" data-jump="${jump}">2022 選舉公報政見與學經歷</a></p>` : '<p>本站目前沒有此人的 2022 選舉公報資料。</p>'}
     <p class="muted small">2026 選舉公報預計 11/25 前公布。</p></div>`;
@@ -611,6 +638,7 @@ function summaryCard(facts, { offices, inters, written, videos, jump, pending = 
   }).join('、');
   let did = term ? `<dl class="kv"><dt>任職期間</dt><dd>${term}</dd></dl>` : '';
   did += pending.map((n) => `<p class="muted small">${esc(n)}</p>`).join('');
+  if (ly.length) did += `<dl class="kv"><dt>立法院</dt><dd>${ly.map(([h, n, u]) => `${esc(h)} <span class="num">${n}</span> ${u}`).join('、')}</dd></dl>`;
   if (inters.length) {
     const { counts, other } = deptCounts(inters);
     const max = Math.max(1, ...counts.map(([, n]) => n));
@@ -652,11 +680,15 @@ async function renderPerson(main, ctx, id) {
   const kinds = {
     written: { list: written, rows: interpellationRows, blurb: '標題連結至臺北市議會公報原文。' },
     video: { list: videos, rows: videoRows, blurb: '連結至臺北市議會議事影音系統，影片來源：臺北市議會。' },
+    ...Object.fromEntries(Object.entries(LY_KINDS).map(([k, m]) => [k, { list: facts[k] || [], rows: lyRows, blurb: m.blurb }])),
   };
 
-  const districtLink = (districtId) => {
+  // 議員、縣市長選區連到選區頁；立委選區沒有頁面，只寫選區名稱；不分區、原住民立委沒有選區 id，用 fallback 文字
+  const districtLink = (districtId, fallback = '') => {
     const m = districtMeta(ctx, districtId);
-    return m ? `<a href="#/d/${esc(districtId)}">${esc(districtTitle(m.d, m.county))}</a>` : esc(districtId);
+    if (m) return `<a href="#/d/${esc(districtId)}">${esc(districtTitle(m.d, m.county))}</a>`;
+    const d = districtId && ctx.counties.get(isoOf(districtId))?.districts.find((x) => x.district_id === districtId);
+    return esc(d?.name || fallback || districtId || '');
   };
   const label = (office) => officeLabel(office, ctx.counties.get(String(office).split('_')[0]));
   const lead = candidacy[0] || offices[0];
@@ -672,7 +704,7 @@ async function renderPerson(main, ctx, id) {
     </dl>`).join('');
 
   const office = offices.map((f) => (f.data.elected_on ? headOfficeItem(f, districtLink(f.data.district_id)) : `<li><span class="name">${esc(f.data.title || label(f.data.office))}</span>
-      <span>${districtLink(f.data.district_id)}</span>
+      <span>${districtLink(f.data.district_id, f.data.area_name)}</span>
       <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office))}${officeExtraRefs(f, notes)}</span></li>`)).join('');
 
   const bulletin = bulletinSection(facts, notes);
@@ -681,6 +713,9 @@ async function renderPerson(main, ctx, id) {
   const inter = inters.length ? `<section aria-labelledby="k-inter"><h2 id="k-inter">質詢紀錄</h2>
       ${interSection('written', '書面質詢', kinds.written)}
       ${interSection('video', '口頭質詢（影片）', kinds.video)}</section>` : '';
+  const ly = lyCounts(facts).length ? `<section aria-labelledby="k-ly"><h2 id="k-ly">立法院問政紀錄</h2>
+      <p class="count">${esc(LY_NOTE)}</p>
+      ${Object.entries(LY_KINDS).map(([k, m]) => interSection(k, m.heading, kinds[k])).join('')}</section>` : '';
 
   main.innerHTML = `
     ${crumbs(['#/', '全國'], ...(leadCounty ? [[`#/c/${leadCounty.iso}`, leadCounty.name]] : []),
@@ -694,6 +729,7 @@ async function renderPerson(main, ctx, id) {
     ${bulletin}
     ${summarySection(facts.summary || [], videos)}
     ${inter}
+    ${ly}
     ${offices.length || inters.length ? '' : `<p class="empty">${esc(noRecord)}</p>`}
     ${notes.render()}`;
 

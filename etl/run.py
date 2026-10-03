@@ -6,7 +6,7 @@ from etl.db import open_db, dump
 from etl.export import export
 from etl.sources import (
     national_bulletin_2022, national_candidates, national_councilors, national_districts, national_heads,
-    national_legislators, tcc_attendance, tcc_councilors, tcc_interpellations, tcc_summaries, tcc_videos,
+    national_legislators, ly_legislators, ly_records, tcc_attendance, tcc_councilors, tcc_interpellations, tcc_summaries, tcc_videos,
     tpe_bulletin_2022, tpe_candidates, tpe_districts,
 )
 
@@ -18,10 +18,11 @@ ROOT = Path(__file__).resolve().parent.parent
 # national_bulletin_2022 要在 national_heads、national_councilors 之後（掛到有任職 fact 的人）
 # tcc_attendance 要在 tcc_councilors（identity 對照）之後
 # tcc_summaries 讀 repo 內的 data/summaries/，不連網；要在 tcc_councilors（person 列）之後
+# ly_legislators 要在 national_legislators（立委選區）與 national_candidates、tpe_candidates（串接 2026 候選人）之後；ly_records 在它之後
 SOURCES = [
     tpe_districts, tpe_candidates, national_districts, national_legislators, national_candidates, national_heads,
     national_councilors, national_bulletin_2022, tcc_councilors, tcc_interpellations, tcc_videos, tcc_attendance,
-    tcc_summaries, tpe_bulletin_2022,
+    tcc_summaries, tpe_bulletin_2022, ly_legislators, ly_records,
 ]
 
 
