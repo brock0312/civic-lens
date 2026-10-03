@@ -72,8 +72,9 @@ def export(conn, out_dir):
             encoding="utf-8",
         )
 
+        # 選區只列 candidacy 條目；現任身分在條目的 incumbent 欄位（office 條目前端已不用，2026-10-03 起不輸出）
         for row in person_facts:
-            if row["kind"] not in ("candidacy", "office"):
+            if row["kind"] != "candidacy":
                 continue
             data = json.loads(row["data"])
             district_id = data.get("district_id")
@@ -87,7 +88,7 @@ def export(conn, out_dir):
                     "name": person["name"],
                     "kind": row["kind"],
                     "data": data,
-                    **({"incumbent": incumbent[person_id]} if row["kind"] == "candidacy" else {}),
+                    "incumbent": incumbent[person_id],
                     "source_url": row["source_url"],
                     "fetched_at": row["fetched_at"],
                 }

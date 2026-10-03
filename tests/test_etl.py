@@ -237,7 +237,7 @@ class TestCountyRosterFlag(unittest.TestCase):
 
 
 class TestCandidatesOnly(unittest.TestCase):
-    def test_incumbents_not_running_in_2026_are_left_out_of_people_and_districts(self):
+    def test_only_candidacy_entries_are_exported_and_non_candidates_are_left_out(self):
         with tempfile.TemporaryDirectory() as tmp:
             conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
             for did in ("nwt-council-01", "nwt-mayor"):
@@ -255,7 +255,7 @@ class TestCandidatesOnly(unittest.TestCase):
             out = Path(tmp) / "out"
             self.assertEqual(sorted(p.name for p in (out / "people").iterdir()), ["run.json"])
             council = json.loads((out / "districts" / "nwt-council-01.json").read_text(encoding="utf-8"))
-            self.assertEqual([(p["person_id"], p["kind"]) for p in council["people"]], [("run", "office")])
+            self.assertEqual(council["people"], [])  # 現任職位不再輸出成 office 條目，只在 candidacy 的 incumbent
             mayor = json.loads((out / "districts" / "nwt-mayor.json").read_text(encoding="utf-8"))
             self.assertEqual([(p["person_id"], p["kind"]) for p in mayor["people"]], [("run", "candidacy")])
             self.assertEqual(mayor["people"][0]["incumbent"],
