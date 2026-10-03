@@ -153,13 +153,15 @@ class DataInvariants(unittest.TestCase):
                     bad.append((f, "district"))
         self.assertEqual(bad[:20], [], f"{len(bad)} 筆缺出處或擷取時間")
 
-    # 結構完整：22 縣市、7,780 村里、村里引用的選區都存在
+    # 結構完整：22 縣市、匯出的村里數等於資料庫的村里數（不寫死，內政部新設或裁併村里不擋部署）、村里引用的選區都存在
     def test_counties_villages_and_district_references_are_complete(self):
         counties = self.json["counties.json"]["counties"]
         self.assertEqual(len(counties), 22)
         districts = {d["district_id"] for c in counties for d in c["districts"]}
         villages = [v for f, obj in self.json.items() if f.startswith("villages/") for v in obj["villages"]]
-        self.assertEqual(len(villages), 7780)
+        in_db = self.conn.execute("SELECT count(DISTINCT villcode) FROM village_district").fetchone()[0]
+        self.assertGreater(in_db, 0)
+        self.assertEqual(len(villages), in_db)
         bad = sorted({(v["villcode"], did) for v in villages for did in v["districts"].values() if did not in districts})
         self.assertEqual(bad[:20], [], f"{len(bad)} 個村里引用了不存在的選區")
 
