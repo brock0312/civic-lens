@@ -1,21 +1,33 @@
 // civic-lens 靜態前端：hash routing，資料全部從相對路徑 data/ 讀取。
 import {
-  DEEP_COUNTIES, COUNCIL_SITES, KIND_LABEL, isoOf, townWord, countyOrder, townsOf, needsVillage,
+  DEEP_COUNTIES, COUNCIL_SITES, COUNCIL_PUBLISHERS, KIND_LABEL, isoOf, townWord, countyOrder, townsOf, needsVillage,
   councilDistrictFor, officeLabel, districtTitle, candidateOrder, districtSub,
 } from './geo.js';
 
-const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['tcc.gov.tw', '臺北市議會'], ['kcc.gov.tw', '高雄市議會']];
+const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['moi.gov.tw', '內政部'],
+  ['ly.govapi.tw', '立法院（經 OpenFun 立法院 API，CC BY 4.0）'], ['ly.gov.tw', '立法院'], ...COUNCIL_PUBLISHERS];
 export const INTERPELLATION_PAGE = 20;
 const NO_RECORD ='本站目前沒有此人的任內問政紀錄（收錄範圍：第14屆臺北市議員書面質詢與口頭質詢影片）';
 // 非深度縣市的縣市頁說明：列出目前提供的資料，措辭中性；候選人中的現任議員有沒有標示依 counties.json 的 councilor_roster
-export const countyNote = (county) => `目前提供 2026 候選人名單與選區，候選人中的現任${county.councilor_roster ? '議員與' : ''}${county.name}長會標示；${county.name}議會的問政紀錄仍在建置中。`;
+// councilor_bulletin：候選人中的現任議員另有 2022 選舉公報政見與學經歷
+export const countyNote = (county) => `目前提供 2026 候選人名單與選區，候選人中的現任${county.councilor_roster ? '議員與' : ''}${county.name}長會標示${county.councilor_bulletin ? '，並收錄現任議員的 2022 選舉公報政見與學經歷' : ''}；${county.name}議會的問政紀錄仍在建置中。`;
+// 首頁縣市清單的標籤：深度縣市「含問政紀錄」；其他縣市有現任議員公報時「含 2022 公報」
+export const BULLETIN_TAG = '含 2022 公報';
+export const countyTag = (c) => (DEEP_COUNTIES.has(c.iso) ? '含問政紀錄' : c.councilor_bulletin ? BULLETIN_TAG : '');
 // 首頁縣市清單下的說明（counties 已依顯示順序排好）
 export function homeNote(counties) {
   const roster = counties.filter((c) => c.councilor_roster && !DEEP_COUNTIES.has(c.iso)).map((c) => c.name);
-  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${roster.length ? `與${roster.join('、')}的現任議員` : ''}會標示，議員問政紀錄仍在建置中。`;
+  const bulletin = counties.some((c) => countyTag(c) === BULLETIN_TAG);
+  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；${bulletin ? `標示「${BULLETIN_TAG}」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷；` : ''}其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${roster.length ? `與${roster.join('、')}的現任議員` : ''}會標示，議員問政紀錄仍在建置中。`;
 }
 // 非深度縣市：問政紀錄還沒建置，措辭不能讓人以為此人沒有問政
 export const noRecordNote = (county) => `${county.name}議會的問政紀錄仍在建置中，本站目前尚未收錄。`;
+// 現任議員但所在縣市還沒有問政紀錄：「做了什麼」只有任職期間，要註明紀錄未收錄，不能讓人以為沒有問政
+export function pendingRecordNotes(offices, counties) {
+  const isos = offices.filter((f) => String(f.data?.office).endsWith('_councilor') && f.data?.district_id)
+    .map((f) => isoOf(f.data.district_id)).filter((iso) => !DEEP_COUNTIES.has(iso) && counties.get(iso));
+  return [...new Set(isos)].map((iso) => noRecordNote(counties.get(iso)));
+}
 
 // 政黨字串 → 黨徽相對路徑；只有「無」「無黨籍」用本站的「無」圖樣，查不到就回傳 null（只顯示文字）
 export function emblemFor(party, parties) {
@@ -105,7 +117,7 @@ const pageNote = (facts) => (facts.bulletin?.[0]?.data?.page ? `（第 ${Number(
 
 // 出處標籤依職位決定：議員來自議會名冊；首長來自中選會選舉結果
 const isHead = (office) => String(office || '').endsWith('_mayor');
-export const officeSourceLabel = (office) => (isHead(office) ? '選舉結果' : '議員名冊');
+export const officeSourceLabel = (office) => (office === 'legislator' ? '立法院委員資料' : isHead(office) ? '選舉結果' : '議員名冊');
 
 // ---------- 縣市長任職異動（V14 §3） ----------
 
@@ -292,7 +304,7 @@ async function renderHome(main, ctx) {
       <div class="map" aria-hidden="true"></div>
       <nav aria-labelledby="county-h">
         <h2 id="county-h">縣市</h2>
-        <ul class="counties">${counties.map((c) => `<li><a href="#/c/${esc(c.iso)}" data-iso="${esc(c.iso)}">${esc(c.name)}</a>${DEEP_COUNTIES.has(c.iso) ? '<span class="tag">含問政紀錄</span>' : ''}</li>`).join('')}</ul>
+        <ul class="counties">${counties.map((c) => `<li><a href="#/c/${esc(c.iso)}" data-iso="${esc(c.iso)}">${esc(c.name)}</a>${countyTag(c) ? `<span class="tag">${esc(countyTag(c))}</span>` : ''}</li>`).join('')}</ul>
         <p class="small muted">${esc(homeNote(counties))}</p>
       </nav>
     </div>`;
@@ -307,6 +319,7 @@ async function renderHome(main, ctx) {
   if (!map) return; // 已換頁
   map.innerHTML = svg.replace(/^<\?xml[^>]*>\s*/, '');
   for (const iso of DEEP_COUNTIES) map.querySelector(`#county-${iso}`)?.classList.add('deep');
+  for (const c of counties) if (countyTag(c) === BULLETIN_TAG) map.querySelector(`#county-${c.iso}`)?.classList.add('part');
   map.addEventListener('click', (e) => {
     const iso = e.target.closest('path[id^="county-"]')?.id.slice(7);
     if (iso && ctx.counties.has(iso)) location.hash = `#/c/${iso}`;
@@ -607,8 +620,34 @@ export function criminalRecordSection(facts) {
     </ul></section>`;
 }
 
+// ---------- 立法院問政紀錄（ly_records：質詢、IVOD 發言片段、列名提案的議案） ----------
+
+export const LY_NOTE = '第 11 屆立法委員任內紀錄，資料取自 OpenFun 立法院 API（CC BY 4.0），原始資料為立法院公報、議事轉播與議案系統。出席與表決紀錄尚未收錄。';
+export const LY_KINDS = {
+  ly_interpellation: { heading: '質詢', unit: '筆', blurb: '依立法院公報「質詢事項」；標題連結至該筆資料。' },
+  ly_video: { heading: '發言影片（IVOD）', unit: '段', blurb: '連結至立法院議事轉播系統的委員發言片段。' },
+  ly_bill: { heading: '列名提案人的議案', unit: '件', blurb: '不含只列名連署的議案；標題連結至該筆資料。' },
+};
+
+// 摘要卡用的計數：只列有資料的種類，依 LY_KINDS 固定順序
+export function lyCounts(facts) {
+  return Object.entries(LY_KINDS).map(([k, m]) => [m.heading, (facts[k] || []).length, m.unit]).filter(([, n]) => n);
+}
+
+function lyRows(list) {
+  return list.map((f) => {
+    const u = safeUrl(f.source_url);
+    const title = esc(f.data?.title || f.data?.bill_no || f.data?.no || '');
+    const side = f.data?.status || (f.data?.committees || []).join('、');
+    return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
+      <span class="dept">${esc(side || '')}</span>
+      <span class="title">${u ? ext(u, title) : title}</span></li>`;
+  }).join('');
+}
+
 // 摘要卡「說過什麼｜做了什麼」：只是事實計數，不排序、不比較、不評語
-function summaryCard(facts, { offices, inters, written, videos, jump, rec = RECORDS.tpe }) {
+function summaryCard(facts, { offices, inters, written, videos, jump, rec = RECORDS.tpe, pending = [] }) {
+  const ly = lyCounts(facts);
   const said = `<div class="said"><h2>說過什麼</h2>
     ${jump ? `<p><a href="#${jump}" data-jump="${jump}">2022 選舉公報政見與學經歷</a></p>` : '<p>本站目前沒有此人的 2022 選舉公報資料。</p>'}
     <p class="muted small">2026 選舉公報預計 11/25 前公布。</p></div>`;
@@ -619,6 +658,8 @@ function summaryCard(facts, { offices, inters, written, videos, jump, rec = RECO
     return `<span class="num">${esc(f.date)}</span> 起${s ? `（<span class="num">${esc(s.date)}</span> 起停止職務）` : ''}`;
   }).join('、');
   let did = term ? `<dl class="kv"><dt>任職期間</dt><dd>${term}</dd></dl>` : '';
+  did += pending.map((n) => `<p class="muted small">${esc(n)}</p>`).join('');
+  if (ly.length) did += `<dl class="kv"><dt>立法院</dt><dd>${ly.map(([h, n, u]) => `${esc(h)} <span class="num">${n}</span> ${u}`).join('、')}</dd></dl>`;
   if (inters.length) {
     const { counts, other } = deptCounts(inters, rec.depts);
     const max = Math.max(1, ...counts.map(([, n]) => n));
@@ -662,11 +703,15 @@ async function renderPerson(main, ctx, id) {
   const kinds = {
     written: { list: written, rows: interpellationRows, blurb: '標題連結至臺北市議會公報原文。' },
     video: { list: videos, rows: videoRows, blurb: videoBlurb(videos) },
+    ...Object.fromEntries(Object.entries(LY_KINDS).map(([k, m]) => [k, { list: facts[k] || [], rows: lyRows, blurb: m.blurb }])),
   };
 
-  const districtLink = (districtId) => {
+  // 議員、縣市長選區連到選區頁；立委選區沒有頁面，只寫選區名稱；不分區、原住民立委沒有選區 id，用 fallback 文字
+  const districtLink = (districtId, fallback = '') => {
     const m = districtMeta(ctx, districtId);
-    return m ? `<a href="#/d/${esc(districtId)}">${esc(districtTitle(m.d, m.county))}</a>` : esc(districtId);
+    if (m) return `<a href="#/d/${esc(districtId)}">${esc(districtTitle(m.d, m.county))}</a>`;
+    const d = districtId && ctx.counties.get(isoOf(districtId))?.districts.find((x) => x.district_id === districtId);
+    return esc(d?.name || fallback || districtId || '');
   };
   const label = (office) => officeLabel(office, ctx.counties.get(String(office).split('_')[0]));
   const lead = candidacy[0] || offices[0];
@@ -685,7 +730,7 @@ async function renderPerson(main, ctx, id) {
     </dl>`).join('');
 
   const office = offices.map((f) => (f.data.elected_on ? headOfficeItem(f, districtLink(f.data.district_id)) : `<li><span class="name">${esc(f.data.title || label(f.data.office))}</span>
-      <span>${officeDistrict(f.data, districtLink)}</span>
+      <span>${officeDistrict(f.data, (id) => districtLink(id, f.data.area_name))}</span>
       <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office))}${officeExtraRefs(f, notes)}</span></li>`)).join('');
 
   const bulletin = bulletinSection(facts, notes);
@@ -694,19 +739,23 @@ async function renderPerson(main, ctx, id) {
   const inter = inters.length ? `<section aria-labelledby="k-inter"><h2 id="k-inter">質詢紀錄</h2>
       ${interSection('written', '書面質詢', kinds.written)}
       ${interSection('video', '口頭質詢（影片）', kinds.video)}</section>` : '';
+  const ly = lyCounts(facts).length ? `<section aria-labelledby="k-ly"><h2 id="k-ly">立法院問政紀錄</h2>
+      <p class="count">${esc(LY_NOTE)}</p>
+      ${Object.entries(LY_KINDS).map(([k, m]) => interSection(k, m.heading, kinds[k])).join('')}</section>` : '';
 
   main.innerHTML = `
     ${crumbs(['#/', '全國'], ...(leadCounty ? [[`#/c/${leadCounty.iso}`, leadCounty.name]] : []),
       ...(leadMeta ? [[`#/d/${leadMeta.d.district_id}`, districtTitle(leadMeta.d, leadMeta.county)]] : []), ['', p.name])}
     <h1 tabindex="-1">${esc(p.name)}</h1>
     ${lead ? `<p class="byline">${partyOf(lead.data, ctx.parties)}<span>${districtLink(lead.data.district_id)}</span></p>` : ''}
-    ${summaryCard(facts, { offices, inters, written, videos, jump, rec })}
+    ${summaryCard(facts, { offices, inters, written, videos, jump, rec, pending: pendingRecordNotes(offices, ctx.counties) })}
     ${cand ? `<section aria-labelledby="k-cand"><h2 id="k-cand">2026 參選</h2>${cand}</section>` : ''}
     ${criminalRecordSection(facts)}
     ${office ? `<section aria-labelledby="k-office"><h2 id="k-office">任職</h2><ul class="roster office">${office}</ul>${hasSuspension(offices) ? suspensionNote() : ''}</section>` : ''}
     ${bulletin}
     ${summarySection(facts.summary || [], videos)}
     ${inter}
+    ${ly}
     ${inters.length || (offices.length && !(rec && recordedCouncillor)) ? '' : `<p class="empty">${esc(noRecord)}</p>`}
     ${notes.render()}`;
 

@@ -9,6 +9,7 @@
   --note: #ebebe8;
   --emblem-bg: #f6f6f4;
   --map: #d4d4cf;
+  --map-part: #c4c4bf;
   --map-deep: #9a9a96;
   --map-on: #3b3b39;
   --sans: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
@@ -23,6 +24,7 @@
     --line: #383836;
     --note: #1e1e1d;
     --map: #3a3a38;
+    --map-part: #444442;
     --map-deep: #6a6a67;
     --map-on: #d4d4cf;
   }
@@ -124,6 +126,7 @@ select {
 .home h2 { margin-top: 0; }
 .map svg { display: block; width: 100%; height: auto; }
 .map #counties path { fill: var(--map); stroke: var(--bg); stroke-width: 0.8; cursor: pointer; }
+.map #counties path.part { fill: var(--map-part); }
 .map #counties path.deep { fill: var(--map-deep); }
 .map #counties path:hover, .map #counties path.on { fill: var(--map-on); }
 .map #frames * { fill: none; stroke: var(--muted); }

@@ -30,10 +30,11 @@ _V4_OPENER = urllib.request.build_opener(_V4Handler)
 
 
 # ponytail: 不做重試；失敗就 raise，每日排程明天會再跑
-def get(url, ipv4=False, cafile=None):
+def get(url, ipv4=False, cafile=None, headers=None):
     """ipv4=True 只連 IPv4：有些主機公告了 IPv6 位址但連不上，urllib 會先等 60 秒逾時才改連 IPv4。
-    cafile：在系統根憑證之外再信任這個根憑證（系統憑證庫太舊、缺新根憑證的主機）；仍會驗證憑證。"""
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    cafile：在系統根憑證之外再信任這個根憑證（系統憑證庫太舊、缺新根憑證的主機）；仍會驗證憑證。
+    headers：額外的請求標頭（例：立法院 API 的 Authorization）。"""
+    req = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
     if cafile:
         ctx = ssl.create_default_context()
         ctx.load_verify_locations(cafile)
@@ -45,8 +46,8 @@ def get(url, ipv4=False, cafile=None):
         return resp.read()
 
 
-def get_json(url):
-    return json.loads(get(url))
+def get_json(url, headers=None):
+    return json.loads(get(url, headers=headers))
 
 
 def pdf_text(data):
