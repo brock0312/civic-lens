@@ -1,6 +1,9 @@
+import tempfile
 import unittest
+from pathlib import Path
 
 from etl import bulletin_grid as bg
+from etl.db import open_db, upsert, upsert_fact
 from etl.sources import national_bulletin_2022 as nb
 
 P = "01選舉公報/"
@@ -99,6 +102,18 @@ class SamePartyTest(unittest.TestCase):
     def test_tai_variants_are_equal_for_party_only(self):
         self.assertEqual(bg.same_party("台灣民眾黨"), bg.same_party("臺灣民眾黨"))
 
+
+class LoadTargetsTest(unittest.TestCase):
+    def test_only_incumbents_with_a_2026_candidacy_are_targets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
+            for pid in ("pRun", "pNot"):
+                upsert(conn, "person", {"person_id": pid, "name": pid}, ("person_id",))
+                upsert_fact(conn, f"office:mia-council-2022:{pid}", pid, "office",
+                            {"office": "mia_councilor", "district_id": "mia-council-08"}, "https://x", "t")
+            upsert_fact(conn, "candidacy:2026-local:pRun", "pRun", "candidacy", {"district_id": "mia-council-08"}, "https://x", "t")
+            self.assertEqual([t["person_id"] for t in nb.load_targets(conn, "mia")], ["pRun"])
+            conn.close()
 
 if __name__ == "__main__":
     unittest.main()

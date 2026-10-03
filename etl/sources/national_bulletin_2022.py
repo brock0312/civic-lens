@@ -1,4 +1,5 @@
-"""2022 選舉公報（五都議員與市長）的政見與學經歷，掛到有任職 fact 的現任者（L3-A 第 1 天）。臺北由 tpe_bulletin_2022 負責。
+"""2022 選舉公報（議員與縣市長）的政見與學經歷，掛到有任職 fact 且登記 2026 參選的現任者（L3-A）。臺北由 tpe_bulletin_2022 負責。
+網站只呈現 2026 候選人（2026-10-03 使用者決定），沒參選的現任者不處理，先前寫給他們的公報 facts 由 run() 最後的清理刪掉。
 
 切格與關卡都在 etl.bulletin_grid.process()（身分必須和中選會開票完全一致、欄位必須是 -raw 子字串、圖片／亂碼／看不見的字丟欄）。
 這裡只做串接：任職 fact 的人 → 同縣市、同選區的 2022 候選人（姓名一致）→ 號次 → 公報切出的列。
@@ -24,7 +25,7 @@ from etl.sources.tpe_bulletin_2022 import ELECTION, VOTE_DATE, bulletin_url, nor
 ROOT = Path(__file__).resolve().parents[2]
 PDF_ROOT = ROOT / "data" / "cache" / "bulletin2022"
 INDEX = ROOT / "tests" / "fixtures" / "bulletin2022_index.json"
-ISOS = ["nwt", "tao", "txg", "tnn", "khh"]
+ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua"]
 NAMES = dict(COUNTIES)
 KINDS = ("platform", "profile", "bulletin")
 _VAR = str.maketrans(VARIANTS)
@@ -114,10 +115,11 @@ def fetch_cec():
 
 
 def load_targets(conn, iso):
-    """有任職 fact 的議員（national_councilors）與市長（national_heads）。"""
+    """有任職 fact 的議員（national_councilors）與市長（national_heads），且有 2026 candidacy fact。"""
     rows = conn.execute(
         "SELECT f.person_id, p.name, f.data FROM fact f JOIN person p USING (person_id) "
-        "WHERE f.kind = 'office' AND (f.fact_key LIKE ? OR f.fact_key LIKE ?) ORDER BY f.fact_key",
+        "WHERE f.kind = 'office' AND (f.fact_key LIKE ? OR f.fact_key LIKE ?) "
+        "AND EXISTS (SELECT 1 FROM fact c WHERE c.person_id = f.person_id AND c.kind = 'candidacy') ORDER BY f.fact_key",
         (f"office:{iso}-council-2022:%", f"office:{iso}-mayor-2022:%"),
     ).fetchall()
     out = []
@@ -179,6 +181,7 @@ def run(conn):
         print(f"  只有原檔連結：{'、'.join(links) or '無'}")
     # 公報是定稿，但任職名單會變：這幾份公報寫出、本次沒寫到的 facts（離職、改串他人）刪掉
     marks = ",".join("?" * len(KINDS))
-    for (k, u) in conn.execute(f"SELECT fact_key, source_url FROM fact WHERE kind IN ({marks})", KINDS).fetchall():
-        if u in urls and k not in written_keys:
-            conn.execute("DELETE FROM fact WHERE fact_key = ?", (k,))
+    stale = [k for (k, u) in conn.execute(f"SELECT fact_key, source_url FROM fact WHERE kind IN ({marks})", KINDS)
+             if u in urls and k not in written_keys]
+    conn.executemany("DELETE FROM fact WHERE fact_key = ?", [(k,) for k in stale])
+    print(f"公報：刪除不再寫入的 facts {len(stale)} 筆", flush=True)
