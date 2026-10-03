@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict } from './app.js';
+import { videoBlurb, KHH_DEPTS, RECORDS } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -181,6 +182,33 @@ test('videoNote gives the approximate start time when the link cannot seek', () 
 });
 
 const it = (dept, extra = {}) => ({ data: { dept, ...extra } });
+
+test('videoNote for Kaohsiung per-councillor marks says playback starts at the speech', () => {
+  assert.equal(videoNote({ seekable: true, group_size: 1, start_sec: 1701, gid: '80' }), '從該議員發言處開始播放');
+  assert.equal(videoNote({ seekable: true, group: 3, group_size: 1, start_sec: 10 }), '從本組開始播放');
+});
+
+test('video blurb names the council from the video link host', () => {
+  assert.equal(videoBlurb([{ source_url: 'https://tccvideo.tcc.gov.tw/Front/VideoContent/Index?id=x&num=1' }]), '連結至臺北市議會議事影音系統，影片來源：臺北市議會。');
+  assert.equal(videoBlurb([{ source_url: 'https://ivod.kcc.gov.tw/watch/80/202609KCC0408R1150923143208VIDEOmp4?start=1701' }]), '連結至高雄市議會議事影音系統，影片來源：高雄市議會。');
+});
+
+test('Kaohsiung departments use the council committees in a fixed order', () => {
+  const inters = [it('財經', { video_id: 'v' }), it('警消衛環', { video_id: 'v' }), it(null, { video_id: 'v' })];
+  const { counts, other } = deptCounts(inters, KHH_DEPTS);
+  assert.deepEqual(counts.map(([d]) => d), KHH_DEPTS);
+  assert.deepEqual(counts.filter(([, n]) => n).map(([d]) => d), ['財經', '警消衛環']);
+  assert.equal(other, 1);
+});
+
+test('Kaohsiung empty note states the collected scope neutrally', () => {
+  const n = RECORDS.khh.noRecord;
+  assert.match(n, /第4屆高雄市議員口頭質詢影片/);
+  assert.match(n, /書面質詢與出缺勤紀錄仍在建置中/);
+  assert.doesNotMatch(n, /沒有問政|無問政|未質詢|缺席/);
+  assert.equal(RECORDS.khh.written, false);
+});
+
 
 test('deptCounts counts written plus oral per department in the fixed order, including zeros', () => {
   const inters = [it('工務'), it('工務', { video_id: 'v' }), it('民政'), it('教育', { video_id: 'v' }), it(null, { video_id: 'v' }), it('原民會')];
@@ -457,8 +485,8 @@ test('county note says incumbent councillors are tagged only when the data has a
 test('home note lists non-Taipei counties whose incumbent councillors are tagged, from data', () => {
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
   const nwt = { iso: 'nwt', name: '新北市', councilor_roster: true };
-  const khh = { iso: 'khh', name: '高雄市', councilor_roster: true };
-  assert.match(homeNote([tpe, nwt, hsq, khh]), /候選人中的現任縣市長與新北市、高雄市的現任議員會標示，議員問政紀錄仍在建置中/);
+  const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
+  assert.match(homeNote([tpe, nwt, hsq, tao]), /候選人中的現任縣市長與新北市、桃園市的現任議員會標示，議員問政紀錄仍在建置中/);
   assert.doesNotMatch(homeNote([tpe, nwt]), /現任議員名單/);
   assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
 });

@@ -4,7 +4,7 @@ import {
   councilDistrictFor, officeLabel, districtTitle, candidateOrder, districtSub,
 } from './geo.js';
 
-const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['tcc.gov.tw', '臺北市議會']];
+const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['tcc.gov.tw', '臺北市議會'], ['kcc.gov.tw', '高雄市議會']];
 export const INTERPELLATION_PAGE = 20;
 const NO_RECORD ='本站目前沒有此人的任內問政紀錄（收錄範圍：第14屆臺北市議員書面質詢與口頭質詢影片）';
 // 非深度縣市的縣市頁說明：列出目前提供的資料，措辭中性；候選人中的現任議員有沒有標示依 counties.json 的 councilor_roster
@@ -39,6 +39,7 @@ export function hms(sec) {
 
 // 口頭質詢影片的播放說明：影片只切到「組」，多人組要講清楚不是個人片段
 export function videoNote(d) {
+  if (d?.gid) return '從該議員發言處開始播放';  // 高雄 iVOD（有 gid）逐人標記發言起點，沒有質詢組
   const size = Number(d?.group_size) || 0;
   const group = size > 1 ? `同組 ${size} 位議員，未細分到個人` : '';
   if (d?.seekable) return group ? `從本組開始播放；${group}` : '從本組開始播放';
@@ -47,10 +48,21 @@ export function videoNote(d) {
 
 // 質詢部門：固定順序，不依數量排序
 export const DEPTS = ['民政', '財政建設', '教育', '交通', '警政衛生', '工務'];
+// 高雄市議會：八個審查委員會的順序，再加都市計畫委員會業務質詢
+export const KHH_DEPTS = ['民政', '財經', '教育', '交通', '警消衛環', '工務', '社政', '農林', '都市計畫委員會'];
 
-// 各部門質詢筆數（書面＋口頭），依 DEPTS 順序輸出，含 0 筆；不在 DEPTS 的（如市政總質詢）計入 other
-export function deptCounts(inters) {
-  const counts = DEPTS.map((dept) => [dept, inters.filter((f) => f.data?.dept === dept).length]);
+// 深度縣市的收錄範圍：部門清單、有沒有收書面質詢、沒有紀錄時的說明（措辭中性，不暗示此人沒有問政）
+export const RECORDS = {
+  tpe: { depts: DEPTS, written: true, noRecord: NO_RECORD },
+  khh: {
+    depts: KHH_DEPTS, written: false,
+    noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆高雄市議員口頭質詢影片）；高雄市議會的書面質詢與出缺勤紀錄仍在建置中。',
+  },
+};
+
+// 各部門質詢筆數（書面＋口頭），依 depts 順序輸出，含 0 筆；不在 depts 的（如市政總質詢）計入 other
+export function deptCounts(inters, depts = DEPTS) {
+  const counts = depts.map((dept) => [dept, inters.filter((f) => f.data?.dept === dept).length]);
   return { counts, other: inters.length - counts.reduce((s, [, n]) => s + n, 0) };
 }
 
@@ -423,6 +435,13 @@ async function renderDistrict(main, ctx, id) {
 
 export const REGISTERED_NOTE = '名單依選舉委員會公告的候選人登記冊，尚未經審定；號次將於官方名單公告（縣市長 11/12、議員 11/17）後補上。';
 
+// 影片區塊說明：議會名稱依影片網址的網域（臺北 tccvideo、高雄 ivod.kcc）
+export function videoBlurb(videos) {
+  const u = safeUrl(videos[0]?.source_url);
+  const council = u ? publisherOf(u) : '臺北市議會';
+  return `連結至${council}議事影音系統，影片來源：${council}。`;
+}
+
 function videoRows(list) {
   return list.map((f) => {
     const u = safeUrl(f.source_url);
@@ -589,7 +608,7 @@ export function criminalRecordSection(facts) {
 }
 
 // 摘要卡「說過什麼｜做了什麼」：只是事實計數，不排序、不比較、不評語
-function summaryCard(facts, { offices, inters, written, videos, jump }) {
+function summaryCard(facts, { offices, inters, written, videos, jump, rec = RECORDS.tpe }) {
   const said = `<div class="said"><h2>說過什麼</h2>
     ${jump ? `<p><a href="#${jump}" data-jump="${jump}">2022 選舉公報政見與學經歷</a></p>` : '<p>本站目前沒有此人的 2022 選舉公報資料。</p>'}
     <p class="muted small">2026 選舉公報預計 11/25 前公布。</p></div>`;
@@ -601,11 +620,13 @@ function summaryCard(facts, { offices, inters, written, videos, jump }) {
   }).join('、');
   let did = term ? `<dl class="kv"><dt>任職期間</dt><dd>${term}</dd></dl>` : '';
   if (inters.length) {
-    const { counts, other } = deptCounts(inters);
+    const { counts, other } = deptCounts(inters, rec.depts);
     const max = Math.max(1, ...counts.map(([, n]) => n));
-    did += `<dl class="kv"><dt>質詢</dt><dd>共 <span class="num">${inters.length}</span> 筆（書面 <span class="num">${written.length}</span> 筆、口頭 <span class="num">${videos.length}</span> 筆）</dd></dl>
+    did += `<dl class="kv"><dt>質詢</dt><dd>${rec.written
+    ? `共 <span class="num">${inters.length}</span> 筆（書面 <span class="num">${written.length}</span> 筆、口頭 <span class="num">${videos.length}</span> 筆）`
+    : `口頭質詢影片 <span class="num">${videos.length}</span> 筆（書面質詢尚未收錄）`}</dd></dl>
       <h3>質詢的部門分布</h3>
-      <p class="muted small">書面與口頭合計，依部門固定順序排列。</p>
+      <p class="muted small">${rec.written ? '書面與口頭合計，' : ''}依部門固定順序排列。</p>
       <ul class="bars">${counts.map(([dept, n]) => `<li><span>${esc(dept)}</span>${bar(n / max)}<span class="num">${n}</span></li>`).join('')}</ul>
       ${other ? `<p class="muted small">另有 <span class="num">${other}</span> 筆未分部門（例如市政總質詢），不列入上表。</p>` : ''}`;
   }
@@ -640,7 +661,7 @@ async function renderPerson(main, ctx, id) {
   const written = inters.filter((f) => !f.data?.video_id);
   const kinds = {
     written: { list: written, rows: interpellationRows, blurb: '標題連結至臺北市議會公報原文。' },
-    video: { list: videos, rows: videoRows, blurb: '連結至臺北市議會議事影音系統，影片來源：臺北市議會。' },
+    video: { list: videos, rows: videoRows, blurb: videoBlurb(videos) },
   };
 
   const districtLink = (districtId) => {
@@ -651,7 +672,10 @@ async function renderPerson(main, ctx, id) {
   const lead = candidacy[0] || offices[0];
   const leadCounty = lead && ctx.counties.get(isoOf(lead.data.district_id));
   const leadMeta = lead && districtMeta(ctx, lead.data.district_id);
-  const noRecord = !leadCounty || DEEP_COUNTIES.has(leadCounty.iso) ? NO_RECORD : noRecordNote(leadCounty);
+  const rec = RECORDS[leadCounty?.iso];
+  // 深度縣市的現任議員沒有任何紀錄時也要說明收錄範圍（例：高雄只收口頭質詢影片）；其他職位維持不顯示
+  const recordedCouncillor = offices.some((f) => f.data.office === `${leadCounty?.iso}_councilor`);
+  const noRecord = rec ? rec.noRecord : leadCounty ? noRecordNote(leadCounty) : NO_RECORD;
 
   const cand = candidacy.map((f) => `<dl class="facts">
       <dt>職位</dt><dd>${esc(label(f.data.office))}${notes.ref(f.source_url, f.fetched_at, '候選人登記名冊', f.data.publisher)}</dd>
@@ -676,14 +700,14 @@ async function renderPerson(main, ctx, id) {
       ...(leadMeta ? [[`#/d/${leadMeta.d.district_id}`, districtTitle(leadMeta.d, leadMeta.county)]] : []), ['', p.name])}
     <h1 tabindex="-1">${esc(p.name)}</h1>
     ${lead ? `<p class="byline">${partyOf(lead.data, ctx.parties)}<span>${districtLink(lead.data.district_id)}</span></p>` : ''}
-    ${summaryCard(facts, { offices, inters, written, videos, jump })}
+    ${summaryCard(facts, { offices, inters, written, videos, jump, rec })}
     ${cand ? `<section aria-labelledby="k-cand"><h2 id="k-cand">2026 參選</h2>${cand}</section>` : ''}
     ${criminalRecordSection(facts)}
     ${office ? `<section aria-labelledby="k-office"><h2 id="k-office">任職</h2><ul class="roster office">${office}</ul>${hasSuspension(offices) ? suspensionNote() : ''}</section>` : ''}
     ${bulletin}
     ${summarySection(facts.summary || [], videos)}
     ${inter}
-    ${offices.length || inters.length ? '' : `<p class="empty">${esc(noRecord)}</p>`}
+    ${inters.length || (offices.length && !(rec && recordedCouncillor)) ? '' : `<p class="empty">${esc(noRecord)}</p>`}
     ${notes.render()}`;
 
   // hash 已用於路由，頁內錨點改成捲動加聚焦
