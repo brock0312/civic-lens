@@ -25,6 +25,7 @@ from pathlib import Path
 
 from etl.db import upsert, upsert_fact
 from etl.fetch import get, get_json, now_utc
+from etl.match import APOSTROPHES
 from etl.sources.tcc_councilors import load_identity
 
 BULLETIN = "https://bulletin.cec.gov.tw/"
@@ -416,8 +417,8 @@ def flatten(obj):
 
 def norm_name(name):
     # 原住民姓名：開票 JSON「高為人Sayun Watan」、公報「高為人 Sayun Watan」，比對時去掉全部空白；
-    # 間隔點各來源不同（開票 JSON「．」、公報「•」「・」），一併去掉（同 etl/match.py）
-    return re.sub(r"[・·‧•．.]", "", squeeze(name))
+    # 間隔點各來源不同（開票 JSON「．」、公報「•」「・」），一併去掉；撇號（’‘＇'）統一成「'」（同 etl/match.py）
+    return re.sub(r"[・·‧•．.]", "", squeeze(name)).translate(APOSTROPHES)
 
 
 def check_against_cec(cands, rows, label):

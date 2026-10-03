@@ -10,8 +10,11 @@ _VAR = str.maketrans(VARIANTS)
 _SEP = re.compile(r"[\s・·‧•．.]")  # 原住民姓名的間隔號：2022 開票 JSON 多用全形「．」，2026 名冊用「‧」
 
 
+APOSTROPHES = str.maketrans("’‘＇", "'''")  # 撇號各來源寫法不同（開票 JSON「’」、公報「'」），和間隔號一樣視為同一字元
+
+
 def _norm(name):
-    return _SEP.sub("", name)
+    return _SEP.sub("", name).translate(APOSTROPHES)
 
 
 _ROMAN = re.compile(r"(?<![@0-9A-Za-z])[A-Za-z]+(?![@0-9A-Za-z])")  # 不碰中選會造字碼（如 @FA3E@）

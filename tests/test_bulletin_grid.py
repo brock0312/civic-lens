@@ -295,7 +295,8 @@ class SideLabelTest(unittest.TestCase):
 
 class MixedScriptNameTest(unittest.TestCase):
     CEC = {("hua", "councilor", 6): {1: {"name": "何進雄 Kin Cian．Ri Pun", "birth_year": 1969, "party": "中國國民黨"},
-                                     2: {"name": "林正福", "birth_year": 1965, "party": "中國國民黨"}}}
+                                     2: {"name": "林正福", "birth_year": 1965, "party": "中國國民黨"},
+                                     3: {"name": "黃月娥 Yuma’Baysu’", "birth_year": 1969, "party": "中國國民黨"}}}
 
     def row(self, no, name):
         cell = lambda t: [((0, 0, 10, 10), [word(1, 1, 9, 9, t)])]
@@ -311,6 +312,12 @@ class MixedScriptNameTest(unittest.TestCase):
     def test_reordering_does_not_excuse_a_different_name(self):
         self.assertEqual(bg.identify(self.row("1", "Kin何進雄Cian•Ri"), "hua", [["councilor", 6]], self.CEC)[3], "姓名不符")
 
+    def test_apostrophe_variants_are_the_same_character(self):
+        for a in ("'", "’", "‘", "＇"):
+            self.assertIsNone(bg.identify(self.row("3", f"黃月娥Yuma{a}Baysu{a}"), "hua", [["councilor", 6]], self.CEC)[3], a)
+
+    def test_apostrophe_read_as_comma_is_still_rejected(self):
+        self.assertEqual(bg.identify(self.row("3", "黃月娥Yuma，Baysu，"), "hua", [["councilor", 6]], self.CEC)[3], "姓名不符")
 
 if __name__ == "__main__":
     unittest.main()

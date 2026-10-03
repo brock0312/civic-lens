@@ -29,6 +29,11 @@ class MatchTest(unittest.TestCase):
         o = self.one(rec(1, "khh", "范織欽(Pasulang‧Tomatalate)", 15), [cand("p1", "范織欽 Pasulang．Tomatalate", "khh-council-15")])
         self.assertEqual(len(o["links"]), 1)
 
+    def test_links_indigenous_name_with_different_apostrophes(self):
+        for a in ("'", "‘", "＇"):
+            o = self.one(rec(1, "mia", "黃月娥 Yuma’Baysu’", 8), [cand("p1", f"黃月娥 Yuma{a}Baysu{a}", "mia-council-08")])
+            self.assertEqual(o["links"], [{"key": 1, "person_id": "p1"}], a)
+
     def test_romanization_on_one_side_only_goes_to_review(self):
         o = self.one(rec(1, "tnn", "施余興望", 13), [cand("p1", "施余興望 Tjakumay Tagaw", "tnn-council-13")])
         self.assertEqual(o["review"], [{"key": 1, "person_ids": ["p1"], "reason": "romanization"}])
