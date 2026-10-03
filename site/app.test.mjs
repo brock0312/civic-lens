@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict } from './app.js';
-import { videoBlurb, KHH_DEPTS, RECORDS } from './app.js';
+import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -204,7 +204,8 @@ test('Kaohsiung departments use the council committees in a fixed order', () => 
 test('Kaohsiung empty note states the collected scope neutrally', () => {
   const n = RECORDS.khh.noRecord;
   assert.match(n, /第4屆高雄市議員口頭質詢影片/);
-  assert.match(n, /書面質詢與出缺勤紀錄仍在建置中/);
+  assert.match(n, /書面質詢紀錄仍在建置中/);
+  assert.doesNotMatch(n, /出缺勤/);
   assert.doesNotMatch(n, /沒有問政|無問政|未質詢|缺席/);
   assert.equal(RECORDS.khh.written, false);
 });
@@ -228,6 +229,45 @@ test('attendanceRates divides present and leave by the total record count', () =
   const r = attendanceRates([s('present'), s('present'), s('present'), s('leave'), s('present'), s('present'), s('present'), s('leave')]);
   assert.deepEqual(r, { total: 8, present: 6, leave: 2, presentRate: 0.75, leaveRate: 0.25 });
   assert.deepEqual(attendanceRates([]), { total: 0, present: 0, leave: 0, presentRate: 0, leaveRate: 0 });
+});
+
+const khhAtt = (session, meetings, present, leaveTypes, absent, url = 'https://cissearch.kcc.gov.tw/a.pdf') => ({
+  source_url: url,
+  data: { session, meetings, present, leave: Object.values(leaveTypes).reduce((s, n) => s + n, 0), leave_types: leaveTypes, absent },
+});
+
+test('attendanceTotals sums Kaohsiung tables and counts no absence where the table has no absence column', () => {
+  const a = attendanceTotals([
+    khhAtt('第4屆第1次臨時會', 9, 8, { 請假: 1, 病假: 0 }, null),
+    khhAtt('第4屆第6次定期大會', 44, 40, { 請假: 1, 公假: 2 }, 1),
+  ]);
+  assert.equal(a.total, 53);
+  assert.deepEqual([a.present, a.leave, a.absent], [48, 4, 1]);
+  assert.deepEqual(a.leaveTypes, [['請假', 2], ['公假', 2]]);
+  assert.equal(a.absentRate, 1 / 53);
+  assert.deepEqual(attendanceTotals([]).total, 0);
+});
+
+test('Kaohsiung attendance block shows present, leave and absence with the definition and each source table', () => {
+  const html = khhAttendanceBlock([
+    khhAtt('第4屆成立大會', 1, 1, { 請假: 0 }, null),
+    khhAtt('第4屆第9次臨時會', 7, 5, { 請假: 1, 公假: 1 }, 0, 'https://cissearch.kcc.gov.tw/b.pdf'),
+  ]);
+  assert.match(html, /請假依假別：請假 <span class="num">1<\/span> 次、公假 <span class="num">1<\/span> 次/);
+  assert.match(html, /出席率/);
+  assert.match(html, /請假率/);
+  assert.match(html, /缺席率/);
+  assert.match(html, /href="https:\/\/cissearch\.kcc\.gov\.tw\/b\.pdf"/);
+  assert.match(html, /第4屆成立大會<\/a>：會議 <span class="num">1<\/span> 次.*表上無缺席欄/);
+  assert.ok(html.indexOf('第4屆第9次臨時會') < html.indexOf('第4屆成立大會'), 'newest table first');
+  assert.ok(html.includes(KHH_ATTENDANCE_NOTE));
+  assert.doesNotMatch(html, /排名|名次|分數|評分/);
+});
+
+test('Kaohsiung attendance definition names the official table and its scope', () => {
+  assert.match(KHH_ATTENDANCE_NOTE, /議員出席情形統計表/);
+  assert.match(KHH_ATTENDANCE_NOTE, /成立大會、臨時會或定期大會/);
+  assert.match(KHH_ATTENDANCE_NOTE, /沒有缺席欄/);
 });
 
 test('needsDistrict01Note only for a district 01 office holder without a profile', () => {

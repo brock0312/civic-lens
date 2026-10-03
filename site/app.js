@@ -56,7 +56,7 @@ export const RECORDS = {
   tpe: { depts: DEPTS, written: true, noRecord: NO_RECORD },
   khh: {
     depts: KHH_DEPTS, written: false,
-    noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆高雄市議員口頭質詢影片）；高雄市議會的書面質詢與出缺勤紀錄仍在建置中。',
+    noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆高雄市議員口頭質詢影片）；高雄市議會的書面質詢紀錄仍在建置中。',
   },
 };
 
@@ -72,6 +72,38 @@ export function attendanceRates(list) {
   const present = list.filter((f) => f.data?.status === 'present').length;
   const leave = list.filter((f) => f.data?.status === 'leave').length;
   return { total, present, leave, presentRate: total ? present / total : 0, leaveRate: total ? leave / total : 0 };
+}
+
+// 高雄：每筆是一份「議員出席情形統計表」的合計（meetings 次會議）；分母是各表會議次數合計。
+// 舊版統計表沒有缺席欄（absent 為 null），不計入缺席
+export const LEAVE_TYPES = ['請假', '病假', '公差', '公假', '喪假', '事假'];
+export function attendanceTotals(list) {
+  const sum = (get) => list.reduce((s, f) => s + (Number(get(f.data || {})) || 0), 0);
+  const total = sum((d) => d.meetings);
+  const present = sum((d) => d.present);
+  const leave = sum((d) => d.leave);
+  const absent = sum((d) => d.absent);
+  const leaveTypes = LEAVE_TYPES.map((k) => [k, sum((d) => d.leave_types?.[k])]).filter(([, n]) => n);
+  const rate = (n) => (total ? n / total : 0);
+  return { total, present, leave, absent, leaveTypes, presentRate: rate(present), leaveRate: rate(leave), absentRate: rate(absent) };
+}
+
+export const KHH_ATTENDANCE_NOTE = '依高雄市議會公報附錄「議員出席情形統計表」：每份統計表涵蓋一個會期（成立大會、臨時會或定期大會）的每一次大會會議，逐次標記每位議員出席、請假（含病假、公差、公假、喪假、事假）或缺席，本站照各表的合計數加總，比例的分母是會議次數合計。較早的統計表沒有缺席欄（下方標示），表上每次會議都標記為出席或請假，這些會期不計缺席。統計表上標記與合計數不一致的欄位，本站不收錄。';
+
+export function khhAttendanceBlock(list) {
+  const a = attendanceTotals(list);
+  const row = (label, n, r) => `<li><span>${label}</span>${bar(r)}<span><span class="num">${pct(r)}</span>（<span class="num">${n}</span>／<span class="num">${a.total}</span>）</span></li>`;
+  const tables = [...list].reverse().map((f) => {
+    const d = f.data || {};
+    const u = safeUrl(f.source_url);
+    const absent = d.absent == null ? '表上無缺席欄' : `缺席 <span class="num">${Number(d.absent)}</span>`;
+    return `<li>${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：會議 <span class="num">${Number(d.meetings)}</span> 次，出席 <span class="num">${Number(d.present)}</span>、請假 <span class="num">${Number(d.leave)}</span>、${absent}</li>`;
+  }).join('');
+  return `<h3>出缺勤</h3>
+      <ul class="bars rates">${row('出席率', a.present, a.presentRate)}${row('請假率', a.leave, a.leaveRate)}${row('缺席率', a.absent, a.absentRate)}</ul>
+      ${a.leaveTypes.length ? `<p class="muted small">請假依假別：${a.leaveTypes.map(([k, n]) => `${k} <span class="num">${n}</span> 次`).join('、')}。</p>` : ''}
+      <p class="muted small">${KHH_ATTENDANCE_NOTE}</p>
+      <details class="sess"><summary>各會期統計表（<span class="num">${list.length}</span> 份，連結至公報原檔）</summary><ul class="plain small">${tables}</ul></details>`;
 }
 
 // 第1選舉區 2022 公報含重疊的隱藏文字，本站刻意不擷取：現任該區議員且沒有 profile 時要註明
@@ -631,7 +663,9 @@ function summaryCard(facts, { offices, inters, written, videos, jump, rec = RECO
       ${other ? `<p class="muted small">另有 <span class="num">${other}</span> 筆未分部門（例如市政總質詢），不列入上表。</p>` : ''}`;
   }
   const att = facts.attendance || [];
-  if (att.length) {
+  if (att.length && typeof att[0].data?.meetings === 'number') {
+    did += khhAttendanceBlock(att);
+  } else if (att.length) {
     const a = attendanceRates(att);
     did += `<h3>出缺勤</h3>
       <ul class="bars rates">
