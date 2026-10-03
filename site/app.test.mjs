@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, countyTag, BULLETIN_TAG, pendingRecordNotes } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -496,4 +496,36 @@ test('bulletinSection keeps the Taipei wording when there is no bulletin fact', 
   const html = bulletinSection({ platform: [{ ...linkFact(), data: { text: 'x' } }] }, noNotes);
   assert.match(html, /2022 公報學經歷未能以文字擷取/);
   assert.equal(bulletinSection({}, noNotes), '');
+});
+
+test('publisherOf names county councils and the interior ministry from their domains', () => {
+  assert.equal(publisherOf('https://www.ntp.gov.tw/content/list/list.aspx'), '新北市議會');
+  assert.equal(publisherOf('https://api.cyscc.gov.tw/x'), '嘉義縣議會');
+  assert.equal(publisherOf('https://www.tccc.gov.tw/x'), '臺中市議會');
+  assert.equal(publisherOf('https://www.kmc.gov.tw/x'), '基隆市議會');
+  assert.equal(publisherOf('https://www.kmcc.gov.tw/x'), '金門縣議會');
+  assert.equal(publisherOf('https://www.moi.gov.tw/News_Content.aspx?n=4'), '內政部');
+  assert.equal(publisherOf('https://www.tcc.gov.tw/x'), '臺北市議會');
+});
+
+test('county note and tag mention 2022 bulletins only when the data flags them', () => {
+  const nwt = { iso: 'nwt', name: '新北市', councilor_roster: true, councilor_bulletin: true };
+  const lie = { iso: 'lie', name: '連江縣', councilor_roster: false, councilor_bulletin: false };
+  const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true, councilor_bulletin: true };
+  assert.match(countyNote(nwt), /並收錄現任議員的 2022 選舉公報政見與學經歷；新北市議會的問政紀錄仍在建置中/);
+  assert.doesNotMatch(countyNote(lie), /公報/);
+  assert.equal(countyTag(tpe), '含問政紀錄');
+  assert.equal(countyTag(nwt), BULLETIN_TAG);
+  assert.equal(countyTag(lie), '');
+  assert.match(homeNote([tpe, nwt, lie]), /標示「含 2022 公報」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷/);
+  assert.doesNotMatch(homeNote([tpe, lie]), /2022 公報/);
+});
+
+test('incumbent councillors outside deep counties get the records-pending note, once per county', () => {
+  const counties = new Map([['nwt', { iso: 'nwt', name: '新北市' }], ['tpe', { iso: 'tpe', name: '臺北市' }], ['ila', { iso: 'ila', name: '宜蘭縣' }]]);
+  const office = (o, d) => ({ data: { office: o, district_id: d } });
+  assert.deepEqual(pendingRecordNotes([office('nwt_councilor', 'nwt-council-04'), office('nwt_councilor', 'nwt-council-04')], counties),
+    ['新北市議會的問政紀錄仍在建置中，本站目前尚未收錄。']);
+  assert.deepEqual(pendingRecordNotes([office('tpe_councilor', 'tpe-council-01')], counties), []);
+  assert.deepEqual(pendingRecordNotes([office('ila_mayor', 'ila-mayor')], counties), []);
 });

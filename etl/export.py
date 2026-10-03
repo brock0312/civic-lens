@@ -127,12 +127,16 @@ def export(conn, out_dir):
         )
 
     # 有現任議員名錄（議員任職 fact，含沒參選者）的縣市：代表該縣市候選人的現任身分已標示
-    rosters = set()
+    # 其中現任議員掛到 2022 公報（bulletin／profile／platform 任一）的縣市：前端說明「另收錄現任議員的 2022 選舉公報」
+    rosters, bulletins = set(), set()
+    has_bulletin = {r["person_id"] for r in facts if r["kind"] in ("bulletin", "profile", "platform")}
     for row in facts:
         if row["kind"] == "office":
             d = json.loads(row["data"])
             if str(d.get("office")).endswith("_councilor") and d.get("district_id"):
                 rosters.add(_iso_of(d["district_id"]))
+                if row["person_id"] in has_bulletin:
+                    bulletins.add(_iso_of(d["district_id"]))
     districts_by_county = {}
     for district_id in sorted(districts):
         d = districts[district_id]
@@ -144,7 +148,7 @@ def export(conn, out_dir):
         {
             "counties": [
                 {**dict(row), "districts": districts_by_county.get(row["iso"], []),
-                 "councilor_roster": row["iso"] in rosters}
+                 "councilor_roster": row["iso"] in rosters, "councilor_bulletin": row["iso"] in bulletins}
                 for row in conn.execute(
                     "SELECT iso, moi_code, name, source_url, fetched_at FROM county ORDER BY iso"
                 )

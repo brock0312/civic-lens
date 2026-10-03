@@ -15,7 +15,18 @@ export const COUNCIL_SITES = {
   cyi: 'https://www.cycc.gov.tw/',
 };
 
-export const KIND_LABEL = { plains: '平地原住民', mountain: '山地原住民' };
+// 縣市名稱（同 counties.json）：出處標籤要在資料載入前就能由網域推得議會名稱
+export const COUNTY_NAMES = {
+  tpe: '臺北市', nwt: '新北市', tao: '桃園市', txg: '臺中市', tnn: '臺南市', khh: '高雄市', hsq: '新竹縣', mia: '苗栗縣',
+  cha: '彰化縣', nan: '南投縣', yun: '雲林縣', cyq: '嘉義縣', pif: '屏東縣', ila: '宜蘭縣', hua: '花蓮縣', ttt: '臺東縣',
+  pen: '澎湖縣', kin: '金門縣', lie: '連江縣', kee: '基隆市', hsz: '新竹市', cyi: '嘉義市',
+};
+
+// 議會官網網域（去掉 www.）→ 議會名稱，給腳註的發布機關用
+export const COUNCIL_PUBLISHERS = Object.entries(COUNCIL_SITES)
+  .map(([iso, u]) => [new URL(u).hostname.replace(/^www\./, ''), `${COUNTY_NAMES[iso]}議會`]);
+
+export const KIND_LABEL ={ plains: '平地原住民', mountain: '山地原住民' };
 
 // 選區 id → 縣市代碼（立委選區是 ly-<iso>-NN）
 export const isoOf = (districtId) => String(districtId).split('-')[String(districtId).startsWith('ly-') ? 1 : 0];
