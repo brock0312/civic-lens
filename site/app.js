@@ -688,11 +688,14 @@ export function criminalRecordSection(facts) {
 
 // ---------- 立法院問政紀錄（ly_records：書面質詢、IVOD 發言片段、列名提案的議案） ----------
 
-export const LY_NOTE = '第 11 屆立法委員任內紀錄，資料取自 OpenFun 立法院 API（CC BY 4.0），原始資料為立法院公報、議事轉播與議案系統。書面質詢的涵蓋範圍是立法院 API 收錄的第 11 屆第 1–3 會期書面質詢（第 4 會期起尚未收錄），筆數不代表任期內全部質詢；口頭質詢請見發言影片（IVOD）。出席與表決紀錄尚未收錄。';
+export const LY_NOTE = '第 11 屆立法委員任內紀錄，資料取自 OpenFun 立法院 API（CC BY 4.0），原始資料為立法院公報、議事轉播與議案系統。書面質詢的涵蓋範圍是立法院 API 收錄的第 11 屆第 1–3 會期書面質詢（第 4 會期起尚未收錄），筆數不代表任期內全部質詢；口頭質詢請見發言影片（IVOD）。';
+// 尚未收錄的種類要講明，不能讓空白看起來像沒有出席或沒有表決
+export const lyNote = (facts) => `${LY_NOTE}${(facts.ly_vote || []).length ? '出席紀錄尚未收錄。' : '出席與表決紀錄尚未收錄。'}`;
 export const LY_KINDS = {
   ly_interpellation: { heading: '書面質詢', unit: '筆', blurb: '依立法院公報「質詢事項」，限立法院 API 收錄的第 11 屆第 1–3 會期；口頭質詢見發言影片（IVOD）。標題連結至該筆資料。' },
   ly_video: { heading: '發言影片（IVOD）', unit: '段', blurb: '連結至立法院議事轉播系統的委員發言片段。' },
   ly_bill: { heading: '列名提案人的議案', unit: '件', blurb: '不含只列名連署的議案；標題連結至該筆資料。' },
+  ly_vote: { heading: '記名表決', unit: '筆', blurb: '只列此人有投票（贊成、反對、棄權）的記名表決，立場照立法院公報記錄；沒有列在投票名單上不代表缺席。' },
 };
 
 // 摘要卡用的計數：只列有資料的種類，依 LY_KINDS 固定順序
@@ -703,8 +706,8 @@ export function lyCounts(facts) {
 function lyRows(list) {
   return list.map((f) => {
     const u = safeUrl(f.source_url);
-    const title = esc(f.data?.title || f.data?.bill_no || f.data?.no || '');
-    const side = f.data?.status || (f.data?.committees || []).join('、');
+    const title = esc(f.data?.title || f.data?.topic || f.data?.bill_no || f.data?.no || '');
+    const side = f.data?.position || f.data?.status || (f.data?.committees || []).join('、');
     return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
       <span class="dept">${esc(side || '')}</span>
       <span class="title">${u ? ext(u, title) : title}</span></li>`;
@@ -809,7 +812,7 @@ async function renderPerson(main, ctx, id) {
       ${interSection('written', '書面質詢', kinds.written)}
       ${interSection('video', '口頭質詢（影片）', kinds.video)}</section>` : '';
   const ly = lyCounts(facts).length ? `<section aria-labelledby="k-ly"><h2 id="k-ly">立法院問政紀錄</h2>
-      <p class="count">${esc(LY_NOTE)}</p>
+      <p class="count">${esc(lyNote(facts))}</p>
       ${Object.entries(LY_KINDS).map(([k, m]) => interSection(k, m.heading, kinds[k])).join('')}</section>` : '';
 
   main.innerHTML = `

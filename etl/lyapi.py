@@ -105,3 +105,12 @@ def is_current(row, term=TERM):
         return False
     flag = str(row.get("是否離職") or "").strip()
     return flag not in ("是", "Y", "y", "1", "true", "True") and not row.get("離職日期") and not row.get("離職原因")
+
+
+_ROC_TEXT = re.compile(r"中華民國\s*(\d+)\s*年\s*(\d+)\s*月\s*(\d+)\s*日")
+
+
+def roc_text_date(s):
+    """'中華民國114年12月19日 上午10時42分02秒' → '2025-12-19'；其他寫法原樣傳回（交給 to_date）。"""
+    m = _ROC_TEXT.search(str(s or ""))
+    return f"{int(m.group(1)) + 1911:04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}" if m else s
