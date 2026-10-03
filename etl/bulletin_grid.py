@@ -27,7 +27,7 @@ from etl.bulletin2022 import file_map, parse_districts
 from etl.cec2022 import SOURCES, parse_candidates
 from etl.sources.national_districts import COUNTIES
 from etl.sources.tpe_bulletin_2022 import (DPI, NO_PARTY, line_text, norm_name, overlaps, parse_pages,
-                                           pdf_layers, squeeze, to_lines)
+                                           pdf_layers, squeeze, suspect_words, to_lines)
 
 CACHE = Path("data/cache")
 PDF_ROOT = CACHE / "bulletin2022"
@@ -236,14 +236,54 @@ def _svg(pdf, pno):
                           check=True, capture_output=True).stdout.decode("utf-8", "replace")
 
 
+def _uses(svg):
+    """pdftocairo -svg 的一頁 → (空字形 id 集合, [(字形 id, x, 基線 y)])（pt）。"""
+    empty = set(re.findall(r'<g id="(glyph-[\d-]+)">\s*</g>', svg))
+    return empty, [(g, float(x), float(y)) for g, x, y in re.findall(r'<use xlink:href="#(glyph-[\d-]+)" x="([-\d.]+)" y="([-\d.]+)"', svg)]
+
+
+def inked_glyphs(svg):
+    """畫得出筆畫的字形原點 [(x, 基線 y)]（pt）。"""
+    empty, uses = _uses(svg)
+    return [(x, y) for g, x, y in uses if g not in empty]
+
+
 def blank_glyphs(svg):
     """pdftocairo -svg 的一頁 → 字形沒有輪廓（畫不出任何筆畫）的字的原點 [(x, 基線 y)]（pt）。
     同一原點（1pt 內）另有畫得出來的字形就不算：嘉義市、新竹縣在字前面有不佔寬度的空白（空字形），原點和字相同。"""
-    empty = set(re.findall(r'<g id="(glyph-[\d-]+)">\s*</g>', svg))
-    uses = [(g, float(x), float(y)) for g, x, y in re.findall(r'<use xlink:href="#(glyph-[\d-]+)" x="([-\d.]+)" y="([-\d.]+)"', svg)]
+    empty, uses = _uses(svg)
     inked = {(round(x), round(y)) for g, x, y in uses if g not in empty}
     return [(x, y) for g, x, y in uses if g in empty
             and not any((round(x) + i, round(y) + j) in inked for i in (-1, 0, 1) for j in (-1, 0, 1))]
+
+
+def fix_vertical(words, origins):
+    """直排字型（Identity-V）的字詞：pdftotext 把直排原點（字頂中央）當成字框左下角，字框比印出的字形往右偏約半個字、
+    往上偏約一個字（新竹市、南投第 6–8 區；高雄、金門的姓名也是），姓名會落到出生年月日欄、墨跡檢查也看錯地方。
+    origins：畫得出筆畫的字形原點（inked_glyphs）。字框左緣上沒有字形原點、但左邊 0.25–0.75 字寬處有一直行
+    字形原點（基線在字框上緣下方 1.3 字寬到下緣下方 1.2 字寬之間，個數 ≥ 字數）時，把字框搬到字形實際位置：
+    左緣對齊字形原點，最上面一個字的基線在字框上緣下方 0.87 字寬（同橫排字）。只看直的或方的字詞（高 ≥ 0.9 寬）；
+    字形原點在字框左緣上（0.15 字寬內）的字詞（一般字型）不動。"""
+    by_x = {}
+    for x, y in origins:
+        by_x.setdefault(int(x), []).append((x, y))
+
+    def near(a, b, y0, y1):
+        return [(x, y) for i in range(int(a) - 1, int(b) + 1) for x, y in by_x.get(i, ()) if a <= x <= b and y0 <= y <= y1]
+
+    out = []
+    for w in words:
+        x0, y0, x1, y1, t = w
+        size = x1 - x0
+        own = max(1, 0.15 * size)  # 金門縣長表頭「見」的字形原點比字框左緣偏左 1.2pt
+        if y1 - y0 >= 0.9 * size and not near(x0 - own, x0 + own, y0, y1 + 1):
+            col = Counter(x for x, _ in near(x0 - 0.75 * size, x0 - 0.25 * size, y0 + 1.3 * size, y1 + 1.2 * size))
+            ux, n = max(col.items(), key=lambda kv: kv[1], default=(None, 0))
+            if n and n >= len(_plain(t)):
+                top = min(y for x, y in near(ux, ux, y0 + 1.3 * size, y1 + 1.2 * size)) - 0.87 * size
+                w = (ux, top, ux + size, top + y1 - y0, t)
+        out.append(w)
+    return out
 
 
 def drop_blank(words, origins):
@@ -557,16 +597,26 @@ def identify(row, iso, districts, cec):
     return sec, int(no_t), c, None
 
 
+def clean_page(pg, svg, gray):
+    """parse_pages 的一頁 → 直排字框搬到字形位置（fix_vertical）、去掉空字形的字詞（drop_blank），另記 vertical_fixed。
+    有字框搬過才依新字框重判看不見的文字；空字形的字詞已丟掉，不算疊字（高雄姓名格的空字形「媖」）。"""
+    words = fix_vertical(pg["words"], inked_glyphs(svg))
+    moved = sum(a != b for a, b in zip(words, pg["words"]))
+    words = drop_blank(words, blank_glyphs(svg))
+    suspect = suspect_words(words, gray) if moved else pg["suspect"]
+    return {**pg, "words": words, "suspect": suspect, "vertical_fixed": moved}
+
+
 def process(pdf, iso, districts, cec, cutter=cut_pages):
     """一份公報 → {rows: [通過身分關卡的列], rejects: Counter, drops: {欄: Counter}, cut, no_text, unreliable}。
     cutter：cut_pages（C、D 家族）或 cut_pages_b（B 家族）。"""
     bbox, raw, xml, grays = pdf_layers(pdf.read_bytes())
-    pages = [{**pg, "words": drop_blank(pg["words"], blank_glyphs(_svg(pdf, i)))}
-             for i, pg in enumerate(parse_pages(bbox, xml, grays), 1)]
+    pages = [clean_page(pg, _svg(pdf, i), gray) for i, (pg, gray) in enumerate(zip(parse_pages(bbox, xml, grays), grays), 1)]
+    fixed = sum(pg["vertical_fixed"] for pg in pages)
     flat = _plain(raw)
     cut = cutter(pages, grays)
     rep = {"cut": 0, "no_text": 0, "rows": [], "rejects": Counter(), "drops": {f: Counter() for f in TEXT_FIELDS},
-           "suspect_in_cells": 0, "name_only": 0}
+           "suspect_in_cells": 0, "name_only": 0, "vertical_fixed": fixed}
     seen = Counter()
     staged = []
     for r in cut:
@@ -643,7 +693,8 @@ def main(seed=2022):
         drops = "；".join(f"{fld} " + "、".join(f"{k}{v}" for k, v in c.items()) for fld, c in rep["drops"].items() if c)
         print(f"{county} {name}：切出 {rep['cut']} 列、通過身分 {len(rep['rows'])}"
               f"{'（整檔不可靠）' if rep['unreliable'] else ''}；沒有文字 {rep['no_text']}；"
-              f"身分不收 {dict(rep['rejects']) or 0}；欄位丟棄 {drops or 0}；格內看不見的字詞 {rep['suspect_in_cells']}", flush=True)
+              f"身分不收 {dict(rep['rejects']) or 0}；欄位丟棄 {drops or 0}；格內看不見的字詞 {rep['suspect_in_cells']}；"
+              f"直排字框修正 {rep['vertical_fixed']}", flush=True)
         passed.setdefault(county, []).extend((f["path"], r) for r in rep["rows"])
     print("\n人工抽查（C、D 每縣市隨機 1 位；B 議員檔 2 位、市長檔 1 位；seed=%d）：" % seed)
     for county, rows in passed.items():

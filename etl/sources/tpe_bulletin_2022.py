@@ -108,7 +108,7 @@ def parse_pages(bbox, xml, grays):
         words = [(float(a), float(b), float(c), float(d), html.unescape(t)) for a, b, c, d, t in WORD.findall(chunk)]
         words = [w for w in words if w[4].strip()]
         words = dedupe(words)
-        suspect = stacked(words) | {w for w in words if not has_ink(w, gray)}
+        suspect = suspect_words(words, gray)
         images = [(int(l), int(t), int(l) + int(w), int(t) + int(h)) for t, l, w, h in IMAGE.findall(img_chunk)]
         pages.append({"width": width, "words": words, "images": images, "suspect": suspect})
     return pages
@@ -121,6 +121,11 @@ def dedupe(words):
         if not any(o[4] == w[4] and abs(o[0] - w[0]) < 4 and abs(o[1] - w[1]) < 4 for o in out):
             out.append(w)
     return out
+
+
+def suspect_words(words, gray):
+    """看不見的文字：疊字或字框內沒有墨跡。"""
+    return stacked(words) | {w for w in words if not has_ink(w, gray)}
 
 
 def stacked(words):

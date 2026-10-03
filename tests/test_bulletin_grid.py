@@ -200,6 +200,55 @@ class BlankGlyphTest(unittest.TestCase):
         self.assertEqual(bg.drop_blank([bullet], bg.blank_glyphs(self.SVG)), [bullet])
 
 
+class VerticalFontTest(unittest.TestCase):
+    # 新竹市第 1 區第 1 頁實測：直排字型（Identity-V）的「臺灣省新竹市」字框 902.4–917.4，字形原點在 895.5、
+    # 基線 420.3 起每 15pt 一字；橫排字型的「49」字框左緣就是字形原點
+    BIRTHPLACE = word(902.4239, 392.2741, 917.4239, 482.2741, "臺灣省新竹市")
+    YEAR = word(864.4889, 407.2891, 877.9889, 422.2891, "49")
+    GLYPHS = [(895.522989, 420.294131 + 15 * i) for i in range(6)] + [(864.351337, 420.294131), (871.098448, 420.294131)]
+
+    def test_vertical_font_box_moves_onto_its_glyphs(self):
+        (fixed,) = bg.fix_vertical([self.BIRTHPLACE], self.GLYPHS)
+        self.assertAlmostEqual(fixed[0], 895.522989)
+        self.assertAlmostEqual(fixed[1], 420.294131 - 0.87 * 15)
+        self.assertAlmostEqual(fixed[3] - fixed[1], 90)
+        self.assertEqual(fixed[4], "臺灣省新竹市")
+
+    def test_word_with_a_glyph_on_its_left_edge_is_not_moved(self):
+        self.assertEqual(bg.fix_vertical([self.YEAR], self.GLYPHS), [self.YEAR])
+
+    def test_glyph_slightly_left_of_the_box_edge_counts_as_on_the_edge(self):
+        # 金門縣長表頭「見」：字形原點比字框左緣偏左 1.2pt，左下方另有一行橫排字；不能搬
+        see = word(1305.253, 123.2111, 1331.253, 197.4151, "見")
+        self.assertEqual(bg.fix_vertical([see], [(1304.05268, 169.853414), (1288.954275, 219.259009)]), [see])
+
+    def test_too_few_glyphs_in_the_column_is_not_moved(self):
+        self.assertEqual(bg.fix_vertical([self.BIRTHPLACE], self.GLYPHS[:3]), [self.BIRTHPLACE])
+
+    def test_ink_check_uses_the_moved_box(self):
+        # 墨跡只畫在字形實際位置（895–910pt）：原字框右半在空白處，中段沒有墨跡會被當成看不見的文字
+        g = bytearray([255]) * (1300 * 700)
+        for y in range(int(405 * 100 / 72), int(495 * 100 / 72)):
+            g[y * 1300 + int(896 * 100 / 72):y * 1300 + int(901 * 100 / 72)] = bytes(int(5 * 100 / 72))
+        page = (1300, 700, bytes(g))
+        (fixed,) = bg.fix_vertical([self.BIRTHPLACE], self.GLYPHS)
+        self.assertEqual(bg.suspect_words([self.BIRTHPLACE], page), {self.BIRTHPLACE})
+        self.assertEqual(bg.suspect_words([fixed], page), set())
+
+
+    def test_blank_ghost_does_not_make_the_moved_name_look_stacked(self):
+        # 高雄：姓名「柔」是直排字型，搬到字形位置後和左邊空字形的「媖」重疊；「媖」會被丟掉，「柔」不算疊字
+        svg = ('<g id="glyph-0-0"><path d="M 0 0 L 1 1"/></g><g id="glyph-1-0">\n</g>'
+               '<use xlink:href="#glyph-0-0" x="314.481872" y="573.8"/><use xlink:href="#glyph-1-0" x="298.98" y="572.0"/>')
+        rou, ghost = word(332.0, 508.7, 367.0, 543.7, "柔"), word(299.0, 542.5, 332.0, 577.1, "媖")
+        ink = bytearray([255]) * (600 * 900)
+        for y in range(int(550 * 100 / 72), int(572 * 100 / 72)):
+            ink[y * 600 + int(318 * 100 / 72):y * 600 + int(345 * 100 / 72)] = bytes(int(27 * 100 / 72))
+        pg = bg.clean_page({"words": [rou, ghost], "suspect": set()}, svg, (600, 900, bytes(ink)))
+        (moved,) = pg["words"]
+        self.assertEqual((round(moved[0], 1), moved[4], pg["suspect"], pg["vertical_fixed"]), (314.5, "柔", set(), 1))
+
+
 class MidTableTitleTest(unittest.TestCase):
     # C 家族一頁：表頭上方「第12選舉區」，第 1 列之後隔一條沒有直線的橫帶印「第13選舉區」，再接第 2 列（高雄合併檔）
     def page(self):
@@ -236,7 +285,7 @@ class NameOnlyRejectTest(unittest.TestCase):
 
     def run_rows(self, rows):
         page = {"words": [], "images": [], "suspect": set()}
-        with mock.patch.object(bg, "pdf_layers", return_value=("", "", "", [])), \
+        with mock.patch.object(bg, "pdf_layers", return_value=("", "", "", [None])), \
                 mock.patch.object(bg, "parse_pages", return_value=[page]), mock.patch.object(bg, "_svg", return_value=""):
             return bg.process(mock.Mock(**{"read_bytes.return_value": b""}), "khh", [["councilor", 3]], self.CEC, cutter=lambda p, g: rows)
 
