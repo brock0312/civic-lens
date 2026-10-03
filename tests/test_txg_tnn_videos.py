@@ -85,6 +85,11 @@ class TestTxgParse(unittest.TestCase):
         got = txg_videos.parse_videos(rows, "陳淑華")
         self.assertEqual([(v["video_id"], v["councillors"]) for v in got], [("1", ["陳淑華"])])
 
+    def test_videos_skip_joint_titles_that_do_not_name_the_councillor(self):
+        rows = [{"ano": "3", "title": TXG_JOINT, "date": "2026-09-03"}]
+        self.assertEqual([v["video_id"] for v in txg_videos.parse_videos(rows, "陳淑華")], ["3"])
+        self.assertEqual(txg_videos.parse_videos(rows, "張芬郁"), [])
+
     def test_members_match_by_name_with_variant_characters_and_unlinked_names(self):
         members = txg_videos.parse_members(TXG_MEMBERS)
         got = txg_videos.match_members([{"person_id": "a", "name": "楊啟邦"}, {"person_id": "b", "name": "張清照"}], members)

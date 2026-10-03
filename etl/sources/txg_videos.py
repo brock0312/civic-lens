@@ -92,6 +92,9 @@ def parse_videos(rows, name):
         meta = parse_title(r["title"])
         if not meta or meta["term"] != 4:
             continue
+        # 標題列了聯合質詢議員卻沒有本人：官網歸檔可能有誤，不收（寧缺勿掛錯人）
+        if meta["councillors"] and not any(name in c or c in name for c in meta["councillors"]):
+            continue
         best[r["ano"]] = {**meta, "councillors": meta["councillors"] or [name], "video_id": r["ano"],
                           "date": r["date"], "list_title": r["title"]}
     return sorted(best.values(), key=lambda v: (v["date"], int(v["video_id"])))
@@ -205,14 +208,18 @@ def run(conn, full=False):
     known = {r[0] for r in conn.execute("SELECT fact_key FROM fact WHERE fact_key LIKE 'tvideo:%'")}
     fetched_at = now_utc()
     total = new = 0
+    current = set()
     for t in ts:
         name, cno = vod[t["person_id"]]
         if not cno:  # 名單上有名字但沒有個人影片頁（例：張清照）
             continue
         videos = parse_videos(fetch_member(cno, full), name)
         total += len(videos)
+        current |= {f"tvideo:{v['video_id']}:{t['person_id']}" for v in videos}
         new += write_videos(conn, t["person_id"], cno, videos, fetched_at, known)
-    print(f"txg_videos：對象 {len(ts)} 人，影片 {total} 筆，新寫入 {new} 筆")
+    stale = known - current  # 不再符合條件（例：篩選規則改變、不再是候選人）的舊影片
+    conn.executemany("DELETE FROM fact WHERE fact_key = ?", [(k,) for k in stale])
+    print(f"txg_videos：對象 {len(ts)} 人，影片 {total} 筆，新寫入 {new} 筆，刪除 {len(stale)} 筆")
 
 
 def dump_targets():

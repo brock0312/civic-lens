@@ -199,12 +199,16 @@ def run(conn, full=False):
     known = {r[0] for r in conn.execute("SELECT fact_key FROM fact WHERE fact_key LIKE 'nvideo:%'")}
     fetched_at = now_utc()
     total = new = 0
+    current = set()
     for t in ts:
         name = site[t["person_id"]]
         videos = parse_videos(fetch_member(name, full), name)
         total += len(videos)
+        current |= {f"nvideo:{v['video_id']}:{t['person_id']}" for v in videos}
         new += write_videos(conn, t["person_id"], name, videos, fetched_at, known)
-    print(f"tnn_videos：對象 {len(ts)} 人，影片 {total} 筆，新寫入 {new} 筆")
+    stale = known - current  # 不再符合條件（例：篩選規則改變、不再是候選人）的舊影片
+    conn.executemany("DELETE FROM fact WHERE fact_key = ?", [(k,) for k in stale])
+    print(f"tnn_videos：對象 {len(ts)} 人，影片 {total} 筆，新寫入 {new} 筆，刪除 {len(stale)} 筆")
 
 
 def dump_targets():
