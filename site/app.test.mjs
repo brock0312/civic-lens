@@ -648,10 +648,12 @@ test('sitting legislators running locally are tagged with their office, district
 });
 
 test('legislative records are counted in a fixed order and attributed to the API licence', () => {
-  assert.deepEqual(lyCounts({ ly_bill: [1, 2], ly_interpellation: [1] }), [['質詢', 1, '筆'], ['列名提案人的議案', 2, '件']]);
+  assert.deepEqual(lyCounts({ ly_bill: [1, 2], ly_interpellation: [1] }), [['書面質詢', 1, '筆'], ['列名提案人的議案', 2, '件']]);
   assert.deepEqual(lyCounts({}), []);
   assert.match(LY_NOTE, /CC BY 4\.0/);
   assert.match(LY_NOTE, /出席與表決紀錄尚未收錄/);
+  assert.match(LY_NOTE, /第 11 屆第 1–3 會期書面質詢/);
+  assert.match(LY_NOTE, /口頭質詢請見發言影片（IVOD）/);
   assert.equal(publisherOf('https://ly.govapi.tw/v2/bill/1'), '立法院（經 OpenFun 立法院 API，CC BY 4.0）');
   assert.equal(publisherOf('https://ivod.ly.gov.tw/Play/Clip/1M/1'), '立法院');
 });

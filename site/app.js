@@ -670,11 +670,11 @@ export function criminalRecordSection(facts) {
     </ul></section>`;
 }
 
-// ---------- 立法院問政紀錄（ly_records：質詢、IVOD 發言片段、列名提案的議案） ----------
+// ---------- 立法院問政紀錄（ly_records：書面質詢、IVOD 發言片段、列名提案的議案） ----------
 
-export const LY_NOTE = '第 11 屆立法委員任內紀錄，資料取自 OpenFun 立法院 API（CC BY 4.0），原始資料為立法院公報、議事轉播與議案系統。出席與表決紀錄尚未收錄。';
+export const LY_NOTE = '第 11 屆立法委員任內紀錄，資料取自 OpenFun 立法院 API（CC BY 4.0），原始資料為立法院公報、議事轉播與議案系統。書面質詢的涵蓋範圍是立法院 API 收錄的第 11 屆第 1–3 會期書面質詢（第 4 會期起尚未收錄），筆數不代表任期內全部質詢；口頭質詢請見發言影片（IVOD）。出席與表決紀錄尚未收錄。';
 export const LY_KINDS = {
-  ly_interpellation: { heading: '質詢', unit: '筆', blurb: '依立法院公報「質詢事項」；標題連結至該筆資料。' },
+  ly_interpellation: { heading: '書面質詢', unit: '筆', blurb: '依立法院公報「質詢事項」，限立法院 API 收錄的第 11 屆第 1–3 會期；口頭質詢見發言影片（IVOD）。標題連結至該筆資料。' },
   ly_video: { heading: '發言影片（IVOD）', unit: '段', blurb: '連結至立法院議事轉播系統的委員發言片段。' },
   ly_bill: { heading: '列名提案人的議案', unit: '件', blurb: '不含只列名連署的議案；標題連結至該筆資料。' },
 };
