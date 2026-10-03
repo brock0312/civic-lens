@@ -1,0 +1,80 @@
+[
+  {
+    "person_id": "pcb793ad399",
+    "name": "何孟樺",
+    "issue_topic": "人行道通行環境與人本交通改善",
+    "action": "drop_response_sentence",
+    "text": "與都市發展局局長",
+    "reason": "原文第3674–3675頁都市發展局局長只說明人行道類型，排序與騎樓整平的承諾是工務局局長所說",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-03"
+  },
+  {
+    "person_id": "p5fb3d560bb",
+    "name": "林延鳳",
+    "issue_topic": "各局處政策介接台北通與預算規劃",
+    "action": "drop_issue",
+    "reason": "議員段落引文「不要再做這些無謂的資源浪費」在原文第1660–1665頁找不到，屬捏造；最接近的話在第2202頁的另一議題",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-03"
+  },
+  {
+    "person_id": "p5fb3d560bb",
+    "name": "林延鳳",
+    "issue_topic": "芝山岩考古遺址維護與設施改善",
+    "action": "drop_response_sentence",
+    "text": "，並表示會就雨農閱覽室活化建議進行跨局處溝通及分析研擬",
+    "reason": "原文第2200頁文化局局長對雨農閱覽室只說「這沒有列在文化局的……」，屬捏造",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-03"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "寶藏巖國際藝術村公安維護與閣樓設施經營管理",
+    "action": "drop_response_sentence",
+    "text": "並承諾改善",
+    "reason": "原文第2053–2054頁局長只表示接受指謫，沒有承諾改善",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-03"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "臺北農產運銷公司人事派任與股權經營合作",
+    "action": "drop_issue",
+    "reason": "議員段落點名非公職第三人並引述其酒駕紀錄，違反摘要規則7與本站不呈現他人前科的原則；議員段落無法只刪一句",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-03"
+  },
+  {
+    "person_id": "p4b727b88dc",
+    "name": "吳世正",
+    "issue_topic": "家電診所推動與廢棄小家電修復再利用",
+    "action": "drop_response_sentence",
+    "text": "、「好（同意2個月內提報）」",
+    "reason": "引號內文字不是原話（原文為「是，沒有錯」）",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-03"
+  },
+  {
+    "person_id": "pcc848fb570",
+    "name": "林亮君",
+    "issue_topic": "生育獎勵金政策與人口自治條例",
+    "action": "drop_response_sentence",
+    "text": "陳局長永德：",
+    "reason": "引號內含速記錄發言標籤",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-03"
+  },
+  {
+    "person_id": "pcc848fb570",
+    "name": "林亮君",
+    "issue_topic": "中小學本土語言沉浸式教學推廣",
+    "action": "drop_response_sentence",
+    "text": "湯局長志民：",
+    "reason": "引號內含速記錄發言標籤",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-03"
+  }
+]
