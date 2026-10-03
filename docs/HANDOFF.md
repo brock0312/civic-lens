@@ -42,12 +42,20 @@ git push origin main
 7. **記憶體**：使用者的電腦記憶體吃緊。不要同時跑多個會開 headless 瀏覽器的 agent；長時間批次用 `nohup` 在背景跑，不要讓 agent 坐等（agent 600 秒沒有進度會被中止）。
 8. **暫存**：系統暫存區重開機會被清空；需要保留的快取放 `data/cache/`（已 gitignore）。
 9. **網站只呈現 2026 候選人**（2026-10-03，使用者決定，全站一致含臺北）：候選人如果是現任議員或縣市長，標「現任」（同選區）或「現任＋職稱」（別的選區或職位，例：現任新北市議員），並呈現其問政與公報；沒有參選 2026 的現任者不出現在網站上。ETL 照常收集現任資料，只在 `etl/export.py`（沒有 candidacy 的人不輸出）與前端過濾；摘要批次 `batch.py` 也跳過沒參選的議員。
+10. **質詢摘要只做臺北市、新北市**（2026-10-03，使用者決定）：工作量太大無法全國實行，其他 20 縣市不做摘要，L3-B 只收原始紀錄（質詢、影片、出缺勤）。新北的摘要要等新北議會的速記錄來源打通（見 §5 第 1 項）。
 
 ## 4. 常用操作
 
 ### 資料更新並上線
 見 README「資料更新」。重點：`python3 -m unittest` → `python3 -m etl.run` → 生日檢查 → 只 commit `data/civic.sql` → `git push origin main`。
 - **縣市長狀態重查**（V14 §5，每次上線前與每週一次，直到 2026-12-25）：`python3 scripts/check_head_status.py`。exit 1 代表需要人工確認：照輸出查官方頁面，必要時更新 `data/head_status.csv` 再跑 ETL。腳本只回報、不改檔。
+
+### 選舉時程（審定、號次）
+- 輸入檔 `data/candidates_2026_status.csv`（進 git，不連網），每列一個事件，欄位與規則見 `etl/sources/candidates_2026_status.py`：
+  - **10/16 審定**：一列 `approved_all,*`（全國）或縣市代碼；不合格或撤回登記者各一列 `excluded`（value＝`disqualified`／`withdrawn`）。被排除的人 export 不輸出。
+  - **11/12、11/17 號次**：把官方清單存成 CSV，`python3 scripts/ballot_numbers_2026.py 官方.csv 公告網址 公告日期 > /tmp/ballot.csv`，逐區核對後填 `confirmed_by`、`confirmed_at`，併進輸入檔。
+  - 每列都要官方公告網址與核對紀錄；姓名必須在該選區唯一對到一位候選人，否則 ETL raise。
+- 前端：選區有人還沒審定 → 顯示登記冊說明；全部審定、號次未齊 → 「已經中央選舉委員會審定」；全區都有號次 → 依號次排序並顯示號次。
 
 ### 質詢摘要（NotebookLM）
 - **登入**：只能在 Mac 的「終端機」App 執行 `notebooklm login --fresh`，登入後在終端機按 Enter。Claude Code 的 `!` 指令沒有 stdin，login 會失敗。用前先確認 `notebooklm auth check --test --json` 的 `token_fetch` 為 true。
@@ -64,14 +72,14 @@ git push origin main
 
 | # | 工作 | 下一步 | 參考 |
 |---|---|---|---|
-| 1 | **摘要第 1–4 次會期** | 批次每天續跑；跑完一個會期就抽樣審閱、修訂、核可、上線。第 5 次剩 8 人（快取裡沒有回答）也要補跑 | §4 |
+| 1 | **摘要第 1–4 次會期** | 批次每天續跑；跑完一個會期就抽樣審閱、修訂、核可、上線。第 5 次剩 8 人（快取裡沒有回答）也要補跑。**範圍只有臺北、新北**（§3 第 10 點）：新北要先查新北議會公報速記錄的來源與格式（併入 V12 普查），`scripts/summaries/` 目前只支援臺北 | §4 |
 | 2 | **L3-A 各縣市基本深度** | 決定見 V13、V14「已定案」。**第 0 天共用工作與第 1 天（六都）已完成**（10/02–03）：`etl/cec2022.py`、`etl/match.py`（姓名鍵＝漢字＋拼音詞集合；漢字同名多人進審閱）、`etl/bulletin2022.py`、`etl/bulletin_grid.py`（B／C／D 家族；無文字層清單 `NO_TEXT_FILES`）、`etl/rosters.py`（20 個議會名錄解析器，嘉義市依定案不爬）、縣市長任職、六都現任與公報。審閱中未串接：臺南 李啟維、施余興望，高雄 高忠德（`data/identity_national.csv` 填入確認後才串）。**下一步（第 2 天）**：基隆、嘉義縣、南投、苗栗、花蓮：把 iso 加進 `national_councilors.ISOS` 與 `national_bulletin_2022.ISOS`，下載該縣市全部議員公報、跑切格報告看覆蓋率，再跑 ETL、verifier 抽樣對照 PDF。注意：彰化 謝典林／謝典霖、南投 林婷立／林庭秝 疑為錯字或改名（進審閱）；澎湖名錄沒有選區；新竹市公報直排字框偏移（第 3 天修）；Z 家族（屏東、宜蘭、臺東、澎湖）與雲林只放公報原檔連結；嘉義市標「2022 當選」。**維運**：宜蘭、新竹市長狀態每次上線前與每週跑 `scripts/check_head_status.py`，直到 2026-12-25 | [V13](validation/V13-l3a-basic.md)、[V14](validation/V14-county-heads.md)、§6 |
-| 3 | **選舉時程維運** | 10/16 審定後移除不合格者（全國）；11/12、11/17 補號次；11/25 解析 2026 公報（全國新人的政見、學經歷與生日） | [V1](validation/V1-candidates-2026.md) |
-| 4 | **立委全國** | 程式已寫好（雲端 session，連不到 API，假資料測試；欄位名取自 openfunltd/ly.govapi.tw-v2 原始碼，Base URL 已改為 `https://ly.govapi.tw/v2`）。**下一步**：本機跑 `python3 -m etl.run`，對照 log 與實際回應確認：①`到職日`、`刊登日期`、`提案日期` 的寫法（`lyapi.to_date`）②單一選區縣市的 `選區名稱`（`lyapi.area`；對不上會印「不在 district 表」）③現任人數落在 100–113 ④審閱清單（不分區、原住民立委參選地方一律進審閱，確認後填 `data/identity_legislators.csv`）⑤`/interpellations` 是否只有書面質詢 ⑥ dump 增加的大小。表決（`/votes`）與出席（`/meets`，先做 V5）未收錄 | PLAN §2、§7、[data-sources](data-sources/legislative-yuan.md) |
+| 3 | **選舉時程維運** | 工具已備好（2026-10-03，見 §4「選舉時程」）：10/16 審定與不合格者、11/12、11/17 號次都寫進 `data/candidates_2026_status.csv` 後跑 ETL；前端依階段自動換說明與排序。**11/25 公報**：先跑 `python3 -m etl.bulletin2022 data/cache/bulletin2026_index.json 115年` 爬目錄、看檔名能否解析，再評估把 2022 切格器（`etl/bulletin_grid.py`）套到 2026（身分改以號次對 2026 名單，而不是 2022 開票）；政見、學經歷照 2022 規則，生日只用於身分比對、不進 dump | [V1](validation/V1-candidates-2026.md) |
+| 4 | **立委全國** | 程式已寫好（雲端 session，連不到 API，假資料測試；欄位名取自 openfunltd/ly.govapi.tw-v2 原始碼，Base URL 已改為 `https://ly.govapi.tw/v2`）。**下一步**：本機跑 `python3 -m etl.run`，對照 log 與實際回應確認：①`到職日`、`刊登日期`、`提案日期` 的寫法（`lyapi.to_date`）②單一選區縣市的 `選區名稱`（`lyapi.area`；對不上會印「不在 district 表」）③現任人數落在 100–113 ④審閱清單（不分區、原住民立委參選地方一律進審閱，確認後填 `data/identity_legislators.csv`）⑤`/interpellations` 是否只有書面質詢 ⑥ dump 增加的大小。⑦表決：`etl/sources/ly_votes.py` 已寫好但**預設不在 SOURCES**，先跑 `python3 -m etl.sources.ly_votes` 量每位委員的筆數，dump 增加的大小可以接受再加進 SOURCES（放在 `ly_records` 之後）。出席（`/meets`，先做 V5）未收錄 | PLAN §2、§7、[data-sources](data-sources/legislative-yuan.md) |
 | 5 | **其他議會（L3）** | 先完成 V12 普查（新北網站曾連不上、桃園與 16 縣市未查），依平台分組；高雄最容易（影片 API 可逐人、有出席統計表），臺中、臺南可做名錄與影片 | [V12](validation/V12-councils-survey.md) |
-| 6 | **報導者觀測站議題標籤** | 使用者已同意：個人頁深連結，議題名稱與相關提案數原文照錄並標示出處（CC BY-NC-ND 3.0 TW） | README |
-| 7 | **確定有罪判決** | 11/25 公報後補生日核對；建 `kind=conviction` 的 ETL 與人工核可表；每筆由 Claude 初審、verifier 複核 | [V7](validation/V7-criminal-records.md) |
-| 8 | **法遵** | 黨徽使用、判決顯示上線前的審查（security-executor） | PLAN §6 第 4 點、[公開前審查](validation/pre-publication-review.md) |
+| 6 | **報導者觀測站議題標籤** | 使用者已同意：個人頁深連結，議題名稱與相關提案數原文照錄並標示出處（CC BY-NC-ND 3.0 TW）。**先在本機查**：個人頁網址格式、議題名稱與提案數的取得方式（雲端連不到 lawmaker.twreporter.org，2026-10-03） | README |
+| 7 | **確定有罪判決** | ETL 與核可表已建好（2026-10-03）：`etl/sources/convictions.py` 只收 `data/convictions.csv` 上的判決（欄位與規則照 V7 §3.2：確定證據 A–D、身分路徑 1／2、Claude 初審＋verifier 複核），每次重抓 FJUD 原文與歷審，被擋、下架、字號對不上或有尚未結案的上級審就不顯示。**下一步**：11/25 公報後補生日核對，逐筆查證後填表；FJUD 原文頁的 jid 寫法要在本機第一次跑時確認（`convictions.jid_of`，找不到會印出且不顯示） | [V7](validation/V7-criminal-records.md) |
+| 8 | **法遵** | 黨徽縮圖與移除承諾、中選會開放資料顯名已完成；2026-10-03 新功能的自查見[公開前審查](validation/pre-publication-review.md) §6。**仍需** security-executor 正式審查判決顯示與立委資料，以及該報告末節需法律專業確認的事項 | PLAN §6 第 4 點、[公開前審查](validation/pre-publication-review.md) |
 
 ## 6. 量能評估（不含 NotebookLM 摘要）
 

@@ -11,7 +11,7 @@ from unittest import mock
 
 from etl import lyapi
 from etl.db import open_db, upsert, upsert_fact
-from etl.sources import ly_legislators, ly_records
+from etl.sources import ly_legislators, ly_records, ly_votes
 from etl.sources.ly_legislators import load_identity, office_data, plan
 
 T = "2026-10-03T00:00:00Z"
@@ -290,6 +290,31 @@ class LyRunTest(unittest.TestCase):
     def test_list_url_repeats_the_key_for_list_values(self):
         url = lyapi.list_url("bills", {"output_fields": ["議案編號", "提案日期"]})
         self.assertIn("output_fields=%E8%AD%B0%E6%A1%88%E7%B7%A8%E8%99%9F&output_fields=%E6%8F%90%E6%A1%88%E6%97%A5%E6%9C%9F", url)
+
+
+class LyVotesTest(unittest.TestCase):
+    def test_roc_text_dates_become_iso(self):
+        self.assertEqual(lyapi.to_date(lyapi.roc_text_date("中華民國114年12月19日 上午10時42分02秒")), "2025-12-19")
+        self.assertEqual(lyapi.roc_text_date("2025-12-19"), "2025-12-19")
+
+    def test_votes_keep_the_recorded_position_and_skip_unlisted_or_conflicting_rows(self):
+        rows = [{"表決代碼": "1150101_00002_55", "表決時間": "中華民國114年12月19日 上午10時42分02秒", "表決議題": " 某條文修正動議 ",
+                 "會議代碼": "院會-11-4-14", "贊成": ["王大明"], "反對": ["李小華"], "棄權": [],
+                 "表決結果": {"出席人數": 110, "贊成人數": 60, "反對人數": 50, "棄權人數": 0}},
+                {"表決代碼": "2", "贊成": ["李小華"], "反對": [], "棄權": []},
+                {"表決代碼": "3", "贊成": ["王大明"], "反對": ["王大明"]}]
+        out = ly_votes.vote_facts(rows, "王大明")
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]["date"], "2025-12-19")
+        self.assertEqual(out[0]["data"]["position"], "贊成")
+        self.assertEqual(out[0]["data"]["topic"], "某條文修正動議")
+        self.assertEqual(out[0]["data"]["counts"], {"出席": 110, "贊成": 60, "反對": 50, "棄權": 0})
+        self.assertEqual(out[0]["source_url"], "https://ly.govapi.tw/v2/vote/1150101_00002_55")
+        self.assertEqual(ly_votes.vote_facts(rows, "李小華")[0]["data"]["position"], "反對")
+
+    def test_votes_are_not_in_the_default_sources(self):
+        from etl import run
+        self.assertNotIn(ly_votes, run.SOURCES)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,15 @@ from etl.fetch import UA, get
 from etl.sources.national_districts import ISO
 
 BASE = "https://bulletin.cec.gov.tw/"
-ROOTS = [f"01選舉公報/{c}/111年" for c in ("03直轄市長", "04縣市長", "05直轄市議員", "06縣市議員")]
+YEAR = "111年"
+
+
+def roots(year=YEAR):
+    """公報目錄的 4 個根目錄；2026 公報（11/25 前上網）預期在同一結構的 115年 目錄下，上網後先用 __main__ 實測。"""
+    return [f"01選舉公報/{c}/{year}" for c in ("03直轄市長", "04縣市長", "05直轄市議員", "06縣市議員")]
+
+
+ROOTS = roots()
 _P = "01選舉公報/"
 
 # 檔名沒寫出來的涵蓋範圍：path → 完整 districts（取代解析結果）。依據皆為 V13 §1.2。
@@ -87,8 +95,8 @@ def _county(path):
     return ISO[name.replace("台", "臺")[:3]]
 
 
-def file_map(index):
-    """[{path, size}] → [{path, iso, districts}]；排除罷免公告。無法解析的檔 raise。"""
+def file_map(index, year=YEAR):
+    """[{path, size}] → [{path, iso, districts}]；排除罷免公告。無法解析的檔 raise。OVERRIDES 只對 2022 的路徑有效。"""
     out = []
     for f in index:
         path = f["path"]
@@ -96,7 +104,7 @@ def file_map(index):
             continue
         if path in OVERRIDES:
             districts = OVERRIDES[path]
-        elif "長/" in path.split("111年")[0]:  # 03直轄市長、04縣市長
+        elif "長/" in path.split(year)[0]:  # 03直轄市長、04縣市長
             districts = [["mayor", None]]
         else:
             name = path.rsplit("/", 1)[-1]
@@ -134,9 +142,9 @@ def _ls(d):
     return dirs, files
 
 
-def crawl_index():
-    """遞迴列出 4 個 111 年目錄，HEAD 每個 PDF 取大小。約 200 檔 × 1.1 秒。"""
-    out, stack = [], list(ROOTS)
+def crawl_index(start=None):
+    """遞迴列出 4 個年度目錄（預設 111 年），HEAD 每個 PDF 取大小。約 200 檔 × 1.1 秒。"""
+    out, stack = [], list(start or ROOTS)
     while stack:
         dirs, files = _ls(stack.pop(0))
         stack += dirs
@@ -150,6 +158,8 @@ if __name__ == "__main__":
     import json
     import sys
 
-    idx = crawl_index()
+    # 用法：python3 -m etl.bulletin2022 out.json [115年]　（2026 公報上網後先爬目錄、看檔名能否解析）
+    year = sys.argv[2] if len(sys.argv) > 2 else YEAR
+    idx = crawl_index(roots(year))
     json.dump(idx, open(sys.argv[1], "w"), ensure_ascii=False, indent=1)
-    print("files", len(idx), "mapped", len(file_map(idx)))
+    print("files", len(idx), "mapped", len(file_map(idx, year)))
