@@ -141,6 +141,13 @@ class LyLegislatorsPlanTest(unittest.TestCase):
             self.assertIsNone(rows[0]["person_id"], reason)
             self.assertEqual([x["reason"] for x in review], [reason])
 
+    def test_replacement_legislators_without_a_bio_id_get_distinct_keys(self):
+        rows, _ = ly_legislators.plan([leg("甲", "全國不分區及僑居國外國民", None),
+                                       leg("乙", "全國不分區及僑居國外國民", None)], [], {})
+        self.assertEqual([x["bio_id"] for x in rows], ["11:甲", "11:乙"])
+        with self.assertRaises(ValueError):
+            ly_legislators.plan([leg("甲", "臺南市第6選舉區", 1), leg("乙", "臺南市第5選舉區", 1)], [], {})
+
     def test_two_sitting_legislators_with_the_same_name_are_never_auto_linked(self):
         rows, review = plan([leg("王大明", "臺南市第6選舉區", 1), leg("王大明", "高雄市第1選舉區", 2)],
                             [cand("p1", "王大明", "tnn-mayor")], {})

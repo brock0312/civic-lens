@@ -42,6 +42,12 @@ def load_identity(path=IDENTITY_PATH):
     return out
 
 
+def bio_key(r):
+    """身分鍵：歷屆立法委員編號；遞補的不分區委員 API 沒有編號（2026-10-03 實測 8 人），改用 API 的 id「屆:姓名」。"""
+    bio = r.get("歷屆立法委員編號")
+    return str(bio) if bio not in (None, "") else f"{r['屆']}:{r['委員姓名']}"
+
+
 def _cand_iso(district_id):
     return district_id.split("-")[0]
 
@@ -57,9 +63,12 @@ def plan(legislators, candidates, identity):
         by_han[han(c["name"]).translate(_VAR)].append(c)
     leg_han = Counter(han(r["委員姓名"]).translate(_VAR) for r in legislators)
 
+    keys = Counter(bio_key(r) for r in legislators)
+    if dup := [k for k, n in keys.items() if n > 1]:
+        raise ValueError(f"立委身分鍵重複：{dup}")
     rows, review = [], []
     for r in legislators:
-        bio_id, name = str(r["歷屆立法委員編號"]), r["委員姓名"]
+        bio_id, name = bio_key(r), r["委員姓名"]
         h = han(name).translate(_VAR)
         out = {"row": r, "bio_id": bio_id, "person_id": None,
                "verified_by": "auto: 立法院 API 第 11 屆委員名單，未串到 2026 候選人"}
