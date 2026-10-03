@@ -55,8 +55,8 @@ class TestRealTable(unittest.TestCase):
         self.assertNotIn("缺席", p["邱俊憲"])
 
     def test_struck_out_columns_are_not_taken(self):
-        self.assertEqual(sorted(n for n, _ in self.t["rejected"]), ["李柏毅", "黃捷"])
-        self.assertTrue(all("空白" in why for _, why in self.t["rejected"]))
+        self.assertEqual(sorted(n for n, _, _ in self.t["rejected"]), ["李柏毅", "黃捷"])
+        self.assertTrue(all(code == "blank" for _, code, _ in self.t["rejected"]))
 
 
 class TestParseTable(unittest.TestCase):
@@ -74,20 +74,20 @@ class TestParseTable(unittest.TestCase):
         totals = [counts(2)] + [counts(2)] * 9  # 官方合計說康裕成全勤，符號卻有一次請假
         t = parse_table([page(NAMES, rows, totals)])
         self.assertNotIn("康裕成", t["people"])
-        self.assertEqual([n for n, _ in t["rejected"]], ["康裕成"])
+        self.assertEqual([(n, c) for n, c, _ in t["rejected"]], [("康裕成", "mismatch")])
         self.assertEqual(len(t["people"]), 9)
 
     def test_duplicate_name_in_one_table_is_rejected(self):
         names = NAMES[:9] + ["康裕成"]
         t = parse_table([page(names, ["○" * 10], [counts(1)] * 10)])
         self.assertNotIn("康裕成", t["people"])
-        self.assertIn(("康裕成", "同一份表出現 2 次"), t["rejected"])
+        self.assertIn(("康裕成", "duplicate", "同一份表出現 2 次"), t["rejected"])
 
     def test_absence_mark_without_absence_column_is_rejected(self):
         legend = "註：○出席△請假◇病假☆公差□公假▽喪假§事假"
         t = parse_table([page(NAMES, ["☉" + "○" * 9], [[1]] * 10, legend=legend)])
         self.assertFalse(t["absent_column"])
-        self.assertEqual([n for n, _ in t["rejected"]], ["康裕成"])
+        self.assertEqual([(n, c) for n, c, _ in t["rejected"]], [("康裕成", "absent_without_column")])
 
     def test_pages_of_the_same_half_are_joined(self):
         p1 = page(NAMES, ["○" * 10, "○" * 10], [])
@@ -139,25 +139,31 @@ class TestMatch(unittest.TestCase):
         parsed = {"meetings": 3, "absent_column": True,
                   "people": {n: dict(zip(["出席", "請假", "病假", "公差", "公假", "喪假", "事假", "缺席"], counts(2, sick=1)))
                              for n in ("邱俊憲", "康裕成")},
-                  "rejected": []}
+                  "rejected": [("高忠德", "mismatch", "符號數和合計列不符"), ("黃紹庭", "blank", "有 2 格空白")]}
         item = {"sn": "243650", "session": "第4屆第9次臨時會", "pdf_url": "https://cissearch.kcc.gov.tw/x.pdf"}
         with tempfile.TemporaryDirectory() as tmp:
             conn = new_conn(tmp)
             n, _ = write_table(conn, item, parsed, roster_index(conn), {"p1", "p3"}, "T")
             rows = conn.execute("SELECT * FROM fact WHERE kind = 'attendance'").fetchall()
+            gaps = conn.execute("SELECT * FROM fact WHERE kind = 'attendance_excluded'").fetchall()
         self.assertEqual(n, 1)
         self.assertEqual([(r["fact_key"], r["person_id"], r["source_url"]) for r in rows],
                          [("kattend:243650:p1", "p1", "https://cissearch.kcc.gov.tw/x.pdf")])
         d = json.loads(rows[0]["data"])
         self.assertEqual((d["meetings"], d["present"], d["leave"], d["absent"], d["leave_types"]["病假"]), (3, 2, 1, 0, 1))
         self.assertEqual(d["title"], "第4屆第9次臨時會議員出席情形統計表")
+        # 被整欄不收的候選人（高忠德）留一筆說明；不在名錄的黃紹庭不寫
+        self.assertEqual([(r["fact_key"], r["person_id"], r["source_url"]) for r in gaps],
+                         [("kattendx:243650:p3", "p3", "https://cissearch.kcc.gov.tw/x.pdf")])
+        self.assertEqual(json.loads(gaps[0]["data"])["reason"], "mismatch")
 
 
 class TestFactData(unittest.TestCase):
-    def test_leave_sums_every_leave_type_and_absence_is_none_without_column(self):
-        c = {"出席": 40, "請假": 1, "病假": 2, "公差": 0, "公假": 3, "喪假": 0, "事假": 1}
-        d = fact_data("第4屆第2次定期大會", 47, c, False)
-        self.assertEqual((d["present"], d["leave"], d["absent"]), (40, 7, None))
+    def test_official_duty_is_separate_from_leave_and_absence_is_none_without_column(self):
+        c = {"出席": 40, "請假": 1, "病假": 2, "公差": 1, "公假": 3, "喪假": 0, "事假": 1}
+        d = fact_data("第4屆第2次定期大會", 48, c, False)
+        self.assertEqual((d["present"], d["leave"], d["duty"], d["absent"]), (40, 4, 4, None))
+        self.assertEqual(d["leave_types"]["公假"], 3)
 
 
 if __name__ == "__main__":

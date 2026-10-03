@@ -41,7 +41,8 @@ P = "ctl00$ContentPlaceHolder1$"
 
 SYMBOLS = "○△◇☆□▽§☉"  # 圖說順序＝合計列順序
 CATS = ["出席", "請假", "病假", "公差", "公假", "喪假", "事假", "缺席"]
-LEAVE = CATS[1:7]
+LEAVE = ["請假", "病假", "喪假", "事假"]
+DUTY = ["公差", "公假"]  # 公務，和請假分開列（使用者 2026-10-03 決定）
 _VAR = str.maketrans(VARIANTS)
 _CJK = re.compile(r"[㐀-鿿豈-﫿]")
 _WORD = re.compile(r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)</word>')
@@ -220,7 +221,8 @@ def has_absent_column(pages):
 
 
 def parse_table(pages):
-    """一份統計表（每頁字框）→ {meetings, absent_column, people: {姓名: {類別: 次數}}, rejected: [(姓名, 原因)]}。
+    """一份統計表（每頁字框）→ {meetings, absent_column, people: {姓名: {類別: 次數}}, rejected: [(姓名, 代碼, 原因)]}。
+    代碼：blank（有空白格）、absent_without_column、mismatch（符號和合計列不符）、duplicate。
     整份不可用時 raise ValueError。"""
     absent_col = has_absent_column(pages)
     ncat = 8 if absent_col else 7
@@ -247,34 +249,35 @@ def parse_table(pages):
             seen[name] = seen.get(name, 0) + 1
             col = [r.get(i) for r in h["rows"]]
             if None in col:
-                rejected.append((name, f"有 {col.count(None)} 格空白"))
+                rejected.append((name, "blank", f"有 {col.count(None)} 格空白"))
                 continue
             counts = [col.count(s) for s in SYMBOLS[:ncat]]
             if sum(counts) != len(col):
-                rejected.append((name, "有缺席符號，但統計表沒有缺席欄"))
+                rejected.append((name, "absent_without_column", "有缺席符號，但統計表沒有缺席欄"))
                 continue
             official = totals.get(i, [])
             ok = official == counts if len(official) == ncat else [n for n in official if n] == [c for c in counts if c]
             if not ok:
-                rejected.append((name, f"符號數 {counts} 和合計列 {official} 不符"))
+                rejected.append((name, "mismatch", f"符號數 {counts} 和合計列 {official} 不符"))
                 continue
             people[name] = dict(zip(CATS, counts))
     for name, n in seen.items():
         if n > 1:
             people.pop(name, None)
-            rejected.append((name, f"同一份表出現 {n} 次"))
+            rejected.append((name, "duplicate", f"同一份表出現 {n} 次"))
     return {"meetings": meetings.pop(), "absent_column": absent_col, "people": people, "rejected": rejected}
 
 
 def fact_data(session, meetings, counts, absent_column):
-    leave_types = {k: counts[k] for k in LEAVE}
+    leave_types = {k: counts[k] for k in LEAVE + DUTY}  # 官方六個假別的逐項次數
     return {
         "term": TERM,
         "session": session,
         "title": f"{session}議員出席情形統計表",
         "meetings": meetings,
         "present": counts["出席"],
-        "leave": sum(leave_types.values()),
+        "leave": sum(counts[k] for k in LEAVE),
+        "duty": sum(counts[k] for k in DUTY),
         "leave_types": leave_types,
         "absent": counts["缺席"] if absent_column else None,
     }
@@ -306,11 +309,19 @@ def match_people(table_names, roster, wanted):
 
 
 def write_table(conn, item, parsed, roster, wanted, fetched_at):
-    """回傳 (寫入筆數, 沒對上的 [(姓名, 原因)])。"""
+    """回傳 (寫入筆數, 沒對上的 [(姓名, 原因)])。
+    候選人的欄位被整欄不收時，另寫一筆 attendance_excluded，人物頁據此說明少了哪個會期。"""
     matched, skipped = match_people(parsed["people"], roster, wanted)
     for name, pid in matched.items():
         upsert_fact(conn, f"kattend:{item['sn']}:{pid}", pid, "attendance",
                     fact_data(item["session"], parsed["meetings"], parsed["people"][name], parsed["absent_column"]),
+                    item["pdf_url"], fetched_at)
+    codes = {name: code for name, code, _ in parsed["rejected"]}
+    excluded, _ = match_people(codes, roster, wanted)
+    for name, pid in excluded.items():
+        upsert_fact(conn, f"kattendx:{item['sn']}:{pid}", pid, "attendance_excluded",
+                    {"term": TERM, "session": item["session"], "title": f"{item['session']}議員出席情形統計表",
+                     "reason": codes[name]},
                     item["pdf_url"], fetched_at)
     return len(matched), skipped
 
@@ -361,7 +372,7 @@ def run(conn):
     for it, parsed in tables:
         n, skipped = write_table(conn, it, parsed, roster, wanted, fetched_at)
         total += n
-        for name, why in parsed["rejected"] + skipped:
+        for name, why in [(n, w) for n, _, w in parsed["rejected"]] + skipped:
             print(f"khh_attendance：{it['session']} 不收 {name}：{why}")
     print(f"khh_attendance：統計表 {len(tables)} 份，對象 {len(wanted)} 人，寫入 {total} 筆")
 
@@ -375,13 +386,13 @@ def _self_check(samples=("黃明太", "湯詠瑜", "黃飛鳳")):
         roster = roster_index(conn)
         wanted = {t["person_id"] for t in targets(conn)}
     items = load_index()
-    sums = dict.fromkeys(["present", "leave", "absent", "meetings"], 0)
+    sums = dict.fromkeys(["present", "leave", "duty", "absent", "meetings"], 0)
     per_person = {}
     for it, parsed in parse_cached(items):
         matched, skipped = match_people(parsed["people"], roster, wanted)
         print(f"{it['session']:<14} 會議 {parsed['meetings']:>2} 次　解析 {len(parsed['people'])} 人　"
               f"對上候選人 {len(matched)} 人　缺席欄 {'有' if parsed['absent_column'] else '無'}")
-        for name, why in parsed["rejected"] + skipped:
+        for name, why in [(n, w) for n, _, w in parsed["rejected"]] + skipped:
             print(f"    不收 {name}：{why}")
         for name, pid in matched.items():
             d = fact_data(it["session"], parsed["meetings"], parsed["people"][name], parsed["absent_column"])
@@ -392,7 +403,7 @@ def _self_check(samples=("黃明太", "湯詠瑜", "黃飛鳳")):
     for name in samples:
         print(f"\n{name}：")
         for session, d in per_person.get(name, []):
-            print(f"  {session:<14} 會議 {d['meetings']:>2}　出席 {d['present']:>2}　請假 {d['leave']}"
+            print(f"  {session:<14} 會議 {d['meetings']:>2}　出席 {d['present']:>2}　請假 {d['leave']}　公差／公假 {d['duty']}"
                   f" {[(k, v) for k, v in d['leave_types'].items() if v]}　缺席 {d['absent']}")
 
 
