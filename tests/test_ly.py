@@ -76,6 +76,35 @@ class LyApiTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             lyapi.fetch_all("x", {}, get=lambda u: {"error": True, "message": "找不到資料"}, sleep=0)
 
+    def test_backoff_retries_only_rate_limits_and_gives_up_after_the_last_wait(self):
+        import urllib.error
+
+        def err(code, headers=None):
+            return urllib.error.HTTPError("u", code, "x", headers or {}, None)
+
+        calls, slept = [], []
+
+        def flaky(url):
+            calls.append(url)
+            if len(calls) < 3:
+                raise err(429, {"Retry-After": "7"} if len(calls) == 1 else None)
+            return {"ok": 1}
+
+        self.assertEqual(lyapi.get_with_backoff("u", get=flaky, waits=(1, 2, 3), sleep=slept.append), {"ok": 1})
+        self.assertEqual(slept, [7, 2])
+
+        def always(code):
+            def g(url):
+                raise err(code)
+            return g
+
+        with self.assertRaises(urllib.error.HTTPError):
+            lyapi.get_with_backoff("u", get=always(429), waits=(1, 2), sleep=slept.append)
+        slept.clear()
+        with self.assertRaises(urllib.error.HTTPError):
+            lyapi.get_with_backoff("u", get=always(500), waits=(1, 2), sleep=slept.append)
+        self.assertEqual(slept, [])
+
     def test_fetch_all_refuses_to_page_past_the_search_window(self):
         with self.assertRaises(ValueError):
             lyapi.fetch_all("x", {}, limit=5000, get=lambda u: {"total": 20000, "total_page": 4, "x": [0] * 5000}, sleep=0)

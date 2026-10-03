@@ -8,6 +8,7 @@
 import os
 import re
 import time
+import urllib.error
 import urllib.parse
 
 from etl.fetch import get_json
@@ -24,6 +25,20 @@ def headers():
     return {"Authorization": f"Bearer {token}"} if token else None
 
 
+def get_with_backoff(url, get=None, waits=(30, 60, 120, 240), sleep=time.sleep):
+    """HTTP 429（限流）時等一下再試，等待時間優先用 Retry-After；其他錯誤與重試用完照常 raise。
+    2026-10-03 本機第一次實跑：不帶 Token 連續抓約 40 個列表頁後回 429。"""
+    get = get or (lambda u: get_json(u, headers=headers()))
+    for wait in (*waits, None):
+        try:
+            return get(url)
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or wait is None:
+                raise
+            retry_after = (e.headers or {}).get("Retry-After")
+            sleep(int(retry_after) if str(retry_after or "").isdigit() else wait)
+
+
 def list_url(type_, params, page=1, limit=100):
     """params 的值是 list 時重複該鍵（例：output_fields=a&output_fields=b）。"""
     q = [*sorted(params.items()), ("page", page), ("limit", limit)]
@@ -36,7 +51,7 @@ def item_url(type_, *ids):
 
 def fetch_all(type_, params, key=None, limit=100, get=None, sleep=1.1):
     """逐頁抓完一個列表端點，回傳 (items, 第一頁網址)。超過分頁上限就 raise（請縮小篩選範圍），不靜默截斷。"""
-    get = get or (lambda url: get_json(url, headers=headers()))
+    get = get or get_with_backoff
     key = key or type_
     items, page, first = [], 1, list_url(type_, params, 1, limit)
     while True:
