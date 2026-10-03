@@ -1,1 +1,10 @@
 iso,roster_name,district_n,person_id,confirmed_by,confirmed_at,note
+tnn,李啟維,9,p1ef26e24fe,Claude 初審；verifier 複核,2026-10-03,異體字（官網「啟」、中選會「啓」）；同選區、縣內漢字同名唯一
+tnn,施余興望,13,p2b61a7fe14,Claude 初審；verifier 複核,2026-10-03,官網有族名但名錄解析器未保留羅馬拼音；同選區、縣內漢字同名唯一
+khh,高忠德(Taki ludun‧Anu),14,p328720939d,Claude 初審；verifier 複核,2026-10-03,拼音空格寫法不同（Taki ludun／Takiludun）；同選區、縣內漢字同名唯一
+nan,石慶龍,6,p7ff5ea1b58,Claude 初審；verifier 複核,2026-10-03,官網名錄無羅馬拼音；同選區、縣內漢字同名唯一
+nan,全文才,7,p35747b7ff2,Claude 初審；verifier 複核,2026-10-03,官網名錄無羅馬拼音；同選區、縣內漢字同名唯一
+nan,林庭秝(AliWalis),8,p1022630c83,Claude 初審；verifier 複核,2026-10-03,拼音連寫（AliWalis／Ali Walis）；同選區、縣內漢字同名唯一；2022 中選會名為林婷立，任職起日與 2022 政黨仍留空
+mia,劉美蘭,8,p6fa88d626e,Claude 初審；verifier 複核,2026-10-03,官網名錄無羅馬拼音；同選區、縣內漢字同名唯一
+hua,蔡依靜,6,p9c11191d7e,Claude 初審；verifier 複核,2026-10-03,官網名錄無羅馬拼音；同選區、縣內漢字同名唯一
+hua,哈尼.噶照,7,p629769c6e4,Claude 初審；verifier 複核,2026-10-03,官網名錄無羅馬拼音；同選區、縣內漢字同名唯一
