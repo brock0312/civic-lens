@@ -56,6 +56,9 @@ ROSTER_URLS = {
 _OLD = {"nwt", "tao", "txg", "tnn", "khh"}
 _ENC = {"ila": "big5", "mia": "big5"}
 _IPV4 = {"tao", "ttt"}  # 桃園議會的 IPv6 位址連不上（2026-10-02 實測）
+# 南投議會憑證鏈到 TWCA CYBER Root CA（2022 年新根，已在 Mozilla 憑證庫），macOS 的 /etc/ssl/cert.pem 沒有；
+# 檔案取自 Mozilla 憑證庫，SHA-256 3F:63:BB:28:14:BE:17:4E:C8:B6:43:9C:F0:8D:6D:56:F0:B7:C4:05:88:3A:56:48:A3:34:42:4D:6B:3E:C5:58
+_CA = {"nan": Path(__file__).parent / "certs" / "twca_cyber_root.pem"}
 # 臺南、高雄在姓名後加註離職
 _MARK = re.compile(r"\((歿|解職[^)]*|轉任[^)]*)\)")
 _NUM = {c: i for i, c in enumerate("一二三四五六七八九十", 1)}
@@ -255,9 +258,9 @@ def fetch_roster(iso):
         pages = []
         for u in url:  # 同一主機逐頁抓，間隔 1.1 秒
             time.sleep(1.1)
-            pages.append(get(u, ipv4=iso in _IPV4).decode(_ENC.get(iso, "utf-8")))
+            pages.append(get(u, ipv4=iso in _IPV4, cafile=_CA.get(iso)).decode(_ENC.get(iso, "utf-8")))
     else:
-        html = get(url, ipv4=iso in _IPV4).decode(_ENC.get(iso, "utf-8"))
+        html = get(url, ipv4=iso in _IPV4, cafile=_CA.get(iso)).decode(_ENC.get(iso, "utf-8"))
         if iso not in _OLD:  # 新縣市存快取供測試與重跑；單頁、每縣市一個主機，不需間隔
             (_CACHE / f"{iso}.html").write_text(html, encoding="utf-8")
         return PARSERS[iso](html)

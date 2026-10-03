@@ -119,6 +119,12 @@ class RosterTest(unittest.TestCase):
         b = '{"id":9,"member":"蔡玉玲","type":"第十五選區(山地原住民)"}'
         self.assertEqual(self._dn(r.parse_ttt([f"[{a}]", f"[{a},{b}]"])), [(1, "吳秀華"), (15, "蔡玉玲")])
 
+    def test_nan_trusts_bundled_twca_cyber_root_from_mozilla(self):
+        import hashlib, ssl
+        der = ssl.PEM_cert_to_DER_cert(r._CA["nan"].read_text())
+        self.assertEqual(hashlib.sha256(der).hexdigest().upper(),
+                         "3F63BB2814BE174EC8B6439CF08D6D56F0B7C405883A5648A334424D6B3EC558")
+
 
 if __name__ == "__main__":
     unittest.main()

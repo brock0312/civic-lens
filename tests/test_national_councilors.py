@@ -3,6 +3,9 @@ import unittest
 from pathlib import Path
 
 from etl.sources.national_heads import MOI_INAUGURATION
+from unittest import mock
+
+from etl.sources import national_councilors as nc
 from etl.sources.national_councilors import IDENTITY_PATH, load_identity, plan, roster_url
 
 
@@ -80,6 +83,17 @@ class NationalCouncilorsTest(unittest.TestCase):
     def test_multi_page_rosters_cite_the_district_page(self):
         self.assertTrue(roster_url("tao", 3).endswith("area=3"))
         self.assertEqual(roster_url("nwt", 3), roster_url("nwt", 1))
+
+    def test_every_roster_county_has_expected_incumbent_count(self):
+        self.assertEqual(set(nc.ISOS), set(nc.EXPECTED))
+        self.assertEqual({k: nc.EXPECTED[k] for k in ("kee", "cyq", "nan", "mia", "hua")},
+                         {"kee": 28, "cyq": 37, "nan": 34, "mia": 36, "hua": 32})
+
+    def test_fetch_rosters_raises_when_incumbent_count_differs(self):
+        rows = lambda iso: [ros(iso, 1, f"{iso}{i}") for i in range(nc.EXPECTED[iso] - (iso == "nan"))]
+        with mock.patch.object(nc, "fetch_roster", rows), mock.patch.object(nc.time, "sleep"):
+            with self.assertRaisesRegex(ValueError, "nan 名錄現任 33 人"):
+                nc.fetch_rosters()
 
 
 if __name__ == "__main__":

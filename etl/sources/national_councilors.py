@@ -18,8 +18,10 @@ from etl.sources.national_heads import MOI_INAUGURATION
 from etl.sources.national_districts import COUNTIES, council_id
 
 SOURCE = "roster_2026"
-ISOS = ["nwt", "tao", "txg", "tnn", "khh"]  # 之後逐日擴充
-EXPECTED = {"nwt": 64, "tao": 61, "txg": 62, "tnn": 55, "khh": 61}  # V13 §3：五都現任數
+ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua"]  # 之後逐日擴充
+# 現任數：五都依 V13 §3；其餘依 python3 -m etl.rosters 快取自我檢查（2026-10-02）
+EXPECTED = {"nwt": 64, "tao": 61, "txg": 62, "tnn": 55, "khh": 61,
+            "kee": 28, "cyq": 37, "nan": 34, "mia": 36, "hua": 32}
 IDENTITY_PATH = Path(__file__).resolve().parents[2] / "data" / "identity_national.csv"
 TERM_START = "2022-12-25"  # 內政部 111-12-25 新聞稿：九合一當選人宣誓就職（同 national_heads）
 NAMES = dict(COUNTIES)
