@@ -41,6 +41,7 @@ git push origin main
 6. **commit 身分**：repo 內 `user.email` 是 GitHub noreply；commit 訊息格式 `<type>: <description>`，不加 AI 署名。
 7. **記憶體**：使用者的電腦記憶體吃緊。不要同時跑多個會開 headless 瀏覽器的 agent；長時間批次用 `nohup` 在背景跑，不要讓 agent 坐等（agent 600 秒沒有進度會被中止）。
 8. **暫存**：系統暫存區重開機會被清空；需要保留的快取放 `data/cache/`（已 gitignore）。
+9. **網站只呈現 2026 候選人**（2026-10-03，使用者決定，全站一致含臺北）：候選人如果是現任議員或縣市長，標「現任」（同選區）或「現任＋職稱」（別的選區或職位，例：現任新北市議員），並呈現其問政與公報；沒有參選 2026 的現任者不出現在網站上。ETL 照常收集現任資料，只在 `etl/export.py`（沒有 candidacy 的人不輸出）與前端過濾；摘要批次 `batch.py` 也跳過沒參選的議員。
 
 ## 4. 常用操作
 
