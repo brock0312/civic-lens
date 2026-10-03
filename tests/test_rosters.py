@@ -125,6 +125,13 @@ class RosterTest(unittest.TestCase):
         self.assertEqual(hashlib.sha256(der).hexdigest().upper(),
                          "3F63BB2814BE174EC8B6439CF08D6D56F0B7C405883A5648A334424D6B3EC558")
 
+    def test_get_with_cafile_still_connects_over_ipv4_when_asked(self):
+        from unittest import mock
+        from etl import fetch
+        with mock.patch.object(fetch, "_connect_v4", side_effect=OSError("v4 path")):
+            with self.assertRaisesRegex(OSError, "v4 path"):
+                fetch.get("https://example.invalid/", ipv4=True, cafile=r._CA["nan"])
+
 
 if __name__ == "__main__":
     unittest.main()

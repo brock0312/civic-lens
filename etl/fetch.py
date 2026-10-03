@@ -37,7 +37,8 @@ def get(url, ipv4=False, cafile=None):
     if cafile:
         ctx = ssl.create_default_context()
         ctx.load_verify_locations(cafile)
-        opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=ctx)).open
+        handler = _V4Handler if ipv4 else urllib.request.HTTPSHandler
+        opener = urllib.request.build_opener(handler(context=ctx)).open
     else:
         opener = _V4_OPENER.open if ipv4 else urllib.request.urlopen
     with opener(req, timeout=60) as resp:  # HTTP 錯誤會 raise HTTPError
