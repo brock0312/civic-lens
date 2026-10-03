@@ -69,5 +69,13 @@ class FileMapGateTest(unittest.TestCase):
         self.assertTrue(f["path"].endswith("嘉義市市長重行選舉.pdf"))
 
 
+class Year2026Test(unittest.TestCase):
+    def test_roots_and_file_map_take_the_2026_year_directory(self):
+        self.assertEqual(bulletin2022.roots("115年")[0], "01選舉公報/03直轄市長/115年")
+        idx = [{"path": "01選舉公報/03直轄市長/115年/臺北市市長.pdf", "size": 1},
+               {"path": "01選舉公報/05直轄市議員/115年/01臺北市/臺北市第03選舉區.pdf", "size": 1}]
+        self.assertEqual([f["districts"] for f in file_map(idx, "115年")], [[["mayor", None]], [["councilor", 3]]])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,7 @@
 // civic-lens 靜態前端：hash routing，資料全部從相對路徑 data/ 讀取。
 import {
   DEEP_COUNTIES, COUNCIL_SITES, COUNCIL_PUBLISHERS, KIND_LABEL, isoOf, townWord, countyOrder, townsOf, needsVillage,
-  councilDistrictFor, officeLabel, districtTitle, candidateOrder, districtSub,
+  councilDistrictFor, officeLabel, districtTitle, candidateOrder, hasBallot, districtSub,
 } from './geo.js';
 
 const PUBLISHERS = [['cec.gov.tw', '中央選舉委員會'], ['election.gov.taipei', '臺北市選舉委員會'], ['moi.gov.tw', '內政部'],
@@ -471,10 +471,10 @@ export function officeExtraRefs(f, notes) {
     .filter(([u, label]) => u && label).map(([u, label]) => notes.ref(u, f.fetched_at, label)).join('');
 }
 
-function rosterRow(p, fn, parties, tag) {
+function rosterRow(p, fn, parties, tag, ballot = false) {
   return `<li><a class="name" href="#/p/${esc(p.person_id)}">${esc(p.name)}</a>
     ${partyOf(p.data, parties)}
-    <span class="meta">${tag ? `<span class="tag">${esc(tag)}</span>` : ''}${fn}</span></li>`;
+    <span class="meta">${ballot ? `<span>號次 <span class="num">${esc(p.data.ballot_no)}</span></span>` : ''}${tag ? `<span class="tag">${esc(tag)}</span>` : ''}${fn}</span></li>`;
 }
 
 async function renderDistrict(main, ctx, id) {
@@ -491,9 +491,14 @@ async function renderDistrict(main, ctx, id) {
   track(d.fetched_at, ...d.people.map((p) => p.fetched_at));
   const notes = footnotes();
   const cands = candidateOrder(d.people.filter((p) => p.kind === 'candidacy'));
-  const registered = cands.some((p) => p.data.status === 'registered');
+  const stage = listStage(cands);
+  const ballot = stage === 'ballot';
   const seatsFn = notes.ref(d.source_url, d.fetched_at, '應選名額公告');
-  const candRows = cands.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '候選人登記名冊', p.data.publisher), ctx.parties, candidateTag(p.incumbent, id, ctx.counties))).join('');
+  const candRows = cands.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '候選人登記名冊', p.data.publisher), ctx.parties, candidateTag(p.incumbent, id, ctx.counties), ballot)).join('');
+  // 審定與號次的出處：同一公告共用一個註腳
+  const stageFns = [...new Set(cands.flatMap((p) => [p.data.status === 'approved' && `${p.data.status_source_url}|${p.data.status_announced_on}|候選人資格審定公告`,
+    ballot && `${p.data.ballot_source_url}|${p.data.ballot_announced_on}|候選人名單公告`]).filter(Boolean))]
+    .map((k) => { const [u, at, label] = k.split('|'); return notes.ref(u, at, label); }).join('');
   const title = districtTitle(d, county);
 
   main.innerHTML = `
@@ -506,13 +511,22 @@ async function renderDistrict(main, ctx, id) {
     </dl>
     <section aria-labelledby="cand-h">
       <h2 id="cand-h">2026 候選人</h2>
-      ${registered ? `<p class="status" role="note">${REGISTERED_NOTE}</p>` : ''}
-      ${cands.length ? `<ol class="roster">${candRows}</ol><p class="small muted">依官方登記名冊順序排列，非選票號次。</p>` : '<p class="muted">尚無候選人資料。</p>'}
+      ${STAGE_NOTE[stage] ? `<p class="status" role="note">${STAGE_NOTE[stage]}${stageFns}</p>` : ''}
+      ${cands.length ? `<ol class="roster">${candRows}</ol><p class="small muted">${ballot ? '依選舉委員會公告的號次排列。' : '依官方登記名冊順序排列，非選票號次。'}</p>` : '<p class="muted">尚無候選人資料。</p>'}
     </section>
     ${notes.render()}`;
 }
 
 export const REGISTERED_NOTE = '名單依選舉委員會公告的候選人登記冊，尚未經審定；號次將於官方名單公告（縣市長 11/12、議員 11/17）後補上。';
+export const APPROVED_NOTE = '名單已經中央選舉委員會審定；號次將於官方名單公告（縣市長 11/12、議員 11/17）後補上。';
+export const BALLOT_NOTE = '號次依選舉委員會公告的候選人名單。';
+const STAGE_NOTE = { registered: REGISTERED_NOTE, approved: APPROVED_NOTE, ballot: BALLOT_NOTE };
+// 選區名單的階段：有人還沒審定 → registered；全區都有號次 → ballot；其餘（已審定、號次未齊）→ approved
+export function listStage(cands) {
+  if (!cands.length) return '';
+  if (cands.some((p) => (p.data?.status || 'registered') === 'registered')) return 'registered';
+  return hasBallot(cands) ? 'ballot' : 'approved';
+}
 
 // 影片區塊說明：議會名稱依影片網址的網域（臺北 tccvideo、高雄 ivod.kcc）
 export function videoBlurb(videos) {
@@ -798,6 +812,7 @@ async function renderPerson(main, ctx, id) {
       <dt>職位</dt><dd>${esc(label(f.data.office))}${notes.ref(f.source_url, f.fetched_at, '候選人登記名冊', f.data.publisher)}</dd>
       <dt>選區</dt><dd>${districtLink(f.data.district_id)}</dd>
       <dt>政黨</dt><dd>${party(f.data.party, ctx.parties)}</dd>
+      ${Number.isInteger(f.data.ballot_no) ? `<dt>號次</dt><dd class="num">${esc(f.data.ballot_no)}${notes.ref(f.data.ballot_source_url, f.data.ballot_announced_on, '候選人名單公告')}</dd>` : ''}
       <dt>登記日期</dt><dd class="num">${esc(f.date || '')}</dd>
     </dl>`).join('');
 

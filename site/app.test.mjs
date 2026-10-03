@@ -2,11 +2,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE, lyNote } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE, lyNote, listStage, APPROVED_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
-import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
+import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, hasBallot, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
   北投區: '01', 士林區: '01', 內湖區: '02', 南港區: '02', 松山區: '03', 信義區: '03',
@@ -700,4 +700,17 @@ test('legislative records are counted in a fixed order and attributed to the API
   assert.deepEqual(lyCounts({ ly_vote: [1] }), [['記名表決', 1, '筆']]);
   assert.equal(publisherOf('https://ly.govapi.tw/v2/bill/1'), '立法院（經 OpenFun 立法院 API，CC BY 4.0）');
   assert.equal(publisherOf('https://ivod.ly.gov.tw/Play/Clip/1M/1'), '立法院');
+});
+
+test('ballot numbers order the list only once every candidate in the district has one', () => {
+  const c = (n, ballot, status = 'approved') => ({ data: { list_order: n, ballot_no: ballot, status } });
+  assert.deepEqual(candidateOrder([c(1, 2), c(2, 1)]).map((p) => p.data.ballot_no), [1, 2]);
+  assert.deepEqual(candidateOrder([c(1, 2), c(2, undefined)]).map((p) => p.data.list_order), [1, 2]);
+  assert.equal(hasBallot([]), false);
+  assert.equal(listStage([c(1, 2), c(2, 1)]), 'ballot');
+  assert.equal(listStage([c(1, 2), c(2, undefined)]), 'approved');
+  assert.equal(listStage([c(1, 2), c(2, 1, 'registered')]), 'registered');
+  assert.equal(listStage([{ data: {} }]), 'registered');
+  assert.equal(listStage([]), '');
+  assert.match(APPROVED_NOTE, /已經中央選舉委員會審定/);
 });

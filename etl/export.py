@@ -29,7 +29,9 @@ def export(conn, out_dir):
     }
 
     # 網站只呈現 2026 候選人：沒有 candidacy 的現任不輸出人物檔，也不進選區（2026-10-03 使用者決定）
-    candidates = {r["person_id"] for r in facts if r["kind"] == "candidacy"}
+    # 審定不合格或撤回登記的人（candidates_2026_status）不再是候選人，人物檔與選區都不輸出
+    candidates = {r["person_id"] for r in facts
+                  if r["kind"] == "candidacy" and json.loads(r["data"]).get("status") not in ("disqualified", "withdrawn")}
     # 候選人本人的現任職位（含別的選區），前端據此標「現任」或「現任＋職稱」
     # 2022 劃分與 2026 不同的選區（新竹縣）展開成對應的 2026 選區，前端照常以 district_id 比對
     incumbent = {
@@ -79,6 +81,8 @@ def export(conn, out_dir):
             if row["kind"] != "candidacy":
                 continue
             data = json.loads(row["data"])
+            if data.get("status") in ("disqualified", "withdrawn"):
+                continue
             district_id = data.get("district_id")
             if district_id is None:
                 continue

@@ -87,9 +87,11 @@ export function districtTitle(d, county) {
   return `${officeLabel(d.office, county)} ${d.name.startsWith(county.name) ? d.name.slice(county.name.length) : d.name}`;
 }
 
-// 候選人排序：臺北用登記冊序號 reg_no，其他縣市用中選會名冊順序 list_order；都沒有的排最後
+// 號次（ballot_no）要整個選區都公告了才用；否則臺北用登記冊序號 reg_no，其他縣市用中選會名冊順序 list_order；都沒有的排最後
+export const hasBallot = (list) => list.length > 0 && list.every((p) => Number.isInteger(p.data?.ballot_no));
 export function candidateOrder(list) {
-  const n = (p) => p.data?.reg_no ?? p.data?.list_order ?? Infinity;
+  const ballot = hasBallot(list);
+  const n = (p) => (ballot ? p.data.ballot_no : p.data?.reg_no ?? p.data?.list_order ?? Infinity);
   return [...list].sort((a, b) => n(a) - n(b));
 }
 
