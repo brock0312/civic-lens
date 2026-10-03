@@ -27,6 +27,8 @@ OVERRIDES = {
         [["councilor", 12], ["councilor", 13], ["mayor", None]],
     # 新竹市第 6 區也印在市長公報第 1 頁
     _P + "04縣市長/111年/01紙本公報/新竹市市長.pdf": [["councilor", 6], ["mayor", None]],
+    # 新竹市第 6 區議員檔與市長檔是同一份 PDF（md5 相同）
+    _P + "06縣市議員/111年/21新竹市/新竹市第06選舉區.pdf": [["councilor", 6], ["mayor", None]],
     # 宜蘭第 1 檔標題「第一、十一、十二選舉區」，縣長也印在這檔
     _P + "06縣市議員/111年/14宜蘭縣/宜蘭縣第1選舉區.pdf":
         [["councilor", 1], ["councilor", 11], ["councilor", 12], ["mayor", None]],

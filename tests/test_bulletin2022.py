@@ -59,6 +59,11 @@ class FileMapGateTest(unittest.TestCase):
     def test_every_override_matches_a_listed_file(self):
         self.assertEqual(set(bulletin2022.OVERRIDES) - {f["path"] for f in INDEX}, set())
 
+    def test_hsinchu_city_district_6_file_also_carries_the_mayor(self):
+        # 新竹市第 6 區議員檔與市長檔是同一份 PDF
+        (f,) = [f for f in self.files if f["path"].endswith("新竹市第06選舉區.pdf")]
+        self.assertEqual(f["districts"], [["councilor", 6], ["mayor", None]])
+
     def test_chiayi_city_mayor_is_the_rerun_bulletin(self):
         (f,) = [f for f in self.files if f["iso"] == "cyi" and ["mayor", None] in f["districts"]]
         self.assertTrue(f["path"].endswith("嘉義市市長重行選舉.pdf"))
