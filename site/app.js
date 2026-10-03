@@ -68,7 +68,7 @@ export const RECORDS = {
   tpe: { depts: DEPTS, written: true, noRecord: NO_RECORD },
   khh: {
     depts: KHH_DEPTS, written: false,
-    noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆高雄市議員口頭質詢影片）；高雄市議會的書面質詢與出缺勤紀錄仍在建置中。',
+    noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆高雄市議員口頭質詢影片）；高雄市議會的書面質詢紀錄仍在建置中。',
   },
 };
 
@@ -84,6 +84,56 @@ export function attendanceRates(list) {
   const present = list.filter((f) => f.data?.status === 'present').length;
   const leave = list.filter((f) => f.data?.status === 'leave').length;
   return { total, present, leave, presentRate: total ? present / total : 0, leaveRate: total ? leave / total : 0 };
+}
+
+// 高雄：每筆是一份「議員出席情形統計表」的合計（meetings 次會議）。出席、請假、公差／公假的分母是各表會議次數合計；
+// 缺席的分母只算有缺席欄的表（舊版沒有缺席欄，absent 為 null）。公差、公假是公務，和請假分開列（使用者 2026-10-03 決定）
+export const LEAVE_TYPES = ['請假', '病假', '喪假', '事假'];
+export const DUTY_TYPES = ['公差', '公假'];
+export function attendanceTotals(list) {
+  const sum = (get, rows = list) => rows.reduce((s, f) => s + (Number(get(f.data || {})) || 0), 0);
+  const withAbsent = list.filter((f) => f.data?.absent != null);
+  const total = sum((d) => d.meetings);
+  const absentTotal = sum((d) => d.meetings, withAbsent);
+  const types = (keys) => keys.map((k) => [k, sum((d) => d.leave_types?.[k])]).filter(([, n]) => n);
+  const present = sum((d) => d.present);
+  const leave = sum((d) => d.leave);
+  const duty = sum((d) => d.duty);
+  const absent = sum((d) => d.absent, withAbsent);
+  const rate = (n, d = total) => (d ? n / d : 0);
+  return {
+    total, absentTotal, present, leave, duty, absent,
+    leaveTypes: types(LEAVE_TYPES), dutyTypes: types(DUTY_TYPES),
+    presentRate: rate(present), leaveRate: rate(leave), dutyRate: rate(duty), absentRate: rate(absent, absentTotal),
+  };
+}
+
+export const KHH_ATTENDANCE_NOTE = '依高雄市議會公報附錄「議員出席情形統計表」：每份統計表涵蓋一個會期（成立大會、臨時會或定期大會）的每一次大會會議，逐次標記每位議員出席、請假（含病假、喪假、事假）、公差、公假或缺席，本站照各表的合計數加總。公差、公假是執行公務，和請假分開列。出席、請假、公差／公假的比例以全部統計表的會議次數為分母；較早的統計表沒有缺席欄（下方標示），缺席的比例只以有缺席欄的統計表的會議次數為分母。統計表上標記與合計數不一致的欄位，本站不收錄。';
+
+// 本人欄位被整欄不收的會期：中性說明，不推測原因
+export function attendanceExcludedNote(f) {
+  const d = f.data || {};
+  const why = d.reason === 'mismatch' ? '本人欄位的逐次標記與合計不一致' : '本人欄位無法可靠讀取';
+  return `${String(d.session || '').replace(/^第4屆/, '')}的官方統計表，${why}，本站未收錄該會期。`;
+}
+
+export function khhAttendanceBlock(list, excluded = []) {
+  const a = attendanceTotals(list);
+  const row = (label, n, r, d) => `<li><span>${label}</span>${bar(r)}<span><span class="num">${pct(r)}</span>（<span class="num">${n}</span>／<span class="num">${d}</span>）</span></li>`;
+  const types = (label, t) => (t.length ? `<p class="muted small">${label}：${t.map(([k, n]) => `${k} <span class="num">${n}</span> 次`).join('、')}。</p>` : '');
+  const tables = [...list].reverse().map((f) => {
+    const d = f.data || {};
+    const u = safeUrl(f.source_url);
+    const absent = d.absent == null ? '表上無缺席欄' : `缺席 <span class="num">${Number(d.absent)}</span>`;
+    return `<li>${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：會議 <span class="num">${Number(d.meetings)}</span> 次，出席 <span class="num">${Number(d.present)}</span>、請假 <span class="num">${Number(d.leave)}</span>、公差／公假 <span class="num">${Number(d.duty)}</span>、${absent}</li>`;
+  }).join('');
+  return `<h3>出缺勤</h3>
+      ${list.length ? `<ul class="bars rates">${row('出席', a.present, a.presentRate, a.total)}${row('請假', a.leave, a.leaveRate, a.total)}${row('公差／公假', a.duty, a.dutyRate, a.total)}${row('缺席', a.absent, a.absentRate, a.absentTotal)}</ul>
+      <p class="muted small">出席、請假、公差／公假的分母是 <span class="num">${a.total}</span> 次會議（${list.length} 份統計表）；缺席的分母是有缺席欄的 <span class="num">${a.absentTotal}</span> 次會議。</p>
+      ${types('請假依假別', a.leaveTypes)}${types('公差／公假依類別', a.dutyTypes)}` : ''}
+      ${excluded.map((f) => `<p class="status" role="note">${esc(attendanceExcludedNote(f))}</p>`).join('')}
+      <p class="muted small">${KHH_ATTENDANCE_NOTE}</p>
+      ${list.length ? `<details class="sess"><summary>各會期統計表（<span class="num">${list.length}</span> 份，連結至公報原檔）</summary><ul class="plain small">${tables}</ul></details>` : ''}`;
 }
 
 // 第1選舉區 2022 公報含重疊的隱藏文字，本站刻意不擷取：現任該區議員且沒有 profile 時要註明
@@ -672,7 +722,10 @@ function summaryCard(facts, { offices, inters, written, videos, jump, rec = RECO
       ${other ? `<p class="muted small">另有 <span class="num">${other}</span> 筆未分部門（例如市政總質詢），不列入上表。</p>` : ''}`;
   }
   const att = facts.attendance || [];
-  if (att.length) {
+  const attExcluded = facts.attendance_excluded || [];
+  if (attExcluded.length || (att.length && typeof att[0].data?.meetings === 'number')) {
+    did += khhAttendanceBlock(att, attExcluded);
+  } else if (att.length) {
     const a = attendanceRates(att);
     did += `<h3>出缺勤</h3>
       <ul class="bars rates">
