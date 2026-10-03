@@ -77,9 +77,9 @@ git push origin main
 | 3 | **選舉時程維運** | 工具已備好（2026-10-03，見 §4「選舉時程」）：10/16 審定與不合格者、11/12、11/17 號次都寫進 `data/candidates_2026_status.csv` 後跑 ETL；前端依階段自動換說明與排序。**11/25 公報**：先跑 `python3 -m etl.bulletin2022 data/cache/bulletin2026_index.json 115年` 爬目錄、看檔名能否解析，再評估把 2022 切格器（`etl/bulletin_grid.py`）套到 2026（身分改以號次對 2026 名單，而不是 2022 開票）；政見、學經歷照 2022 規則，生日只用於身分比對、不進 dump | [V1](validation/V1-candidates-2026.md) |
 | 4 | **立委全國** | 程式已寫好（雲端 session，連不到 API，假資料測試；欄位名取自 openfunltd/ly.govapi.tw-v2 原始碼，Base URL 已改為 `https://ly.govapi.tw/v2`）。**下一步**：本機跑 `python3 -m etl.run`，對照 log 與實際回應確認：①`到職日`、`刊登日期`、`提案日期` 的寫法（`lyapi.to_date`）②單一選區縣市的 `選區名稱`（`lyapi.area`；對不上會印「不在 district 表」）③現任人數落在 100–113 ④審閱清單（不分區、原住民立委參選地方一律進審閱，確認後填 `data/identity_legislators.csv`）⑤`/interpellations` 是否只有書面質詢 ⑥ dump 增加的大小。⑦表決：`etl/sources/ly_votes.py` 已寫好但**預設不在 SOURCES**，先跑 `python3 -m etl.sources.ly_votes` 量每位委員的筆數，dump 增加的大小可以接受再加進 SOURCES（放在 `ly_records` 之後）。出席（`/meets`，先做 V5）未收錄 | PLAN §2、§7、[data-sources](data-sources/legislative-yuan.md) |
 | 5 | **其他議會（L3）** | 先完成 V12 普查（新北網站曾連不上、桃園與 16 縣市未查），依平台分組；高雄最容易（影片 API 可逐人、有出席統計表），臺中、臺南可做名錄與影片 | [V12](validation/V12-councils-survey.md) |
-| 6 | **報導者觀測站議題標籤** | 使用者已同意：個人頁深連結，議題名稱與相關提案數原文照錄並標示出處（CC BY-NC-ND 3.0 TW） | README |
+| 6 | **報導者觀測站議題標籤** | 使用者已同意：個人頁深連結，議題名稱與相關提案數原文照錄並標示出處（CC BY-NC-ND 3.0 TW）。**先在本機查**：個人頁網址格式、議題名稱與提案數的取得方式（雲端連不到 lawmaker.twreporter.org，2026-10-03） | README |
 | 7 | **確定有罪判決** | ETL 與核可表已建好（2026-10-03）：`etl/sources/convictions.py` 只收 `data/convictions.csv` 上的判決（欄位與規則照 V7 §3.2：確定證據 A–D、身分路徑 1／2、Claude 初審＋verifier 複核），每次重抓 FJUD 原文與歷審，被擋、下架、字號對不上或有尚未結案的上級審就不顯示。**下一步**：11/25 公報後補生日核對，逐筆查證後填表；FJUD 原文頁的 jid 寫法要在本機第一次跑時確認（`convictions.jid_of`，找不到會印出且不顯示） | [V7](validation/V7-criminal-records.md) |
-| 8 | **法遵** | 黨徽使用、判決顯示上線前的審查（security-executor） | PLAN §6 第 4 點、[公開前審查](validation/pre-publication-review.md) |
+| 8 | **法遵** | 黨徽縮圖與移除承諾、中選會開放資料顯名已完成；2026-10-03 新功能的自查見[公開前審查](validation/pre-publication-review.md) §6。**仍需** security-executor 正式審查判決顯示與立委資料，以及該報告末節需法律專業確認的事項 | PLAN §6 第 4 點、[公開前審查](validation/pre-publication-review.md) |
 
 ## 6. 量能評估（不含 NotebookLM 摘要）
 

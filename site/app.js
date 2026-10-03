@@ -703,6 +703,7 @@ export function criminalRecordSection(facts) {
 // ---------- 立法院問政紀錄（ly_records：書面質詢、IVOD 發言片段、列名提案的議案） ----------
 
 export const LY_NOTE = '第 11 屆立法委員任內紀錄，資料取自 OpenFun 立法院 API（CC BY 4.0），原始資料為立法院公報、議事轉播與議案系統。書面質詢的涵蓋範圍是立法院 API 收錄的第 11 屆第 1–3 會期書面質詢（第 4 會期起尚未收錄），筆數不代表任期內全部質詢；口頭質詢請見發言影片（IVOD）。';
+export const LY_LICENSE = 'https://creativecommons.org/licenses/by/4.0/deed.zh-hant';
 // 尚未收錄的種類要講明，不能讓空白看起來像沒有出席或沒有表決
 export const lyNote = (facts) => `${LY_NOTE}${(facts.ly_vote || []).length ? '出席紀錄尚未收錄。' : '出席與表決紀錄尚未收錄。'}`;
 export const LY_KINDS = {
@@ -827,7 +828,7 @@ async function renderPerson(main, ctx, id) {
       ${interSection('written', '書面質詢', kinds.written)}
       ${interSection('video', '口頭質詢（影片）', kinds.video)}</section>` : '';
   const ly = lyCounts(facts).length ? `<section aria-labelledby="k-ly"><h2 id="k-ly">立法院問政紀錄</h2>
-      <p class="count">${esc(lyNote(facts))}</p>
+      <p class="count">${esc(lyNote(facts))}${ext(LY_LICENSE, '授權條款')}</p>
       ${Object.entries(LY_KINDS).map(([k, m]) => interSection(k, m.heading, kinds[k])).join('')}</section>` : '';
 
   main.innerHTML = `
