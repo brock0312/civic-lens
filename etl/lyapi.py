@@ -25,8 +25,9 @@ def headers():
 
 
 def list_url(type_, params, page=1, limit=100):
+    """params 的值是 list 時重複該鍵（例：output_fields=a&output_fields=b）。"""
     q = [*sorted(params.items()), ("page", page), ("limit", limit)]
-    return f"{BASE}/{type_}?{urllib.parse.urlencode(q)}"
+    return f"{BASE}/{type_}?{urllib.parse.urlencode(q, doseq=True)}"
 
 
 def item_url(type_, *ids):

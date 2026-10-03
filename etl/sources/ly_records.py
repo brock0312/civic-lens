@@ -16,6 +16,8 @@ from etl.db import upsert_fact
 from etl.sources.ly_legislators import FACT_PREFIX
 
 KINDS = ("ly_interpellation", "ly_video", "ly_bill")
+# /bills 列表預設不輸出「提案日期」（只在單筆有），要用 output_fields 指定（2026-10-03 對實際回應確認）
+BILL_FIELDS = ["議案編號", "議案名稱", "議案類別", "議案狀態", "提案人", "提案日期"]
 
 
 def interpellation_facts(rows, name):
@@ -85,7 +87,7 @@ def fetch_person(name, fetch_all=lyapi.fetch_all):
     term = {"屆": lyapi.TERM}
     inter, _ = fetch_all("interpellations", {**term, "質詢委員": name})
     ivods, _ = fetch_all("ivods", {**term, "委員名稱": name, "影片種類": "Clip"})
-    bills, _ = fetch_all("bills", {**term, "提案人": name})
+    bills, _ = fetch_all("bills", {**term, "提案人": name, "output_fields": BILL_FIELDS})
     return interpellation_facts(inter, name) + video_facts(ivods, name) + bill_facts(bills, name)
 
 

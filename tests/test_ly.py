@@ -248,7 +248,12 @@ class LyRunTest(unittest.TestCase):
         ly_records.fetch_person("王大明", fetch_all=fake)
         self.assertEqual(calls, [("interpellations", {"屆": 11, "質詢委員": "王大明"}),
                                  ("ivods", {"屆": 11, "委員名稱": "王大明", "影片種類": "Clip"}),
-                                 ("bills", {"屆": 11, "提案人": "王大明"})])
+                                 ("bills", {"屆": 11, "提案人": "王大明", "output_fields": ly_records.BILL_FIELDS})])
+        self.assertIn("提案日期", ly_records.BILL_FIELDS)
+
+    def test_list_url_repeats_the_key_for_list_values(self):
+        url = lyapi.list_url("bills", {"output_fields": ["議案編號", "提案日期"]})
+        self.assertIn("output_fields=%E8%AD%B0%E6%A1%88%E7%B7%A8%E8%99%9F&output_fields=%E6%8F%90%E6%A1%88%E6%97%A5%E6%9C%9F", url)
 
 
 if __name__ == "__main__":
