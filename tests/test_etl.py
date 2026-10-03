@@ -261,6 +261,19 @@ class TestCandidatesOnly(unittest.TestCase):
             self.assertEqual(mayor["people"][0]["incumbent"],
                              [{"office": "nwt_councilor", "district_id": "nwt-council-01", "suspended": False}])
 
+    def test_redistricted_office_is_listed_under_each_matching_2026_district(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
+            _add_district(conn, "hsq-council-02")
+            upsert_person(conn, "p", "甲")
+            upsert_fact(conn, "o", "p", "office",
+                        {"office": "hsq_councilor", "district_id": "hsq-council-2022-01",
+                         "districts_2026": ["hsq-council-01", "hsq-council-02"]}, "http://a", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "c", "p", "candidacy", {"district_id": "hsq-council-02"}, "http://a", "2024-01-01T00:00:00Z")
+            export(conn, Path(tmp) / "out")
+            d = json.loads((Path(tmp) / "out" / "districts" / "hsq-council-02.json").read_text(encoding="utf-8"))
+            self.assertEqual([x["district_id"] for x in d["people"][0]["incumbent"]], ["hsq-council-01", "hsq-council-02"])
+
 
 def _add_district(conn, district_id):
     upsert(conn, "district", {

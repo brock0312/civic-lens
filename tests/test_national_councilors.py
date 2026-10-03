@@ -40,6 +40,22 @@ class NationalCouncilorsTest(unittest.TestCase):
                                      "inauguration_source_url": MOI_INAUGURATION[0],
                                      "inauguration_source_label": MOI_INAUGURATION[1]})
 
+    def test_hsinchu_county_office_names_the_2022_district_and_lists_its_2026_districts(self):
+        rows, review = plan([ros("hsq", 1, "王大明"), ros("hsq", 3, "李四")], [],
+                            [cand("p1", "王大明", "hsq-council-02"), cand("p2", "李四", "hsq-council-04")], {})
+        self.assertEqual(review, [])
+        self.assertEqual([x["person_id"] for x in rows], ["p1", "p2"])
+        a, b = rows[0]["data"], rows[1]["data"]
+        self.assertEqual((a["district_id"], a["district_name"], a["districts_2026"]),
+                         ("hsq-council-2022-01", "新竹縣第1選舉區（2022 年劃分）", ["hsq-council-01", "hsq-council-02"]))
+        self.assertEqual((b["district_id"], b["districts_2026"]), ("hsq-council-2022-03", ["hsq-council-04"]))
+
+    def test_counties_without_redistricting_keep_the_roster_district(self):
+        x = plan([ros("hsz", 3, "王大明")], [], [], {})[0][0]["data"]
+        self.assertEqual(x["district_id"], "hsz-council-03")
+        self.assertNotIn("district_name", x)
+        self.assertNotIn("districts_2026", x)
+
     def test_party_from_2022_cites_cec_file(self):
         w = {**won("nwt", 3, "王大明", "民主進步黨"), "source_url": "https://cec/x.json"}
         x = plan([ros("nwt", 3, "王大明")], [w], [], {})[0][0]["data"]

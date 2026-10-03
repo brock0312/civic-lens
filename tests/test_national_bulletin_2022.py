@@ -115,5 +115,16 @@ class LoadTargetsTest(unittest.TestCase):
             self.assertEqual([t["person_id"] for t in nb.load_targets(conn, "mia")], ["pRun"])
             conn.close()
 
+    def test_hsinchu_county_target_uses_the_2022_district_number(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
+            upsert(conn, "person", {"person_id": "p", "name": "p"}, ("person_id",))
+            upsert_fact(conn, "office:hsq-council-2022:p", "p", "office",
+                        {"office": "hsq_councilor", "district_id": "hsq-council-2022-03",
+                         "districts_2026": ["hsq-council-04"]}, "https://x", "t")
+            upsert_fact(conn, "candidacy:2026-local:p", "p", "candidacy", {"district_id": "hsq-council-04"}, "https://x", "t")
+            self.assertEqual(nb.load_targets(conn, "hsq")[0]["district_n"], 3)
+            conn.close()
+
 if __name__ == "__main__":
     unittest.main()

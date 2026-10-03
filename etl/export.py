@@ -31,11 +31,13 @@ def export(conn, out_dir):
     # 網站只呈現 2026 候選人：沒有 candidacy 的現任不輸出人物檔，也不進選區（2026-10-03 使用者決定）
     candidates = {r["person_id"] for r in facts if r["kind"] == "candidacy"}
     # 候選人本人的現任職位（含別的選區），前端據此標「現任」或「現任＋職稱」
+    # 2022 劃分與 2026 不同的選區（新竹縣）展開成對應的 2026 選區，前端照常以 district_id 比對
     incumbent = {
         pid: [
-            {"office": d.get("office"), "district_id": d.get("district_id"),
+            {"office": d.get("office"), "district_id": did,
              "suspended": (d.get("status_events") or [{}])[-1].get("event") == "suspended"}
             for d in (json.loads(r["data"]) for r in _sort_facts(facts_by_person[pid]) if r["kind"] == "office")
+            for did in d.get("districts_2026") or [d.get("district_id")]
         ]
         for pid in candidates
     }

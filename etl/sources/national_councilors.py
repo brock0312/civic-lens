@@ -12,7 +12,7 @@ from pathlib import Path
 from etl.cec2022 import SOURCES as CEC_SOURCES, TICKETS, parse_candidates
 from etl.db import upsert, upsert_fact
 from etl.fetch import get_json, now_utc
-from etl.match import VARIANTS, han, match
+from etl.match import VARIANTS, _districts_2026, han, match
 from etl.rosters import ROSTER_URLS, fetch_roster
 from etl.sources.national_heads import MOI_INAUGURATION
 from etl.sources.national_districts import COUNTIES, council_id
@@ -78,6 +78,13 @@ def plan(roster, won, candidates, identity):
         w = seats.get(_seat_key(r["iso"], r["district_n"], r["name"]))
         data = {"office": f"{r['iso']}_councilor", "district_id": council_id(r["iso"], r["district_n"]),
                 "title": f"{NAMES[r['iso']]}議員"}
+        new = sorted(_districts_2026({"iso": r["iso"], "district_n": r["district_n"]}))
+        if new != [data["district_id"]]:
+            # 名錄是 2022 劃分、2026 改了界線（新竹縣）：區號不能當 2026 選區 id。
+            # 改用 2022 專屬 id（公報串接仍取得 2022 區號），寫出 2022 選區名稱，並列出對應的 2026 選區供「現任」比對
+            data["district_id"] = f"{r['iso']}-council-2022-{r['district_n']:02d}"
+            data["district_name"] = f"{NAMES[r['iso']]}第{r['district_n']}選舉區（2022 年劃分）"
+            data["districts_2026"] = new
         if r.get("party"):
             data["party"] = r["party"]
         elif w:  # 名錄沒有政黨時用 2022 推薦政黨，前端標「2022 推薦」，避免換黨者顯示成目前政黨

@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict } from './app.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -279,7 +279,7 @@ test('criminal record section never says the person has no record', () => {
   }
 });
 
-const COUNTIES = new Map([['nwt', { iso: 'nwt', name: '新北市' }], ['ila', { iso: 'ila', name: '宜蘭縣' }]]);
+const COUNTIES = new Map([['nwt', { iso: 'nwt', name: '新北市' }], ['ila', { iso: 'ila', name: '宜蘭縣' }], ['hsq', { iso: 'hsq', name: '新竹縣' }]]);
 const inc = (office, district_id, suspended = false) => ({ office, district_id, suspended });
 
 test('candidate holding office in the same district is tagged 現任, or 停職中 when suspended', () => {
@@ -291,6 +291,19 @@ test('candidate holding office elsewhere is tagged with that office title', () =
   assert.equal(candidateTag([inc('nwt_councilor', 'nwt-council-03')], 'nwt-mayor', COUNTIES), '現任新北市議員');
   assert.equal(candidateTag([inc('ila_mayor', 'ila-mayor', true)], 'ila-council-01', COUNTIES), '宜蘭縣長（停職中）');
   assert.equal(candidateTag([inc('nwt_councilor', 'nwt-council-03'), inc('nwt_mayor', 'nwt-mayor')], 'nwt-mayor', COUNTIES), '現任');
+});
+
+test('Hsinchu County incumbent is current in the 2026 districts that replaced the 2022 one', () => {
+  // export 把 2022 第 1 區展開成 2026 第 1、2 區
+  const list = [inc('hsq_councilor', 'hsq-council-01'), inc('hsq_councilor', 'hsq-council-02')];
+  assert.equal(candidateTag(list, 'hsq-council-02', COUNTIES), '現任');
+  assert.equal(candidateTag(list, 'hsq-council-03', COUNTIES), '現任新竹縣議員');
+});
+
+test('office district shows the 2022 district name without linking when it was redistricted', () => {
+  const link = (id) => `<a href="#/d/${id}">${id}</a>`;
+  assert.equal(officeDistrict({ district_id: 'hsq-council-2022-01', district_name: '新竹縣第1選舉區（2022 年劃分）' }, link), '新竹縣第1選舉區（2022 年劃分）');
+  assert.equal(officeDistrict({ district_id: 'nwt-council-01' }, link), '<a href="#/d/nwt-council-01">nwt-council-01</a>');
 });
 
 test('candidate without office has no tag', () => {

@@ -115,6 +115,8 @@ export function candidateTag(incumbent, districtId, counties) {
   const label = officeLabel(o.office, counties.get(isoOf(o.district_id)));
   return o.suspended ? `${label}（停職中）` : `現任${label}`;
 }
+// 任職的選區：2022 劃分與 2026 不同（新竹縣）時只寫 2022 選區名稱，不連到 2026 選區頁
+export const officeDistrict = (data, link) => (data.district_name ? esc(data.district_name) : link(data.district_id));
 export const hasSuspension = (offices) => offices.some((f) => (f.data?.status_events || []).some((e) => e.event === 'suspended'));
 
 function eventLine(e, ongoing) {
@@ -659,7 +661,7 @@ async function renderPerson(main, ctx, id) {
     </dl>`).join('');
 
   const office = offices.map((f) => (f.data.elected_on ? headOfficeItem(f, districtLink(f.data.district_id)) : `<li><span class="name">${esc(f.data.title || label(f.data.office))}</span>
-      <span>${districtLink(f.data.district_id)}</span>
+      <span>${officeDistrict(f.data, districtLink)}</span>
       <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office))}${officeExtraRefs(f, notes)}</span></li>`)).join('');
 
   const bulletin = bulletinSection(facts, notes);
