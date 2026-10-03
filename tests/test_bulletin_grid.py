@@ -270,5 +270,47 @@ class GateFieldTest(unittest.TestCase):
         self.assertEqual(bg.gate_field([((0, 0, 100, 100), [])], [], set(), ""), (None, "空白"))
 
 
+class SideLabelTest(unittest.TestCase):
+    # 花蓮第 8–10 區：三區各一人，選區名直排印在表格左側框外，三個側標幾乎相連
+    def page(self):
+        w, h = 300, 130
+        px = bytearray([255]) * (w * h)
+        for y in (10, 30, 60, 90, 120):
+            px[y * w:(y + 1) * w] = bytes(w)
+        for x in (50, 100, 150, 200, 250, 295):
+            for y in range(10, 121):
+                px[y * w + x] = 0
+        words = [px_word(x + 5, 15, x + 40, 25, t)
+                 for x, t in zip((50, 100, 150, 200, 250), ("號次", "姓名", "出生年月日", "推薦之政黨", "學歷"))]
+        for y, label, name in ((30, "縣議員第八選區", "連一龍"), (60, "縣議員第九選區", "吳香蘭"), (90, "縣議員第十選區", "高小成")):
+            words += [px_word(40, y + 2, 48, y + 28, label), px_word(55, y + 5, 70, y + 25, "1"),
+                      px_word(105, y + 5, 145, y + 25, name)]
+        return [{"words": words}], [(w, h, bytes(px))]
+
+    def test_adjacent_side_labels_of_different_districts_are_split(self):
+        rows = bg.cut_pages(*self.page())
+        self.assertEqual([(bg.section_of(r["district_text"]), bg._text(r["fields"]["name"])) for r in rows],
+                         [(("councilor", 8), "連一龍"), (("councilor", 9), "吳香蘭"), (("councilor", 10), "高小成")])
+
+
+class MixedScriptNameTest(unittest.TestCase):
+    CEC = {("hua", "councilor", 6): {1: {"name": "何進雄 Kin Cian．Ri Pun", "birth_year": 1969, "party": "中國國民黨"},
+                                     2: {"name": "林正福", "birth_year": 1965, "party": "中國國民黨"}}}
+
+    def row(self, no, name):
+        cell = lambda t: [((0, 0, 10, 10), [word(1, 1, 9, 9, t)])]
+        return {"fields": {"no": cell(no), "name": cell(name), "birth": cell("58年11月4日"), "party": cell("中國國民黨")},
+                "district_text": "第六選區", "title": None, "suspect": set()}
+
+    def test_cjk_first_keeps_order_within_each_script(self):
+        self.assertEqual(bg.cjk_first("Kin何進雄Cian•RiPun"), "何進雄KinCian•RiPun")
+
+    def test_interleaved_aboriginal_name_matches(self):
+        self.assertIsNone(bg.identify(self.row("1", "Kin何進雄Cian•RiPun"), "hua", [["councilor", 6]], self.CEC)[3])
+
+    def test_reordering_does_not_excuse_a_different_name(self):
+        self.assertEqual(bg.identify(self.row("1", "Kin何進雄Cian•Ri"), "hua", [["councilor", 6]], self.CEC)[3], "姓名不符")
+
+
 if __name__ == "__main__":
     unittest.main()

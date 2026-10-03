@@ -223,6 +223,14 @@ def section_of(text):
     return None
 
 
+def _names_district(text):
+    """字串裡有「第…選」的區號。"""
+    try:
+        return bool(parse_districts(squeeze(text)))
+    except KeyError:
+        return False
+
+
 def _svg(pdf, pno):
     return subprocess.run(["pdftocairo", "-svg", "-f", str(pno), "-l", str(pno), str(pdf), "-"],
                           check=True, capture_output=True).stdout.decode("utf-8", "replace")
@@ -334,10 +342,11 @@ def _cut_group(page, words, pno, group, sy0, sy1, title):
         spans = [(a, b, _words_in(words, dcol[0], a, dcol[1], b))
                  for a, b in (((p[1] + 1) * S, q[0] * S) for p, q in zip(drules, drules[1:]))]
     side = []
-    if not dcol and bands:  # 花蓮：選區名直排印在表格左側框外，沒有表頭也沒有框線；依上下間隔分段
+    if not dcol and bands:  # 花蓮：選區名直排印在表格左側框外，沒有表頭也沒有框線；依上下間隔分段，
+        # 間隔很小但又出現下一個「第…選」也開新段（花蓮第 8–10 區三個側標幾乎相連）
         for w in sorted((w for w in words if gx0 - 40 <= (w[0] + w[2]) / 2 < gx0
                          and bands[0][0] <= (w[1] + w[3]) / 2 < bands[-1][1]), key=lambda w: w[1]):
-            if side and w[1] - side[-1][1] < 100:
+            if side and w[1] - side[-1][1] < 100 and not (_names_district(w[4]) and _names_district(_join(side[-1][2]))):
                 side[-1] = (side[-1][0], w[3], side[-1][2] + [w])
             else:
                 side.append((w[1], w[3], [w]))
@@ -468,6 +477,12 @@ def readings(parts):
     return {squeeze(_text(parts)), squeeze("".join(line_text(l) for l in to_lines(ws))) if ws else ""}
 
 
+def cjk_first(text):
+    """原住民姓名格：直排漢字與橫排拼音交錯讀出（「Kin何進雄Cian•RiPun」）→ 漢字在前、其餘在後，各自保持原順序。
+    只多一種讀法，比對仍要和開票姓名完全一致（開票姓名一律漢字在前）。"""
+    return "".join(c for c in text if 0x4E00 <= ord(c) <= 0x9FFF) + "".join(c for c in text if not 0x4E00 <= ord(c) <= 0x9FFF)
+
+
 def _plain(text):
     """去空白與控制字（Word 的 \x07、\x08 在 -bbox 與 -raw 裡出現的位置不一定相同）。"""
     return re.sub(r"[\s\x00-\x1f]+", "", text)
@@ -537,7 +552,7 @@ def identify(row, iso, districts, cec):
         return sec, int(no_t), c, "黨籍不符"
     if any(w in row["suspect"] for _, ws in f["no"] + f["name"] for w in ws):
         return sec, int(no_t), c, "號次或姓名有看不見的文字"
-    if norm_name(c["name"]) not in {norm_name(t) for t in readings(f["name"])}:
+    if norm_name(c["name"]) not in {norm_name(r) for t in readings(f["name"]) for r in (t, cjk_first(t))}:
         return sec, int(no_t), c, "姓名不符"
     return sec, int(no_t), c, None
 
