@@ -51,6 +51,10 @@ export function hms(sec) {
 
 // 口頭質詢影片的播放說明：影片只切到「組」，多人組要講清楚不是個人片段
 export function videoNote(d) {
+  if (d?.whole_session) {  // 新北：整場會議影片，沒有個人起點
+    const n = Number(d.group_size) || 0;
+    return `整場會議影片，本人發言時段未標示${n > 1 ? `；本場發言議員 ${n} 位` : ''}`;
+  }
   if (d?.gid) return '從該議員發言處開始播放';  // 高雄 iVOD（有 gid）逐人標記發言起點，沒有質詢組
   if (d?.clip) {  // 臺中、臺南：議會逐人剪輯的影片；臺中聯合質詢是同組議員共用一支
     const n = Number(d.group_size) || 0;
@@ -85,6 +89,13 @@ export const RECORDS = {
     depts: [], written: false, note: '出缺勤紀錄本站尚未收錄。',
     videoBlurb: '連結至臺南市議會發布在 YouTube 的議事影片，影片來源：臺南市議會。',
     noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆臺南市議員市政總質詢影片）；書面質詢與出缺勤本站尚未收錄。',
+  },
+  // 新北（V15 已定案第 4 點）：書面質詢一人一會期一份掃描 PDF（不抓題目）、整場會議影片、大會出席只有出席名單
+  nwt: {
+    depts: [], written: true,
+    countLine: (written, videos) => `書面質詢及答復 <span class="num">${written.length}</span> 個會期（掃描檔）、口頭質詢影片 <span class="num">${videos.length}</span> 筆`,
+    writtenBlurb: '每個會期一筆，連結至新北市議會議事錄附錄「書面質詢及答復」的掃描檔（PDF），本站未擷取個別題目；只收個人書面質詢，不含聯合質詢。',
+    noRecord: '本站目前沒有此人的書面質詢與口頭質詢影片紀錄（收錄範圍：第4屆新北市議員個人書面質詢及答復、口頭質詢影片）。',
   },
 };
 
@@ -150,6 +161,27 @@ export function khhAttendanceBlock(list, excluded = []) {
       ${excluded.map((f) => `<p class="status" role="note">${esc(attendanceExcludedNote(f))}</p>`).join('')}
       <p class="muted small">${KHH_ATTENDANCE_NOTE}</p>
       ${list.length ? `<details class="sess"><summary>各會期統計表（<span class="num">${list.length}</span> 份，連結至公報原檔）</summary><ul class="plain small">${tables}</ul></details>` : ''}`;
+}
+
+// 新北：每筆是一個會期的摘要紀錄合計（meetings 次會議；present、leave、duty 是列在出席、請假、請假註記公假的次數）。
+// 兩份名單都沒有的次數原因不明，不另列（使用者 2026-10-04 決定）；公假和高雄一樣與請假分開列
+export const NWT_ATTENDANCE_NOTE = '依新北市議會議事錄每次會議「摘要紀錄」的出席與請假名單計算；請假名單上註記公假的，列為公差／公假，和請假分開。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、摘要紀錄列有出席名單的會議次數（定期會與臨時會，任職以後）；出席欄只寫「詳如簽到簿」的會議（多為審查委員會業務質詢與市政總質詢會議）不列入。';
+
+export function nwtAttendanceBlock(list) {
+  const sum = (k) => list.reduce((s, f) => s + (Number(f.data?.[k]) || 0), 0);
+  const total = sum('meetings');
+  const rate = (n) => (total ? n / total : 0);
+  const row = (label, n) => `<li><span>${label}</span>${bar(rate(n))}<span><span class="num">${pct(rate(n))}</span>（<span class="num">${n}</span>／<span class="num">${total}</span>）</span></li>`;
+  const sessions = list.map((f) => {  // export 已依日期由新到舊
+    const d = f.data || {};
+    const u = safeUrl(f.source_url);
+    return `<li>${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：會議 <span class="num">${Number(d.meetings)}</span> 次，出席 <span class="num">${Number(d.present)}</span>、請假 <span class="num">${Number(d.leave) || 0}</span>、公差／公假 <span class="num">${Number(d.duty) || 0}</span></li>`;
+  }).join('');
+  return `<h3>出缺勤</h3>
+      <ul class="bars rates">${row('出席', sum('present'))}${row('請假', sum('leave'))}${row('公差／公假', sum('duty'))}</ul>
+      <p class="muted small">出席 <span class="num">${sum('present')}</span>／<span class="num">${total}</span> 次、請假 <span class="num">${sum('leave')}</span> 次、公差／公假 <span class="num">${sum('duty')}</span> 次（分母是 <span class="num">${total}</span> 次會議）。</p>
+      <p class="muted small">${NWT_ATTENDANCE_NOTE}</p>
+      <details class="sess"><summary>各會期（<span class="num">${list.length}</span> 個，連結至議事錄原檔）</summary><ul class="plain small">${sessions}</ul></details>`;
 }
 
 // 第1選舉區 2022 公報含重疊的隱藏文字，本站刻意不擷取：現任該區議員且沒有 profile 時要註明
@@ -547,9 +579,12 @@ function interpellationRows(list) {
     const title = esc(f.data?.title || f.data?.doc_no || '');
     return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
       <span class="dept">${esc(f.data?.dept || '')}</span>
-      <span class="title">${u ? ext(u, title) : title}</span></li>`;
+      <span class="title">${u ? ext(u, title) : title}${moreFiles(f.data?.files)}</span></li>`;
   }).join('');
 }
+
+// 新北書面質詢：同會期有多份 PDF 時，第 2 份起另列連結
+const moreFiles = (files) => (files || []).slice(1).map((x, i) => (safeUrl(x.url) ? `；${ext(x.url, `第 ${i + 2} 份`)}` : '')).join('');
 
 // ---------- 質詢摘要（NotebookLM，依公報速記錄） ----------
 
@@ -733,7 +768,7 @@ export function summaryCard(facts, { offices, inters, written, videos, jump, rec
   if (inters.length) {
     const { counts, other } = deptCounts(inters, rec.depts);
     const max = Math.max(1, ...counts.map(([, n]) => n));
-    did += `<dl class="kv"><dt>質詢</dt><dd>${rec.written
+    did += `<dl class="kv"><dt>質詢</dt><dd>${rec.countLine ? rec.countLine(written, videos) : rec.written
     ? `共 <span class="num">${inters.length}</span> 筆（書面 <span class="num">${written.length}</span> 筆、口頭 <span class="num">${videos.length}</span> 筆）`
     : `口頭質詢影片 <span class="num">${videos.length}</span> 筆（書面質詢尚未收錄）`}</dd></dl>
       ${rec.depts.length ? `<h3>質詢的部門分布</h3>
@@ -744,7 +779,9 @@ export function summaryCard(facts, { offices, inters, written, videos, jump, rec
   }
   const att = facts.attendance || [];
   const attExcluded = facts.attendance_excluded || [];
-  if (attExcluded.length || (att.length && typeof att[0].data?.meetings === 'number')) {
+  if (att.length && att[0].data?.from_lists) {
+    did += nwtAttendanceBlock(att);
+  } else if (attExcluded.length || (att.length && typeof att[0].data?.meetings === 'number')) {
     did += khhAttendanceBlock(att, attExcluded);
   } else if (att.length) {
     const a = attendanceRates(att);
@@ -787,7 +824,7 @@ async function renderPerson(main, ctx, id) {
   const leadMeta = lead && districtMeta(ctx, lead.data.district_id);
   const rec = RECORDS[leadCounty?.iso];
   const kinds = {
-    written: { list: written, rows: interpellationRows, blurb: '標題連結至臺北市議會公報原文。' },
+    written: { list: written, rows: interpellationRows, blurb: rec?.writtenBlurb || '標題連結至臺北市議會公報原文。' },
     video: { list: videos, rows: videoRows, blurb: rec?.videoBlurb || videoBlurb(videos) },
     ...Object.fromEntries(Object.entries(LY_KINDS).map(([k, m]) => [k, { list: facts[k] || [], rows: lyRows, blurb: m.blurb }])),
   };
