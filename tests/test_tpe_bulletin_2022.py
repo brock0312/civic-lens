@@ -137,13 +137,15 @@ class TestAttachCouncilors(unittest.TestCase):
                    {"source": "tcc14", "source_key": name, "person_id": pid, "verified_by": "x"}, ("source", "source_key"))
             upsert_fact(self.conn, f"office:tcc14:{pid}", pid, "office", {"district_id": district},
                         "https://example.org", "t", date="2022-12-25")
+            upsert_fact(self.conn, f"candidacy:2026-local:{pid}", pid, "candidacy", {"district_id": district},
+                        "https://example.org", "t")
 
     def tearDown(self):
         self.conn.close()
         self.tmp.cleanup()
 
     def facts(self):
-        return {r[0]: json.loads(r[1]) for r in self.conn.execute("SELECT fact_key, data FROM fact WHERE kind != 'office'")}
+        return {r[0]: json.loads(r[1]) for r in self.conn.execute("SELECT fact_key, data FROM fact WHERE kind NOT IN ('office', 'candidacy')")}
 
     def test_writes_only_when_name_district_and_birth_date_all_match(self):
         incs = b.load_incumbents(self.conn)
@@ -161,6 +163,30 @@ class TestAttachCouncilors(unittest.TestCase):
         self.assertEqual(facts["profile:2022-local:pA"]["education"][0], "• 淡江大學日本語文學系碩士")
         row = self.conn.execute("SELECT date, source_url FROM fact WHERE fact_key = 'platform:2022-local:pA'").fetchone()
         self.assertEqual(tuple(row), ("2022-11-26", "https://bulletin.example/02.pdf"))
+
+    def test_incumbents_without_a_2026_candidacy_are_not_loaded(self):
+        self.conn.execute("DELETE FROM fact WHERE fact_key = 'candidacy:2026-local:pB'")
+        self.assertEqual({i["person_id"] for i in b.load_incumbents(self.conn)}, {"pA", "pC"})
+
+    def test_run_deletes_council_bulletin_facts_no_longer_written_and_keeps_others(self):
+        self.conn.execute("DELETE FROM fact WHERE fact_key = 'candidacy:2026-local:pC'")  # pC 沒參選 2026
+        url3 = b.bulletin_url(b.COUNCIL_PDF.format(3))
+        upsert_fact(self.conn, "platform:2022-local:pC", "pC", "platform", {"text": "舊"}, url3, "t")
+        upsert_fact(self.conn, "profile:2022-local:pC", "pC", "profile", {"education": []}, url3, "t")
+        upsert_fact(self.conn, "platform:2022-local:pM", "pC", "platform", {"text": "市長"}, b.bulletin_url(b.MAYOR_PDF), "t")
+        fixture = list(cands().values())  # 第 02 區；其他區 section 不符，切出 0 人
+        stubs = {"get_json": lambda u: {}, "get": lambda u: b"", "parse_pdf": lambda data: fixture,
+                 "check_against_cec": lambda *a: None, "run_mayor": lambda *a: None}
+        saved = {k: getattr(b, k) for k in stubs}
+        for k, v in stubs.items():
+            setattr(b, k, v)
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                b.run(self.conn)
+        finally:
+            for k, v in saved.items():
+                setattr(b, k, v)
+        self.assertEqual(set(self.facts()), {"platform:2022-local:pA", "profile:2022-local:pA", "platform:2022-local:pM"})
 
     def test_skips_incumbent_without_official_birth_date(self):
         self.conn.execute("UPDATE person SET birth_date = NULL WHERE person_id = 'pA'")

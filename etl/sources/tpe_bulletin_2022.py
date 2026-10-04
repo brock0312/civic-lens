@@ -1,4 +1,4 @@
-"""2022 選舉公報（臺北市議員 8 區＋臺北市長）的政見與學經歷，掛到現任議員與市長（M6）。
+"""2022 選舉公報（臺北市議員 8 區＋臺北市長）的政見與學經歷，掛到登記 2026 參選的現任議員與市長（M6）。
 
 版面：每頁左右兩欄、每欄數個固定大小的候選人格。格內上半是「號次·姓名／學歷／經歷」三欄，
 下半左側是個人資料（生日、性別、出生地、推薦之政黨），右側是政見框。
@@ -467,12 +467,15 @@ def write_bulletin_facts(conn, person_id, cand, office, district_id, url, fetche
 
 
 def load_incumbents(conn):
-    """回傳 [{name, person_id, birth_date, district_id}]：有 identity 對照的第 14 屆議員。"""
+    """回傳 [{name, person_id, birth_date, district_id}]：有 identity 對照、且登記 2026 參選的第 14 屆議員。
+    網站只呈現 2026 候選人（HANDOFF §3 第 9 條），沒參選的現任者不寫公報，先前寫的由 run() 刪掉。"""
     rows = conn.execute(
         "SELECT s.source_key, s.person_id, p.birth_date, f.data FROM person_source_id s "
         "JOIN person p ON p.person_id = s.person_id "
         "JOIN fact f ON f.fact_key = 'office:tcc14:' || s.person_id "
-        "WHERE s.source = 'tcc14' ORDER BY s.source_key"
+        "WHERE s.source = 'tcc14' "
+        "AND EXISTS (SELECT 1 FROM fact c WHERE c.person_id = s.person_id AND c.kind = 'candidacy') "
+        "ORDER BY s.source_key"
     ).fetchall()
     return [
         {"name": r[0], "person_id": r[1], "birth_date": r[2], "district_id": json.loads(r[3])["district_id"]}
@@ -549,6 +552,8 @@ def run(conn):
         for r in flatten(get_json(u)):
             cec.setdefault(int(r["area_code"]), []).append(r)
     incumbents = load_incumbents(conn)
+    pid = {i["name"]: i["person_id"] for i in incumbents}
+    urls, written_keys = set(), set()
     for n in range(1, 9):
         url = bulletin_url(COUNCIL_PDF.format(n))
         try:
@@ -560,8 +565,15 @@ def run(conn):
             continue
         check_against_cec(cands, cec.get(n, []), f"第 {n:02d} 選舉區")
         report = attach_councilors(conn, n, cands, incumbents, url, fetched_at)
+        urls.add(url)
+        written_keys.update(f"{k}:{ELECTION}:{pid[name]}" for name, written, _ in report for k in written)
         print(f"第 {n:02d} 選舉區：公報 {len(cands)} 人，現任 {len(report)} 人，"
               f"有寫入 {sum(1 for _, w, _ in report if w)} 人")
         for name, written, why in report:
             print(f"  {name}：{'、'.join(written) or '未寫入'} {why}")
+    # 照 national_bulletin_2022：本次處理的議員公報寫出、這次沒寫到的 facts（沒參選 2026、離職）刪掉；市長公報不在 urls 內
+    stale = [k for (k, u) in conn.execute("SELECT fact_key, source_url FROM fact WHERE kind IN ('platform', 'profile')")
+             if u in urls and k not in written_keys]
+    conn.executemany("DELETE FROM fact WHERE fact_key = ?", [(k,) for k in stale])
+    print(f"臺北議員公報：刪除不再寫入的 facts {len(stale)} 筆", flush=True)
     run_mayor(conn, fetched_at)
