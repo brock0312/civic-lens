@@ -80,13 +80,13 @@ class TestNwtBookParse(unittest.TestCase):
     def test_present_list_joins_romanized_names_and_skips_page_marks(self):
         text = summary("林國春", "宋雨蓁 Nikar．Falong", "李翁月娥 呂家愷") + "x"
         text = text.replace("呂家愷", "\n第1/4頁\n呂家愷")
-        self.assertEqual(nwt_book.parse_present(text), (["林國春", "宋雨蓁Nikar．Falong", "李翁月娥", "呂家愷"], []))
+        self.assertEqual(nwt_book.parse_present(text), (["林國春", "宋雨蓁Nikar．Falong", "李翁月娥", "呂家愷"], [], []))
         with self.assertRaises(ValueError):
             nwt_book.parse_present("沒有出席段")
 
-    def test_leave_list_is_split_from_the_present_list(self):
+    def test_leave_list_is_split_from_the_present_list_and_official_duty_from_leave(self):
         text = summary("林國春", "陳偉杰").replace("列  席", "請   假：黃永昌     宋明宗\n        洪佳君（公假）\n列  席")
-        self.assertEqual(nwt_book.parse_present(text), (["林國春", "陳偉杰"], ["黃永昌", "宋明宗", "洪佳君"]))
+        self.assertEqual(nwt_book.parse_present(text), (["林國春", "陳偉杰"], ["黃永昌", "宋明宗"], ["洪佳君"]))
 
     def test_records_without_a_present_list_are_rejected(self):
         with self.assertRaises(ValueError):
@@ -130,7 +130,7 @@ class TestNwtBookBuild(unittest.TestCase):
 
     def texts(self):
         return {u("a"): summary("陳偉杰", "林國春", "王小明", "宋雨蓁 Nikar．Falong", "不明人"),
-                u("b"): summary("陳偉杰", "補選人").replace("列  席", "請  假：宋雨蓁 Nikar．Falong\n列  席"),
+                u("b"): summary("陳偉杰").replace("列  席", "請  假：宋雨蓁 Nikar．Falong 補選人（公假）\n列  席"),
                 u("c"): None,  # 沒抓到：不列入 M
                 u("z"): summary("陳偉杰")}
 
@@ -144,9 +144,9 @@ class TestNwtBookBuild(unittest.TestCase):
         self.assertEqual(sorted(wr), ["p1"])
         p1 = {d["session"]: (d["present"], d["meetings"]) for _, d, _, _ in att["p1"]}
         self.assertEqual(p1, {"第4屆第6次定期會": (2, 2), "第4屆成立大會": (1, 1)})
-        self.assertEqual([(d["present"], d["leave"], d["meetings"]) for _, d, _, _ in att["p5"]], [(1, 1, 2), (0, 0, 1)])
+        self.assertEqual([(d["present"], d["leave"], d["duty"], d["meetings"]) for _, d, _, _ in att["p5"]], [(1, 1, 0, 2), (0, 0, 0, 1)])
         # 補選人只算任職起日以後的大會
-        self.assertEqual([(d["present"], d["meetings"]) for _, d, _, _ in att["p6"]], [(1, 1)])
+        self.assertEqual([(d["present"], d["leave"], d["duty"], d["meetings"]) for _, d, _, _ in att["p6"]], [(0, 0, 1, 1)])
         key, data, url, date = wr["p1"][0]
         self.assertEqual(key, "ntpwritten:B6:p1")
         self.assertEqual(data["title"], "第6次定期大會書面質詢及答復（掃描檔）")

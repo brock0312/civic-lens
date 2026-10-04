@@ -702,8 +702,8 @@ test('legislative records are counted in a fixed order and attributed to the API
 
 // ---------- 新北（V15 已定案第 4 點） ----------
 
-const nwtAtt = (session, meetings, present, url = 'https://ntpbook.ntp.gov.tw/Home/BookAgenda?cBookMdslID=a') => ({
-  source_url: url, data: { session, meetings, present, present_only: true },
+const nwtAtt = (session, meetings, present, leave = 0, duty = 0, url = 'https://ntpbook.ntp.gov.tw/Home/BookAgenda?cBookMdslID=a') => ({
+  source_url: url, data: { session, meetings, present, leave, duty, from_lists: true },
 });
 
 test('New Taipei is a deep county with a neutral scope note and no department chart', () => {
@@ -722,24 +722,28 @@ test('New Taipei whole-session videos say the councillor slot is not marked', ()
   assert.equal(videoBlurb([{ source_url: 'https://vod.ntp.gov.tw/VodCloudV2/VOD/ViewDetailMetaData/x' }]), '連結至新北市議會議事影音系統，影片來源：新北市議會。');
 });
 
-test('New Taipei attendance shows only present out of collected meetings, with the definition and per-session sources', () => {
-  const html = nwtAttendanceBlock([nwtAtt('第4屆第1次定期會', 40, 37, 'https://ntpbook.ntp.gov.tw/Home/BookAgenda?cBookMdslID=b'), nwtAtt('第4屆成立大會', 1, 1)]);
-  assert.match(html, /出席 <span class="num">38<\/span>／<span class="num">41<\/span> 次/);
+test('New Taipei attendance shows present, leave and official duty out of collected meetings, with the definition and per-session sources', () => {
+  const html = nwtAttendanceBlock([nwtAtt('第4屆第1次定期會', 40, 36, 2, 1, 'https://ntpbook.ntp.gov.tw/Home/BookAgenda?cBookMdslID=b'), nwtAtt('第4屆成立大會', 1, 1)]);
+  assert.match(html, /<span>出席<\/span>.*（<span class="num">37<\/span>／<span class="num">41<\/span>）/);
+  assert.match(html, /<span>請假<\/span>.*（<span class="num">2<\/span>／<span class="num">41<\/span>）/);
+  assert.match(html, /<span>公差／公假<\/span>.*（<span class="num">1<\/span>／<span class="num">41<\/span>）/);
+  assert.match(html, /出席 <span class="num">37<\/span>／<span class="num">41<\/span> 次、請假 <span class="num">2<\/span> 次、公差／公假 <span class="num">1<\/span> 次/);
   assert.ok(html.includes(NWT_ATTENDANCE_NOTE));
-  assert.match(NWT_ATTENDANCE_NOTE, /只列出席次數.*不區分請假與缺席.*詳如簽到簿/);
+  assert.match(NWT_ATTENDANCE_NOTE, /出席與請假名單.*公假.*不區分缺席.*詳如簽到簿/);
   assert.match(html, /href="https:\/\/ntpbook\.ntp\.gov\.tw\/Home\/BookAgenda\?cBookMdslID=b"/);
+  assert.match(html, /第4屆第1次定期會<\/a>：會議 <span class="num">40<\/span> 次，出席 <span class="num">36<\/span>、請假 <span class="num">2<\/span>、公差／公假 <span class="num">1<\/span>/);
   assert.ok(html.indexOf('第4屆第1次定期會') < html.indexOf('第4屆成立大會'), 'newest session first');
-  assert.doesNotMatch(html, /請假 <span|缺席 <span|%|排名|評分/);
+  assert.doesNotMatch(html, /<span>缺席|未列|排名|評分/);
 });
 
-test('summary card for New Taipei counts written sessions and videos and uses the present-only attendance block', () => {
+test('summary card for New Taipei counts written sessions and videos and uses the list-based attendance block', () => {
   const w = { data: { title: '第6次定期大會書面質詢及答復（掃描檔）', scanned: true } };
   const v = { data: { video_id: 'x', whole_session: true, group_size: 5 } };
-  const att = [nwtAtt('第4屆第6次定期會', 45, 44)];
+  const att = [nwtAtt('第4屆第6次定期會', 45, 43, 1)];
   const card = summaryCard({ attendance: att }, { offices: [], inters: [w, v, v], written: [w], videos: [v, v], rec: RECORDS.nwt });
   assert.match(card, /書面質詢及答復 <span class="num">1<\/span> 個會期（掃描檔）、口頭質詢影片 <span class="num">2<\/span> 筆/);
-  assert.doesNotMatch(card, /部門分布|出席率|請假率|公差/);
-  assert.match(card, /出席 <span class="num">44<\/span>／<span class="num">45<\/span> 次/);
+  assert.doesNotMatch(card, /部門分布|出席率|請假率|<span>缺席/);
+  assert.match(card, /出席 <span class="num">43<\/span>／<span class="num">45<\/span> 次、請假 <span class="num">1<\/span> 次/);
   // 其他縣市的摘要卡不受影響
   const khh = summaryCard({}, { offices: [], inters: [v], written: [], videos: [v], rec: RECORDS.khh });
   assert.match(khh, /口頭質詢影片 <span class="num">1<\/span> 筆（書面質詢尚未收錄）/);

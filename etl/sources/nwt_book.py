@@ -5,7 +5,7 @@
 
 - 出席：每個會期（IndexByMJ 列出的成立大會、定期會、臨時會）的 BookAgenda 頁，每一次會議一份「摘要紀錄」PDF（有文字層），
   「出　席：」後是出席議員，多數紀錄接著有「請　假：」名單，再接「列　席：」。兩份名單都沒有的人原因不明，
-  所以照 V15 已定案第 4 點只顯示「出席 N／M 次」（請假次數存在 leave，未顯示）。M 是本站收錄、列有出席名單的會議次數
+  所以顯示出席、請假（公假另列為公差／公假）次數，不另列缺席（使用者 2026-10-04 決定）。M 是本站收錄、列有出席名單的會議次數
   （本人任職起日以後）；出席欄只寫「詳如簽到簿」（多為審查委員會業務質詢與市政總質詢會議）或停會的紀錄不列入。每人每會期一筆 fact。
 - 書面質詢：每個會期 BookAnnex 頁「書面質詢及答復」一節，一份 PDF 一個連結，連結文字寫日期和姓名
   （「114年11月10日陳偉杰議員個人書面質詢及答復」）。PDF 是掃描檔，不抓題目；只收「個人」書面質詢，
@@ -92,27 +92,31 @@ def parse_agenda(page):
 
 
 def _names(block):
-    """名單文字 → 姓名（原文寫法，依序）。原住民姓名的拼音併入前一個名字；「洪佳君（公假）」去掉括號註記。"""
+    """名單文字 → [(姓名, 括號註記)]（原文寫法，依序）。原住民姓名的拼音併入前一個名字；「洪佳君（公假）」→ (洪佳君, 公假)。"""
     names = []
     for tok in PAGE_MARK.sub(" ", block or "").split():
+        note = "".join(NOTE.findall(tok))
         tok = NOTE.sub("", tok)
         if not tok:
             continue
-        if LATIN.search(tok) and names and not LATIN.search(names[-1]):
-            names[-1] += tok
+        if LATIN.search(tok) and names and not LATIN.search(names[-1][0]):
+            names[-1] = (names[-1][0] + tok, names[-1][1] + note)
         else:
-            names.append(tok)
+            names.append((tok, note))
     return names
 
 
 def parse_present(text):
-    """摘要紀錄文字 → (出席者, 請假者)。出席欄沒有名單（「詳如簽到簿」、颱風停會等）就 raise。"""
+    """摘要紀錄文字 → (出席者, 請假者, 公差／公假者)。請假名單上註記（公假）（公差）的另列，和高雄一樣與請假分開。
+    出席欄沒有名單（「詳如簽到簿」、颱風停會等）就 raise。"""
     m = PRESENT.search(text)
     if not m:
         raise ValueError("摘要紀錄找不到「出席：…列席：」")
     if "簽到簿" in m.group(1):
         raise ValueError("出席欄只寫「詳如簽到簿」")
-    return _names(m.group(1)), _names(m.group(2))
+    off = _names(m.group(2))
+    duty = [n for n, note in off if "公假" in note or "公差" in note]
+    return [n for n, _ in _names(m.group(1))], [n for n, _ in off if n not in duty], duty
 
 
 def parse_written(page):
@@ -231,17 +235,18 @@ def attendance(books, roster, texts, log=print):
             except ValueError as e:
                 log(f"nwt_book：{b['session']} {s['date']} {e}，不列入：{s['url']}")
                 continue
-            present, leave = set(), set()
-            for label, names, into in (("出席", lists[0], present), ("請假", lists[1], leave)):
+            present, leave, duty = set(), set(), set()
+            for label, names, into in (("出席", lists[0], present), ("請假", lists[1], leave), ("公假", lists[2], duty)):
                 for n in names:
                     pid, why = resolve(n, roster)
                     if pid:
                         into.add(pid)
                     else:
                         log(f"nwt_book：{b['session']} {s['date']} {label}名單 {n}：{why}")
-            meetings.append((s["date"], present, leave))
+            meetings.append((s["date"], present, leave, duty))
         for pid in pids:
-            rows = [(d, "present" if pid in p else "leave" if pid in lv else None) for d, p, lv in meetings]
+            rows = [(d, "present" if pid in p else "leave" if pid in lv else "duty" if pid in du else None)
+                    for d, p, lv, du in meetings]
             if rows:
                 out.setdefault(pid, []).append({"session": b["session"], "book_id": b["id"], "meetings": rows})
     return out
@@ -281,10 +286,11 @@ def attendance_facts(person_id, since, sessions):
         rows = [(d, p) for d, p in s["meetings"] if d >= since]
         if not rows:
             continue
-        # leave 是列在請假名單上的次數：前端照定案只顯示出席，存著供日後決定是否呈現
+        # 兩份名單都沒有的次數不另列（使用者 2026-10-04 決定：只顯示出席、請假、公差／公假）
         data = {"term": TERM, "session": s["session"], "title": f"{s['session']}大會摘要紀錄",
                 "meetings": len(rows), "present": sum(st == "present" for _, st in rows),
-                "leave": sum(st == "leave" for _, st in rows), "present_only": True}
+                "leave": sum(st == "leave" for _, st in rows), "duty": sum(st == "duty" for _, st in rows),
+                "from_lists": True}
         out.append((f"ntpattend:{s['book_id']}:{person_id}", data, agenda_url(s["book_id"]), rows[0][0]))
     return out
 
@@ -378,7 +384,7 @@ def check(samples=()):
     for pid in [p for p in names if names[p] in samples]:
         print(f"\n{names[pid]}（{pid}）")
         for _, d, url, _ in att_facts.get(pid, []):
-            print(f"  出席 {d['session']:<12} {d['present']:>2}／{d['meetings']:<2}（請假名單 {d['leave']}） {url}")
+            print(f"  出席 {d['session']:<12} {d['present']:>2}／{d['meetings']:<2}（請假 {d['leave']}、公假 {d['duty']}） {url}")
         for _, d, _, _ in wr_facts.get(pid, []):
             print(f"  書面 {d['title']}：{' '.join(f['url'] for f in d['files'])}")
 

@@ -163,19 +163,23 @@ export function khhAttendanceBlock(list, excluded = []) {
       ${list.length ? `<details class="sess"><summary>各會期統計表（<span class="num">${list.length}</span> 份，連結至公報原檔）</summary><ul class="plain small">${tables}</ul></details>` : ''}`;
 }
 
-// 新北：每筆是一個會期的大會摘要紀錄合計（meetings 次大會、present 次列在出席名單上）；紀錄沒有請假名單，只顯示出席次數
-// 2026-10-04 實測：多數摘要紀錄另列請假名單，但沒列在出席或請假名單上的原因無法判斷，所以仍只顯示出席次數（請假次數存在 data.leave，未顯示）
-export const NWT_ATTENDANCE_NOTE = '依新北市議會議事錄每次會議「摘要紀錄」所列的出席名單計算，只列出席次數。摘要紀錄多數另列請假議員，但未列在出席或請假名單上的情形無法判斷原因，本站不區分請假與缺席。分母是本站收錄、摘要紀錄列有出席名單的會議次數（定期會與臨時會，任職以後）；出席欄只寫「詳如簽到簿」的會議（多為審查委員會業務質詢與市政總質詢會議）不列入。';
+// 新北：每筆是一個會期的摘要紀錄合計（meetings 次會議；present、leave、duty 是列在出席、請假、請假註記公假的次數）。
+// 兩份名單都沒有的次數原因不明，不另列（使用者 2026-10-04 決定）；公假和高雄一樣與請假分開列
+export const NWT_ATTENDANCE_NOTE = '依新北市議會議事錄每次會議「摘要紀錄」的出席與請假名單計算；請假名單上註記公假的，列為公差／公假，和請假分開。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、摘要紀錄列有出席名單的會議次數（定期會與臨時會，任職以後）；出席欄只寫「詳如簽到簿」的會議（多為審查委員會業務質詢與市政總質詢會議）不列入。';
 
 export function nwtAttendanceBlock(list) {
   const sum = (k) => list.reduce((s, f) => s + (Number(f.data?.[k]) || 0), 0);
+  const total = sum('meetings');
+  const rate = (n) => (total ? n / total : 0);
+  const row = (label, n) => `<li><span>${label}</span>${bar(rate(n))}<span><span class="num">${pct(rate(n))}</span>（<span class="num">${n}</span>／<span class="num">${total}</span>）</span></li>`;
   const sessions = list.map((f) => {  // export 已依日期由新到舊
     const d = f.data || {};
     const u = safeUrl(f.source_url);
-    return `<li>${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：出席 <span class="num">${Number(d.present)}</span>／<span class="num">${Number(d.meetings)}</span> 次</li>`;
+    return `<li>${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：會議 <span class="num">${Number(d.meetings)}</span> 次，出席 <span class="num">${Number(d.present)}</span>、請假 <span class="num">${Number(d.leave) || 0}</span>、公差／公假 <span class="num">${Number(d.duty) || 0}</span></li>`;
   }).join('');
   return `<h3>出缺勤</h3>
-      <dl class="kv"><dt>大會</dt><dd>出席 <span class="num">${sum('present')}</span>／<span class="num">${sum('meetings')}</span> 次</dd></dl>
+      <ul class="bars rates">${row('出席', sum('present'))}${row('請假', sum('leave'))}${row('公差／公假', sum('duty'))}</ul>
+      <p class="muted small">出席 <span class="num">${sum('present')}</span>／<span class="num">${total}</span> 次、請假 <span class="num">${sum('leave')}</span> 次、公差／公假 <span class="num">${sum('duty')}</span> 次（分母是 <span class="num">${total}</span> 次會議）。</p>
       <p class="muted small">${NWT_ATTENDANCE_NOTE}</p>
       <details class="sess"><summary>各會期（<span class="num">${list.length}</span> 個，連結至議事錄原檔）</summary><ul class="plain small">${sessions}</ul></details>`;
 }
@@ -771,7 +775,7 @@ export function summaryCard(facts, { offices, inters, written, videos, jump, rec
   }
   const att = facts.attendance || [];
   const attExcluded = facts.attendance_excluded || [];
-  if (att.length && att[0].data?.present_only) {
+  if (att.length && att[0].data?.from_lists) {
     did += nwtAttendanceBlock(att);
   } else if (attExcluded.length || (att.length && typeof att[0].data?.meetings === 'number')) {
     did += khhAttendanceBlock(att, attExcluded);
