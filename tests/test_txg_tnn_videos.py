@@ -123,6 +123,22 @@ class TestTxgRun(unittest.TestCase):
             d = json.loads(got[1]["data"])
             self.assertEqual((d["group_size"], d["clip"], d["councillors"]), (2, True, ["陳俞融", "陳淑華"]))
 
+    def test_run_deletes_tvideo_facts_missing_from_this_run_and_keeps_the_rest(self):
+        rows = [{"ano": "14742", "title": TXG_DEPT, "date": "2026-09-02"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = new_conn(tmp, "txg", [("p1", "陳淑華", 6, True)])
+            for key in ("tvideo:14742:p1", "tvideo:99999:p1", "nvideo:XYZ:p1", "kvideo:1:p1"):
+                upsert_fact(conn, key, "p1", "interpellation", {}, "https://u", "T0")
+            cache = Path(tmp) / "cache"
+            cache.mkdir()
+            (cache / "members.html").write_text(TXG_MEMBERS, encoding="utf-8")
+            with mock.patch.object(txg_videos, "CACHE", cache), \
+                    mock.patch.object(txg_videos, "fetch_member", return_value=rows), \
+                    mock.patch.object(txg_videos, "now_utc", return_value="T1"):
+                txg_videos.run(conn)
+            got = dict(conn.execute("SELECT fact_key, fetched_at FROM fact WHERE kind = 'interpellation'").fetchall())
+            self.assertEqual(got, {"tvideo:14742:p1": "T0", "nvideo:XYZ:p1": "T0", "kvideo:1:p1": "T0"})
+
     def test_incremental_fetch_stops_at_a_known_ano_and_merges(self):
         page1 = txg_page([txg_row(TXG_JOINT, "2026-09-29"), txg_row(TXG_DEPT, "2026-09-02", ano="14742")])
         with tempfile.TemporaryDirectory() as tmp:
@@ -210,6 +226,22 @@ class TestTnnRun(unittest.TestCase):
             self.assertEqual(got[0]["source_url"], "https://www.youtube.com/watch?v=6SSZuttYCJk")
             d = json.loads(got[0]["data"])
             self.assertEqual((d["doc_type"], d["session"], d["clip"], d["group_size"]), ("市政總質詢", "第4屆第8次定期會", True, 1))
+
+    def test_run_deletes_nvideo_facts_missing_from_this_run_and_keeps_the_rest(self):
+        rows = [{"video_id": "6SSZuttYCJk", "header": TNN_H8, "caption": "李啓維議員市政總質詢"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = new_conn(tmp, "tnn", [("p1", "李啓維", 9, True)])
+            for key in ("nvideo:6SSZuttYCJk:p1", "nvideo:OLDOLDOLDOL:p1", "tvideo:1:p1", "kvideo:1:p1"):
+                upsert_fact(conn, key, "p1", "interpellation", {}, "https://u", "T0")
+            cache = Path(tmp) / "cache"
+            cache.mkdir()
+            (cache / "members.html").write_text(TNN_MEMBERS, encoding="utf-8")
+            with mock.patch.object(tnn_videos, "CACHE", cache), \
+                    mock.patch.object(tnn_videos, "fetch_member", return_value=rows), \
+                    mock.patch.object(tnn_videos, "now_utc", return_value="T1"):
+                tnn_videos.run(conn)
+            got = dict(conn.execute("SELECT fact_key, fetched_at FROM fact WHERE kind = 'interpellation'").fetchall())
+            self.assertEqual(got, {"nvideo:6SSZuttYCJk:p1": "T0", "tvideo:1:p1": "T0", "kvideo:1:p1": "T0"})
 
     def test_incremental_fetch_stops_at_a_known_video(self):
         page1 = tnn_page([tnn_block(TNN_H8, "N" * 11, "李啟維議員市政總質詢"), tnn_block(TNN_H1, "O" * 11, "李啟維議員市政總質詢")])
