@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
@@ -642,6 +642,16 @@ test('bulletinSection for a non-Taipei person with a platform but no profile use
   assert.match(html, /出處：.*2022 選舉公報政見.*中央選舉委員會/);
   assert.match(html, /本站未收錄文字學經歷，請見<a href="[^"]+#page=4"/);
   assert.doesNotMatch(html, /未能以文字擷取/);
+});
+
+test('bulletinSection notes a 2022 loss only when the matched 2022 count says not elected', () => {
+  const lost = (elected) => ({ ...linkFact(5), data: { page: 5, elected } });
+  const plat = [{ ...linkFact(), data: { text: '一、政見' } }];
+  assert.ok(bulletinSection({ bulletin: [lost(false)] }, noNotes).includes(`<h2 id="k-bulletin" tabindex="-1">2022 選舉公報</h2><p class="status" role="note">${NOT_ELECTED_2022}</p>`));
+  assert.ok(bulletinSection({ platform: plat, bulletin: [lost(false)] }, noNotes).includes(NOT_ELECTED_2022));
+  assert.ok(!bulletinSection({ platform: plat, bulletin: [lost(true)] }, noNotes).includes(NOT_ELECTED_2022));
+  assert.ok(!bulletinSection({ platform: plat, bulletin: [linkFact(5)] }, noNotes).includes(NOT_ELECTED_2022));
+  assert.ok(!bulletinSection({ platform: plat }, noNotes).includes(NOT_ELECTED_2022)); // 臺北沒有 bulletin fact
 });
 
 test('bulletinSection keeps the Taipei wording when there is no bulletin fact', () => {

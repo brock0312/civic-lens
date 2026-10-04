@@ -6,6 +6,7 @@
 
 - facts 格式照臺北（platform、profile；學經歷用同一套 split_items 接行與條列）；另寫 kind=bulletin：
   對到公報檔的人一律記下原檔網址與頁碼，政見或學經歷沒收到時前端只放原檔連結（使用者 2026-10-02 決定）。
+- bulletin fact 的 data.elected 記下對到的 2022 開票紀錄是否當選（依開票紀錄，不從任職起日推斷）；落選者前端加註。
 - 姓名只差異體字（黄／黃）的人只放原檔連結，不寫政見（同一決定）。
 - 同一份 PDF 出現在兩個目錄（新北市長檔＝議員第 12 區檔、臺中市長檔含第 1 區）：市長取市長檔、議員取議員檔，同一人只寫一次。
 """
@@ -89,9 +90,11 @@ def plan_person(person, cec, files, picked):
     if path is None:
         return {"status": "missing", "reason": "沒有涵蓋此選區的公報檔"}
     if hit and full:
-        return {"status": "full", "path": path, "page": hit[1]["page"], "cand": to_cand(hit[1]), "reason": None}
+        return {"status": "full", "path": path, "page": hit[1]["page"], "cand": to_cand(hit[1]), "reason": None,
+                "elected": c["elected"]}
     reason = why or (NO_TEXT_FILES.get(path) and f"無文字層（{NO_TEXT_FILES[path]}）") or "公報列未通過身分關卡"
-    return {"status": "link", "path": path, "page": hit[1]["page"] if hit else None, "reason": reason}
+    return {"status": "link", "path": path, "page": hit[1]["page"] if hit else None, "reason": reason,
+            "elected": c["elected"]}
 
 
 # ---------- 讀取 ----------
@@ -158,7 +161,8 @@ def run(conn):
                 missing.append(f"{t['name']}（{t['district_id']}：{plan['reason']}）")
                 continue
             url = bulletin_url(plan["path"])
-            data = {"election": ELECTION, "office": t["office_code"], "district_id": t["district_id"], "title": "2022 選舉公報"}
+            data = {"election": ELECTION, "office": t["office_code"], "district_id": t["district_id"], "title": "2022 選舉公報",
+                    "elected": plan["elected"]}  # 2022 開票紀錄：落選後才遞補或補選就任的人，前端加註
             if plan["page"]:
                 data["page"] = plan["page"]
             key = f"bulletin:{ELECTION}:{t['person_id']}"

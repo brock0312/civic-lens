@@ -625,6 +625,9 @@ function srcLine(f, label, notes) {
   return `<p class="src">出處：${ext(u, esc(label))}，${esc(publisherOf(u))}，擷取 <time datetime="${esc(f.fetched_at)}">${fmtDate(f.fetched_at)}</time>${notes.ref(u, f.fetched_at, label)}</p>`;
 }
 
+// 2022 開票紀錄未當選（之後遞補或補選就任）：公報不是當選時的政見，中性加註。只看 bulletin fact 的 elected，不從任職起日推斷
+export const NOT_ELECTED_2022 = '本人於 2022 年選舉未當選，以下為當時的選舉公報內容。';
+
 // 2022 選舉公報：學歷、經歷、政見；政見原文保留換行，不截斷
 export function bulletinSection(facts, notes) {
   const profile = (facts.profile || [])[0];
@@ -648,7 +651,8 @@ export function bulletinSection(facts, notes) {
   } else if (needsDistrict01Note(facts)) {
     body = `<p class="status" role="note">第1選舉區 2022 公報因版面內含重疊文字，本站無法可靠擷取，請見${ext(DISTRICT01_BULLETIN, '公報原文')}。</p>`;
   } else return '';
-  return `<section aria-labelledby="k-bulletin"><h2 id="k-bulletin" tabindex="-1">2022 選舉公報</h2>${body}</section>`;
+  const lost = facts.bulletin?.[0]?.data?.elected === false ? `<p class="status" role="note">${NOT_ELECTED_2022}</p>` : '';
+  return `<section aria-labelledby="k-bulletin"><h2 id="k-bulletin" tabindex="-1">2022 選舉公報</h2>${lost}${body}</section>`;
 }
 
 // 確定有罪判決：只要有 2026 參選資料就顯示（用詞依刑法第 76 條，不稱「前科」）。只列 final === true 的確定判決，照原文呈現不加評語；

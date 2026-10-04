@@ -21,8 +21,8 @@ def row(office="councilor", n=12, no=1, page=1, platform="一、政見", educati
             "education": education, "experience": experience, "dropped": dropped or {}}
 
 
-def cand(name, no=1):
-    return {"name": name, "cand_no": no}
+def cand(name, no=1, elected=True):
+    return {"name": name, "cand_no": no, "elected": elected}
 
 
 class ToCandTest(unittest.TestCase):
@@ -85,6 +85,13 @@ class PlanTest(unittest.TestCase):
     def test_row_rejected_by_identity_gate_gets_file_link_without_page(self):
         p = nb.plan_person(self.person("王小明"), self.cec, FILES, {})
         self.assertEqual((p["status"], p["path"], p["page"]), ("link", COUNCIL_12, None))
+
+    def test_plan_carries_the_2022_election_result_of_the_matched_candidate(self):
+        cec = {("nwt", "councilor", 12): {1: cand("王小明", 1), 2: cand("石一佑", 2, elected=False)}}
+        picked = nb.pick_rows([(COUNCIL_12, [row(no=1), row(no=2)])])
+        self.assertTrue(nb.plan_person(self.person("王小明"), cec, FILES, picked)["elected"])
+        self.assertFalse(nb.plan_person(self.person("石一佑"), cec, FILES, picked)["elected"])
+        self.assertFalse(nb.plan_person(self.person("石一佑"), cec, FILES, {})["elected"])  # 只有原檔連結也要帶
 
     def test_not_a_2022_candidate_is_missing(self):
         self.assertEqual(nb.plan_person(self.person("陳某某"), self.cec, FILES, {})["status"], "missing")
