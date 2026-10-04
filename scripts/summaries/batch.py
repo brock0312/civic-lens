@@ -15,7 +15,8 @@
   - 整個會期速記錄裡沒有本人發言的議員輸出 status 'no_speech'，不送 NotebookLM。
   - 過濾後沒有議題的摘要不輸出，列進報告。
   - 人工修訂（data/summaries/edits/14-0N.json，apply_edits）在自動檢查前套用；有任何一筆對不上議題或句子，整個會期失敗、不輸出。
-  - 輸出檔的 review 一律是 pending（重建會蓋掉先前的 approved，要重新審閱）；人工審閱通過改成 approved 後，ETL（etl/sources/tcc_summaries.py）才會收。
+  - 輸出檔的 review 一律是 pending；人工審閱通過改成 approved 後，ETL（etl/sources/tcc_summaries.py）才會收。
+    已核可的會期不覆寫：重跑時改寫到 data/cache/transcripts/14-0N/pending.json，審閱通過後再取代 data/summaries 的檔並設為 approved。
 輸出：
   data/summaries/14-0N.json                    要 commit 的資料：摘要、引文（source_url、頁碼、cited_text）、出處清單
   data/cache/transcripts/14-0N/batch_report.json 檢查報告（失敗、被移除的議題、空引文數、自動檢查問題）
@@ -192,7 +193,9 @@ def run_session(session, only=None, cached=False):
               f"移除議題 {len(f['removed_issues'])}、引文無關 {len(f['irrelevant_issues'])}、檢查問題 {len(rec['check']['problems'])}", flush=True)
     OUT.mkdir(parents=True, exist_ok=True)
     stamps = [r["generated_at"] for r in records if r["generated_at"]]
-    (OUT / f"{tag}.json").write_text(json.dumps({
+    out = output_path(tag)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({
         "session": tag, "label": f"第14屆第{int(session)}次定期大會", "last_date": max(dates) if dates else None,
         "generator": "NotebookLM", "generated_at": max(stamps) if stamps else None, "disclaimer": DISCLAIMER,
         "review": {"status": "pending", "by": None, "at": None, "note": None},
@@ -206,8 +209,19 @@ def run_session(session, only=None, cached=False):
     if internal:
         (cache / "review.md").write_text(review_md(internal))
     print(f"{tag} 完成：ok {len(report['ok'])}、no_speech {len(report['no_speech'])}、"
-          f"不輸出 {len(report['dropped'])}、失敗 {len(report['failed'])} → {OUT / f'{tag}.json'}；{report['totals']}", flush=True)
+          f"不輸出 {len(report['dropped'])}、失敗 {len(report['failed'])} → {out}；{report['totals']}", flush=True)
     return report
+
+
+def output_path(tag, out_dir=None, cache_dir=None):
+    """已核可的會期不覆寫：改寫到 cache 的 pending.json，審閱通過後再取代 data/summaries 的檔。
+    否則重跑（例如補跑失敗的議員）會把已上線的會期改回 pending，ETL 就會把它整批撤下。"""
+    target = (out_dir or OUT) / f"{tag}.json"
+    try:
+        approved = json.loads(target.read_text(encoding="utf-8"))["review"]["status"] == "approved"
+    except (OSError, ValueError, KeyError, TypeError):
+        approved = False
+    return (cache_dir or CACHE) / tag / "pending.json" if approved else target
 
 
 def main(argv):

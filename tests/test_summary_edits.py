@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "summaries"))
-from batch import EditMismatch, apply_edits, candidate_ids  # noqa: E402
+from batch import EditMismatch, apply_edits, candidate_ids, output_path  # noqa: E402
 from check_report import bigram_idf, filter_citations  # noqa: E402
 
 SUMMARY = {"person_id": "p1", "name": "甲", "issues": [
@@ -71,3 +71,16 @@ class TestCandidateIds(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OutputPathTest(unittest.TestCase):
+    def test_approved_session_is_not_overwritten_and_goes_to_cache(self):
+        import json as _json
+        with tempfile.TemporaryDirectory() as d:
+            out, cache = Path(d) / "summaries", Path(d) / "cache"
+            out.mkdir()
+            self.assertEqual(output_path("14-02", out, cache), out / "14-02.json")
+            (out / "14-01.json").write_text(_json.dumps({"review": {"status": "approved"}}), encoding="utf-8")
+            self.assertEqual(output_path("14-01", out, cache), cache / "14-01" / "pending.json")
+            (out / "14-03.json").write_text(_json.dumps({"review": {"status": "pending"}}), encoding="utf-8")
+            self.assertEqual(output_path("14-03", out, cache), out / "14-03.json")

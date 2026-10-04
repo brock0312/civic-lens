@@ -58,7 +58,7 @@ git push origin main
   3. 有問題的議題或句子寫進 `data/summaries/edits/14-0N.json`（可稽核的人工修訂），再用 `batch.py 0N --cached` 重建（不消耗額度）。
   4. 把 `review` 改成 `approved`（by、at、note），commit 該會期摘要與修訂檔，跑 ETL、push。
 - **已知陷阱**：NotebookLM 會把官員在別的議題的承諾放進「市府回應」；約 5–10% 議題的引文只是寒暄。程式已有同場次檢查、文字相似度偵測與相關性過濾（`RELEVANCE_MIN`，邊界很薄，換會期要重看分數分布），但**人工抽樣仍是必要的閘門**。
-- **重建會把 review 改回 pending**：已核可的會期如果重建，要重新核可。
+- **已核可的會期不會被覆寫**：重跑或 `--cached` 重建已核可的會期時，輸出改寫到 `data/cache/transcripts/14-0N/pending.json`（批次 log 會印出路徑）。審閱新增或變動的部分後，把它複製到 `data/summaries/14-0N.json`、review 設為 approved，再 commit。這是為了避免批次補跑失敗者時把已上線的會期改回 pending、ETL 因而整批撤下（2026-10-04 發生過，被資料不變式測試擋下）。
 
 ## 5. 接下來的工作（依優先順序）
 
