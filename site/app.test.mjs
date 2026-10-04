@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
-import { TXG_DEPTS, summaryCard } from './app.js';
+import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -595,10 +595,10 @@ test('county note says incumbent councillors are tagged only when the data has a
 
 test('home note lists non-Taipei counties whose incumbent councillors are tagged, from data', () => {
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
-  const nwt = { iso: 'nwt', name: '新北市', councilor_roster: true };
+  const cha = { iso: 'cha', name: '彰化縣', councilor_roster: true };
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
-  assert.match(homeNote([tpe, nwt, hsq, tao]), /候選人中的現任縣市長與新北市、桃園市的現任議員會標示，議員問政紀錄仍在建置中/);
-  assert.doesNotMatch(homeNote([tpe, nwt]), /現任議員名單/);
+  assert.match(homeNote([tpe, cha, hsq, tao]), /候選人中的現任縣市長與彰化縣、桃園市的現任議員會標示，議員問政紀錄仍在建置中/);
+  assert.doesNotMatch(homeNote([tpe, cha]), /現任議員名單/);
   assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
 });
 
@@ -661,23 +661,23 @@ test('publisherOf names county councils and the interior ministry from their dom
 });
 
 test('county note and tag mention 2022 bulletins only when the data flags them', () => {
-  const nwt = { iso: 'nwt', name: '新北市', councilor_roster: true, councilor_bulletin: true };
+  const tao = { iso: 'tao', name: '桃園市', councilor_roster: true, councilor_bulletin: true };
   const lie = { iso: 'lie', name: '連江縣', councilor_roster: false, councilor_bulletin: false };
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true, councilor_bulletin: true };
-  assert.match(countyNote(nwt), /並收錄現任議員的 2022 選舉公報政見與學經歷；新北市議會的問政紀錄仍在建置中/);
+  assert.match(countyNote(tao), /並收錄現任議員的 2022 選舉公報政見與學經歷；桃園市議會的問政紀錄仍在建置中/);
   assert.doesNotMatch(countyNote(lie), /公報/);
   assert.equal(countyTag(tpe), '含問政紀錄');
-  assert.equal(countyTag(nwt), BULLETIN_TAG);
+  assert.equal(countyTag(tao), BULLETIN_TAG);
   assert.equal(countyTag(lie), '');
-  assert.match(homeNote([tpe, nwt, lie]), /標示「含 2022 公報」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷/);
+  assert.match(homeNote([tpe, tao, lie]), /標示「含 2022 公報」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷/);
   assert.doesNotMatch(homeNote([tpe, lie]), /2022 公報/);
 });
 
 test('incumbent councillors outside deep counties get the records-pending note, once per county', () => {
-  const counties = new Map([['nwt', { iso: 'nwt', name: '新北市' }], ['tpe', { iso: 'tpe', name: '臺北市' }], ['ila', { iso: 'ila', name: '宜蘭縣' }]]);
+  const counties = new Map([['tao', { iso: 'tao', name: '桃園市' }], ['tpe', { iso: 'tpe', name: '臺北市' }], ['ila', { iso: 'ila', name: '宜蘭縣' }]]);
   const office = (o, d) => ({ data: { office: o, district_id: d } });
-  assert.deepEqual(pendingRecordNotes([office('nwt_councilor', 'nwt-council-04'), office('nwt_councilor', 'nwt-council-04')], counties),
-    ['新北市議會的問政紀錄仍在建置中，本站目前尚未收錄。']);
+  assert.deepEqual(pendingRecordNotes([office('tao_councilor', 'tao-council-04'), office('tao_councilor', 'tao-council-04')], counties),
+    ['桃園市議會的問政紀錄仍在建置中，本站目前尚未收錄。']);
   assert.deepEqual(pendingRecordNotes([office('tpe_councilor', 'tpe-council-01')], counties), []);
   assert.deepEqual(pendingRecordNotes([office('ila_mayor', 'ila-mayor')], counties), []);
 });
@@ -698,4 +698,49 @@ test('legislative records are counted in a fixed order and attributed to the API
   assert.match(LY_NOTE, /口頭質詢請見發言影片（IVOD）/);
   assert.equal(publisherOf('https://ly.govapi.tw/v2/bill/1'), '立法院（經 OpenFun 立法院 API，CC BY 4.0）');
   assert.equal(publisherOf('https://ivod.ly.gov.tw/Play/Clip/1M/1'), '立法院');
+});
+
+// ---------- 新北（V15 已定案第 4 點） ----------
+
+const nwtAtt = (session, meetings, present, url = 'https://ntpbook.ntp.gov.tw/Home/BookAgenda?cBookMdslID=a') => ({
+  source_url: url, data: { session, meetings, present, present_only: true },
+});
+
+test('New Taipei is a deep county with a neutral scope note and no department chart', () => {
+  assert.ok(DEEP_COUNTIES.has('nwt'));
+  const r = RECORDS.nwt;
+  assert.equal(r.written, true);
+  assert.deepEqual(r.depts, []);
+  assert.match(r.noRecord, /第4屆新北市議員個人書面質詢及答復、口頭質詢影片/);
+  assert.match(r.writtenBlurb, /掃描檔/);
+  assert.doesNotMatch(r.noRecord + r.writtenBlurb, /沒有問政|無問政|未質詢|缺席/);
+});
+
+test('New Taipei whole-session videos say the councillor slot is not marked', () => {
+  assert.equal(videoNote({ whole_session: true, group_size: 1 }), '整場會議影片，本人發言時段未標示');
+  assert.equal(videoNote({ whole_session: true, group_size: 12, start_sec: 0 }), '整場會議影片，本人發言時段未標示；本場發言議員 12 位');
+  assert.equal(videoBlurb([{ source_url: 'https://vod.ntp.gov.tw/VodCloudV2/VOD/ViewDetailMetaData/x' }]), '連結至新北市議會議事影音系統，影片來源：新北市議會。');
+});
+
+test('New Taipei attendance shows only present out of collected meetings, with the definition and per-session sources', () => {
+  const html = nwtAttendanceBlock([nwtAtt('第4屆第1次定期會', 40, 37, 'https://ntpbook.ntp.gov.tw/Home/BookAgenda?cBookMdslID=b'), nwtAtt('第4屆成立大會', 1, 1)]);
+  assert.match(html, /出席 <span class="num">38<\/span>／<span class="num">41<\/span> 次/);
+  assert.ok(html.includes(NWT_ATTENDANCE_NOTE));
+  assert.match(NWT_ATTENDANCE_NOTE, /只列出席次數.*不區分請假與缺席.*詳如簽到簿/);
+  assert.match(html, /href="https:\/\/ntpbook\.ntp\.gov\.tw\/Home\/BookAgenda\?cBookMdslID=b"/);
+  assert.ok(html.indexOf('第4屆第1次定期會') < html.indexOf('第4屆成立大會'), 'newest session first');
+  assert.doesNotMatch(html, /請假 <span|缺席 <span|%|排名|評分/);
+});
+
+test('summary card for New Taipei counts written sessions and videos and uses the present-only attendance block', () => {
+  const w = { data: { title: '第6次定期大會書面質詢及答復（掃描檔）', scanned: true } };
+  const v = { data: { video_id: 'x', whole_session: true, group_size: 5 } };
+  const att = [nwtAtt('第4屆第6次定期會', 45, 44)];
+  const card = summaryCard({ attendance: att }, { offices: [], inters: [w, v, v], written: [w], videos: [v, v], rec: RECORDS.nwt });
+  assert.match(card, /書面質詢及答復 <span class="num">1<\/span> 個會期（掃描檔）、口頭質詢影片 <span class="num">2<\/span> 筆/);
+  assert.doesNotMatch(card, /部門分布|出席率|請假率|公差/);
+  assert.match(card, /出席 <span class="num">44<\/span>／<span class="num">45<\/span> 次/);
+  // 其他縣市的摘要卡不受影響
+  const khh = summaryCard({}, { offices: [], inters: [v], written: [], videos: [v], rec: RECORDS.khh });
+  assert.match(khh, /口頭質詢影片 <span class="num">1<\/span> 筆（書面質詢尚未收錄）/);
 });
