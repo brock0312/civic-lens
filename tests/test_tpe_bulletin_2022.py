@@ -188,6 +188,25 @@ class TestAttachCouncilors(unittest.TestCase):
                 setattr(b, k, v)
         self.assertEqual(set(self.facts()), {"platform:2022-local:pA", "profile:2022-local:pA", "platform:2022-local:pM"})
 
+    def test_run_keeps_candidates_facts_when_matching_fails(self):
+        # 2026-10-04 事故：只跑部分來源時 dump 沒有生日，核對全失敗，舊邏輯把所有候選人的公報刪光
+        self.conn.execute("UPDATE person SET birth_date = NULL")
+        url2 = b.bulletin_url(b.COUNCIL_PDF.format(2))
+        upsert_fact(self.conn, "platform:2022-local:pA", "pA", "platform", {"text": "舊"}, url2, "t")
+        fixture = list(cands().values())
+        stubs = {"get_json": lambda u: {}, "get": lambda u: b"", "parse_pdf": lambda data: fixture,
+                 "check_against_cec": lambda *a: None, "run_mayor": lambda *a: None}
+        saved = {k: getattr(b, k) for k in stubs}
+        for k, v in stubs.items():
+            setattr(b, k, v)
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                b.run(self.conn)
+        finally:
+            for k, v in saved.items():
+                setattr(b, k, v)
+        self.assertIn("platform:2022-local:pA", set(self.facts()))
+
     def test_skips_incumbent_without_official_birth_date(self):
         self.conn.execute("UPDATE person SET birth_date = NULL WHERE person_id = 'pA'")
         report = b.attach_councilors(self.conn, 2, list(cands().values()), b.load_incumbents(self.conn), "https://x", "t")

@@ -553,7 +553,7 @@ def run(conn):
             cec.setdefault(int(r["area_code"]), []).append(r)
     incumbents = load_incumbents(conn)
     pid = {i["name"]: i["person_id"] for i in incumbents}
-    urls, written_keys = set(), set()
+    urls = set()
     for n in range(1, 9):
         url = bulletin_url(COUNCIL_PDF.format(n))
         try:
@@ -566,14 +566,16 @@ def run(conn):
         check_against_cec(cands, cec.get(n, []), f"第 {n:02d} 選舉區")
         report = attach_councilors(conn, n, cands, incumbents, url, fetched_at)
         urls.add(url)
-        written_keys.update(f"{k}:{ELECTION}:{pid[name]}" for name, written, _ in report for k in written)
         print(f"第 {n:02d} 選舉區：公報 {len(cands)} 人，現任 {len(report)} 人，"
               f"有寫入 {sum(1 for _, w, _ in report if w)} 人")
         for name, written, why in report:
             print(f"  {name}：{'、'.join(written) or '未寫入'} {why}")
-    # 照 national_bulletin_2022：本次處理的議員公報寫出、這次沒寫到的 facts（沒參選 2026、離職）刪掉；市長公報不在 urls 內
-    stale = [k for (k, u) in conn.execute("SELECT fact_key, source_url FROM fact WHERE kind IN ('platform', 'profile')")
-             if u in urls and k not in written_keys]
+    # 只刪「不是對象」的人（沒參選 2026、離職）在議員公報的 facts；市長公報不在 urls 內。
+    # 不能用「這次沒寫到」判斷：核對生日失敗（例如只跑部分來源、議會網站暫時連不上）時會一次刪光所有人的公報。
+    targets = set(pid.values())
+    stale = [k for (k, p, u) in conn.execute(
+        "SELECT fact_key, person_id, source_url FROM fact WHERE kind IN ('platform', 'profile')")
+        if u in urls and p not in targets]
     conn.executemany("DELETE FROM fact WHERE fact_key = ?", [(k,) for k in stale])
     print(f"臺北議員公報：刪除不再寫入的 facts {len(stale)} 筆", flush=True)
     run_mayor(conn, fetched_at)
