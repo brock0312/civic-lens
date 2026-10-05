@@ -51,10 +51,6 @@ export function hms(sec) {
 
 // 口頭質詢影片的播放說明：影片只切到「組」，多人組要講清楚不是個人片段
 export function videoNote(d) {
-  if (d?.whole_session) {  // 新北：整場會議影片，沒有個人起點
-    const n = Number(d.group_size) || 0;
-    return `整場會議影片，本人發言時段未標示${n > 1 ? `；本場發言議員 ${n} 位` : ''}`;
-  }
   if (d?.gid) return '從該議員發言處開始播放';  // 高雄 iVOD（有 gid）逐人標記發言起點，沒有質詢組
   if (d?.clip) {  // 臺中、臺南：議會逐人剪輯的影片；臺中聯合質詢是同組議員共用一支
     const n = Number(d.group_size) || 0;
@@ -73,6 +69,8 @@ export const KHH_DEPTS = ['民政', '財經', '教育', '交通', '警消衛環'
 // 臺中市議會：業務質詢六個分組，依定期會的質詢順序
 export const TXG_DEPTS = ['民政', '財政經濟', '教育文化', '交通地政', '警消環衛', '都發建設水利'];
 
+export const NWT_VOD_HOME = 'https://vod.ntp.gov.tw/VodCloud/index.htm';
+
 // 深度縣市的收錄範圍：部門清單、有沒有收書面質詢、沒有紀錄時的說明（措辭中性，不暗示此人沒有問政）
 export const RECORDS = {
   tpe: { depts: DEPTS, written: true, noRecord: NO_RECORD },
@@ -90,13 +88,13 @@ export const RECORDS = {
     videoBlurb: '連結至臺南市議會發布在 YouTube 的議事影片，影片來源：臺南市議會。',
     noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆臺南市議員市政總質詢影片）；書面質詢與出缺勤本站尚未收錄。',
   },
-  // 新北（V15 已定案第 4 點）：書面質詢一人一會期一份掃描 PDF（不抓題目）、整場會議影片、大會出席只有出席名單
+  // 新北（V15 已定案第 4、6 點）：書面質詢一人一會期一份掃描 PDF（不抓題目）、整場會議影片只列清單連影音網首頁、大會出席只有出席名單
   nwt: {
     depts: [], written: true,
-    // ponytail: 口頭質詢影片暫不收：新北影音網站的單支影片連結依賴 session，連續開啟會出錯（V15 已定案第 6 點）
-    countLine: (written) => `書面質詢及答復 <span class="num">${written.length}</span> 個會期（掃描檔）；口頭質詢影片尚未收錄`,
+    countLine: (written, videos) => `書面質詢及答復 <span class="num">${written.length}</span> 個會期（掃描檔）、口頭質詢影片 <span class="num">${videos.length}</span> 筆`,
     writtenBlurb: '每個會期一筆，連結至新北市議會議事錄附錄「書面質詢及答復」的掃描檔（PDF），本站未擷取個別題目；只收個人書面質詢，不含聯合質詢。',
-    noRecord: '本站目前沒有此人的書面質詢紀錄（收錄範圍：第4屆新北市議員個人書面質詢及答復；口頭質詢影片尚未收錄）。',
+    videoBlurb: `每筆是一場發言議員名單列有此人的整場會議影片，本人發言時段未標示。新北市議會影音網的單支影片網址無法穩定連結，請至<a href="${NWT_VOD_HOME}" target="_blank" rel="noopener">影音網首頁</a>以日期查詢。影片來源：新北市議會。`,
+    noRecord: '本站目前沒有此人的書面質詢與口頭質詢影片紀錄（收錄範圍：第4屆新北市議員個人書面質詢及答復、口頭質詢影片）。',
   },
 };
 
@@ -554,8 +552,16 @@ export function videoBlurb(videos) {
   return `連結至${council}議事影音系統，影片來源：${council}。`;
 }
 
-function videoRows(list) {
+// 新北影片沒有單支連結（data.link === 'home'）：只列日期、會期、會議名稱與本場發言人數，首頁連結放在區塊說明
+export function videoRows(list) {
   return list.map((f) => {
+    if (f.data?.link === 'home') {
+      const n = Number(f.data.group_size) || 0;
+      return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
+      <span class="dept">${esc(f.data.session || '')}</span>
+      <span class="title">${esc(f.data.title || '')}
+        <span class="video"><span class="muted">本場發言議員 ${n} 位</span></span></span></li>`;
+    }
     const u = safeUrl(f.source_url);
     return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
       <span class="dept">${esc(f.data?.dept || '')}</span>

@@ -1,8 +1,12 @@
 """新北市議會第 4 屆口頭質詢影片：議事影音 VodCloudV2（vod.ntp.gov.tw，V15）。
 
-影片是整場會議（業務質詢一場是一個黨團 10 多位議員、市政總質詢一場約 5 位），沒有個人起點，只能連到整場影片頁，
-並說明「整場會議影片，本人發言時段未標示」。每支影片列有「發言議員」，歸屬只看這份名單：名單上有本人才收
-（同臺中規則：寧缺勿掛錯人）。
+影片是整場會議（業務質詢一場是一個黨團 10 多位議員、市政總質詢一場約 5 位），沒有個人起點。每支影片列有「發言議員」，
+歸屬只看這份名單：名單上有本人才收（同臺中規則：寧缺勿掛錯人）。
+
+只列清單、連影音網首頁（V15 已定案第 6 點，使用者 2026-10-05 決定）：單支影片網址 ViewDetailMetaData/<id> 依賴
+ASP.NET session，讀者連續開啟會出錯；官方 YouTube 只有 2025-09-30 起的整場錄影、標題沒有議員姓名，也無法逐支對應。
+所以每筆 fact 的 source_url 都是影音網首頁 HOME（2026-10-05 實測連續開啟、有無 cookie 都回同一頁），data.link = "home"
+表示沒有單支連結，讀者以日期、會期與會議名稱自行查詢。
 
 請求量：不逐人查詢（52 人 × 約 13 頁），而是以關鍵字「質詢」查第 4 屆全部影片（每頁 12 支、約 70 頁），
 再依發言議員名單分給每位對象；只收議程含「質詢」的場次（「市政總質詢-報告事項」等非質詢議程不收）。
@@ -27,6 +31,7 @@ from etl.sources.national_councilors import TERM_START
 from etl.sources.nwt_book import resolve, roster_index, targets
 
 VOD = "https://vod.ntp.gov.tw/VodCloudV2"
+HOME = "https://vod.ntp.gov.tw/VodCloud/index.htm"  # 影音網首頁，不依賴 session
 CACHE = Path(__file__).resolve().parents[2] / "data" / "cache" / "nwt_vod"
 MIN_INTERVAL = 1.1  # 秒；同主機禮貌間隔（robots.txt 404，V15）
 KEYWORD = "質詢"
@@ -86,10 +91,6 @@ def parse_agenda(agenda):
     if "業務報告及質詢" in agenda:
         return "業務質詢", agenda.replace("-", "，")
     raise ValueError(f"新北影片議程格式未知：{agenda!r}")
-
-
-def video_url(vid):
-    return f"{VOD}/VOD/ViewDetailMetaData/{vid}"
 
 
 def fetch_all(full=False, today=None):
@@ -169,8 +170,8 @@ def write_videos(conn, by_pid, fetched_at):
             upsert_fact(conn, k, pid, "interpellation", {
                 "title": v["title"], "doc_type": v["doc_type"], "dept": None, "term": 4, "session": v["session"],
                 "agenda": v["agenda"], "councillors": v["speakers"], "group_size": len(v["speakers"]),
-                "whole_session": True, "video_id": v["id"],
-            }, video_url(v["id"]), fetched_at, date=v["date"])
+                "video_id": v["id"], "link": "home",
+            }, HOME, fetched_at, date=v["date"])
     stale = known - current
     conn.executemany("DELETE FROM fact WHERE fact_key = ?", [(k,) for k in stale])
     return len(current), len(stale)
@@ -203,7 +204,7 @@ def check(samples=()):
         vs = by_pid.get(pid, [])
         print(f"\n{names[pid]}（{pid}）影片 {len(vs)} 支")
         for v in vs[-5:]:
-            print(f"  {v['date']} {v['session']} {v['title']}（{len(v['speakers'])} 位） {video_url(v['id'])}")
+            print(f"  {v['date']} {v['session']} {v['title']}（{len(v['speakers'])} 位） {v['id']}")
 
 
 if __name__ == "__main__":

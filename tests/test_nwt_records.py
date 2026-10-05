@@ -211,8 +211,10 @@ class TestNwtVideos(unittest.TestCase):
         self.assertEqual({p: [v["id"] for v in vs] for p, vs in by_pid.items()}, {"p1": ["v5", "v1"], "p5": ["v2"]})
         self.assertEqual((n, stale), (3, 1))
         self.assertEqual([r["fact_key"] for r in rows], ["ntpvideo:v1:p1", "ntpvideo:v2:p5", "ntpvideo:v5:p1"])
-        self.assertEqual(rows[0]["source_url"], "https://vod.ntp.gov.tw/VodCloudV2/VOD/ViewDetailMetaData/v1")
-        self.assertIn('"whole_session": true', rows[0]["data"])
+        self.assertEqual({r["source_url"] for r in rows}, {"https://vod.ntp.gov.tw/VodCloud/index.htm"})
+        self.assertIn('"link": "home"', rows[0]["data"])
+        self.assertIn('"session": "第4屆第8次定期會"', rows[0]["data"])
+        self.assertIn('"councillors": ["陳偉杰", "林國春"]', rows[0]["data"])
         self.assertIn('"group_size": 2', rows[0]["data"])
         self.assertTrue(any("王小明：名錄同名" in x for x in logs))
 

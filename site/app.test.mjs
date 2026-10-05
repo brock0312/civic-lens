@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
-import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE } from './app.js';
+import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -721,15 +721,23 @@ test('New Taipei is a deep county with a neutral scope note and no department ch
   const r = RECORDS.nwt;
   assert.equal(r.written, true);
   assert.deepEqual(r.depts, []);
-  assert.match(r.noRecord, /第4屆新北市議員個人書面質詢及答復；口頭質詢影片尚未收錄/);
+  assert.match(r.noRecord, /第4屆新北市議員個人書面質詢及答復、口頭質詢影片/);
   assert.match(r.writtenBlurb, /掃描檔/);
   assert.doesNotMatch(r.noRecord + r.writtenBlurb, /沒有問政|無問政|未質詢|缺席/);
 });
 
-test('New Taipei whole-session videos say the councillor slot is not marked', () => {
-  assert.equal(videoNote({ whole_session: true, group_size: 1 }), '整場會議影片，本人發言時段未標示');
-  assert.equal(videoNote({ whole_session: true, group_size: 12, start_sec: 0 }), '整場會議影片，本人發言時段未標示；本場發言議員 12 位');
-  assert.equal(videoBlurb([{ source_url: 'https://vod.ntp.gov.tw/VodCloudV2/VOD/ViewDetailMetaData/x' }]), '連結至新北市議會議事影音系統，影片來源：新北市議會。');
+test('New Taipei videos are listed without per-video links and point readers to the video site home', () => {
+  const f = { date: '2026-09-03', source_url: NWT_VOD_HOME, data: { video_id: 'v1', link: 'home', session: '第4屆第8次定期會', title: '市政總質詢', group_size: 5 } };
+  const html = videoRows([f]);
+  assert.match(html, /2026-09-03/);
+  assert.match(html, /<span class="dept">第4屆第8次定期會<\/span>/);
+  assert.match(html, /市政總質詢/);
+  assert.match(html, /本場發言議員 5 位/);
+  assert.doesNotMatch(html, /<a |觀看影片/);
+  assert.equal(NWT_VOD_HOME, 'https://vod.ntp.gov.tw/VodCloud/index.htm');
+  assert.match(RECORDS.nwt.videoBlurb, /新北市議會影音網的單支影片網址無法穩定連結，請至<a href="https:\/\/vod\.ntp\.gov\.tw\/VodCloud\/index\.htm"[^>]*>影音網首頁<\/a>以日期查詢/);
+  // 其他縣市的影片列仍有單支連結
+  assert.match(videoRows([{ date: '2026-01-01', source_url: 'https://example.org/v', data: { video_id: 'y', clip: true, group_size: 1, title: 't' } }]), /觀看影片/);
 });
 
 test('New Taipei attendance shows present, leave and official duty out of collected meetings, with the definition and per-session sources', () => {
@@ -748,10 +756,10 @@ test('New Taipei attendance shows present, leave and official duty out of collec
 
 test('summary card for New Taipei counts written sessions and videos and uses the list-based attendance block', () => {
   const w = { data: { title: '第6次定期大會書面質詢及答復（掃描檔）', scanned: true } };
-  const v = { data: { video_id: 'x', whole_session: true, group_size: 5 } };
+  const v = { data: { video_id: 'x', link: 'home', group_size: 5 } };
   const att = [nwtAtt('第4屆第6次定期會', 45, 43, 1)];
   const card = summaryCard({ attendance: att }, { offices: [], inters: [w, v, v], written: [w], videos: [v, v], rec: RECORDS.nwt });
-  assert.match(card, /書面質詢及答復 <span class="num">1<\/span> 個會期（掃描檔）；口頭質詢影片尚未收錄/);
+  assert.match(card, /書面質詢及答復 <span class="num">1<\/span> 個會期（掃描檔）、口頭質詢影片 <span class="num">2<\/span> 筆/);
   assert.doesNotMatch(card, /部門分布|出席率|請假率|<span>缺席/);
   assert.match(card, /出席 <span class="num">43<\/span>／<span class="num">45<\/span> 次、請假 <span class="num">1<\/span> 次/);
   // 其他縣市的摘要卡不受影響
