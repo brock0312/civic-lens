@@ -35,7 +35,8 @@ def export(conn, out_dir):
     incumbent = {
         pid: [
             {"office": d.get("office"), "district_id": did,
-             "suspended": (d.get("status_events") or [{}])[-1].get("event") == "suspended"}
+             "suspended": (d.get("status_events") or [{}])[-1].get("event") == "suspended",
+             **({"basis": d["basis"]} if d.get("basis") else {})}  # cec_2022：只知 2022 當選（嘉義市），前端標「2022 當選」
             for d in (json.loads(r["data"]) for r in _sort_facts(facts_by_person[pid]) if r["kind"] == "office")
             for did in d.get("districts_2026") or [d.get("district_id")]
         ]
@@ -130,13 +131,14 @@ def export(conn, out_dir):
 
     # 有現任議員名錄（議員任職 fact，含沒參選者）的縣市：代表該縣市候選人的現任身分已標示
     # 其中現任議員掛到 2022 公報（bulletin／profile／platform 任一）的縣市：前端說明「另收錄現任議員的 2022 選舉公報」
-    rosters, bulletins = set(), set()
+    # basis=cec_2022（嘉義市）不是名錄，另記 councilor_cec_2022，前端說明改寫「2022 年當選的議員」
+    rosters, bulletins, cec2022 = set(), set(), set()
     has_bulletin = {r["person_id"] for r in facts if r["kind"] in ("bulletin", "profile", "platform")}
     for row in facts:
         if row["kind"] == "office":
             d = json.loads(row["data"])
             if str(d.get("office")).endswith("_councilor") and d.get("district_id"):
-                rosters.add(_iso_of(d["district_id"]))
+                (cec2022 if d.get("basis") == "cec_2022" else rosters).add(_iso_of(d["district_id"]))
                 if row["person_id"] in has_bulletin:
                     bulletins.add(_iso_of(d["district_id"]))
     districts_by_county = {}
@@ -150,7 +152,8 @@ def export(conn, out_dir):
         {
             "counties": [
                 {**dict(row), "districts": districts_by_county.get(row["iso"], []),
-                 "councilor_roster": row["iso"] in rosters, "councilor_bulletin": row["iso"] in bulletins}
+                 "councilor_roster": row["iso"] in rosters, "councilor_bulletin": row["iso"] in bulletins,
+                 "councilor_cec_2022": row["iso"] in cec2022}
                 for row in conn.execute(
                     "SELECT iso, moi_code, name, source_url, fetched_at FROM county ORDER BY iso"
                 )

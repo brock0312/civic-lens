@@ -102,9 +102,33 @@ class NationalCouncilorsTest(unittest.TestCase):
 
     def test_every_roster_county_has_expected_incumbent_count(self):
         self.assertEqual(set(nc.ISOS), set(nc.EXPECTED))
-        self.assertEqual({k: nc.EXPECTED[k] for k in ("kee", "cyq", "nan", "mia", "hua", "cha", "hsq", "hsz", "kin", "lie")},
+        self.assertEqual({k: nc.EXPECTED[k] for k in ("kee", "cyq", "nan", "mia", "hua", "cha", "hsq", "hsz", "kin", "lie",
+                                                      "yun", "pen", "pif", "ila", "ttt")},
                          {"kee": 28, "cyq": 37, "nan": 34, "mia": 36, "hua": 32,
-                          "cha": 53, "hsq": 37, "hsz": 33, "kin": 19, "lie": 9})
+                          "cha": 53, "hsq": 37, "hsz": 33, "kin": 19, "lie": 9,
+                          "yun": 42, "pen": 18, "pif": 51, "ila": 33, "ttt": 30})
+        self.assertNotIn("cyi", nc.ISOS)  # 嘉義市不爬名錄
+
+    def test_penghu_district_comes_from_unique_2022_winner_and_unmatched_go_to_review(self):
+        w = [won("pen", 2, "許育愷", "無"), won("pen", 1, "歐中@FA3E@", "中國國民黨"),
+             won("pen", 1, "同名", "無"), won("pen", 3, "同名", "無")]
+        out, review = nc.assign_districts([ros("pen", None, "許育愷"), ros("pen", None, "歐中慨"),
+                                           ros("pen", None, "莊光大"), ros("pen", None, "同名"), ros("nwt", 3, "王大明")], w)
+        self.assertEqual([(r["name"], r["district_n"]) for r in out], [("許育愷", 2), ("歐中慨", 1), ("王大明", 3)])
+        self.assertEqual([(x["row"]["name"], x["reason"], x["person_ids"]) for x in review],
+                         [("莊光大", "no_2022_district", []), ("同名", "ambiguous_2022_district", [])])
+
+    def test_chiayi_city_offices_come_from_2022_winners_without_term_start(self):
+        w = {**won("cyi", 2, "王大明", "民主進步黨"), "source_url": "https://cec/x.json"}
+        rows, review = plan(nc.cec_roster([w, won("nwt", 1, "李四", "無")]), [w], [cand("p1", "王大明", "cyi-council-02")], {})
+        self.assertEqual(review, [])
+        self.assertEqual(len(rows), 1)
+        x = rows[0]
+        self.assertEqual((x["person_id"], x["date"], x["row"]["source_url"]), ("p1", None, "https://cec/x.json"))
+        self.assertIn("中選會 2022 當選名單", x["verified_by"])
+        self.assertEqual(x["data"]["basis"], "cec_2022")
+        self.assertEqual((x["data"]["district_id"], x["data"]["party"], x["data"]["party_year"]), ("cyi-council-02", "民主進步黨", 2022))
+        self.assertNotIn("inauguration_source_url", x["data"])
 
     def test_fetch_rosters_raises_when_incumbent_count_differs(self):
         rows = lambda iso: [ros(iso, 1, f"{iso}{i}") for i in range(nc.EXPECTED[iso] - (iso == "nan"))]

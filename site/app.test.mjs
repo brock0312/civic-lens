@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, lyCounts, LY_NOTE } from './app.js';
+import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
@@ -765,4 +765,24 @@ test('summary card for New Taipei counts written sessions and videos and uses th
   // 其他縣市的摘要卡不受影響
   const khh = summaryCard({}, { offices: [], inters: [v], written: [], videos: [v], rec: RECORDS.khh });
   assert.match(khh, /口頭質詢影片 <span class="num">1<\/span> 筆（書面質詢尚未收錄）/);
+});
+
+test('Chiayi City councillors from the 2022 results are tagged "2022 當選", never "現任"', () => {
+  const counties = new Map([['cyi', { iso: 'cyi', name: '嘉義市' }]]);
+  const o = { office: 'cyi_councilor', district_id: 'cyi-council-01', suspended: false, basis: 'cec_2022' };
+  assert.equal(candidateTag([o], 'cyi-council-01', counties), '2022 當選');
+  assert.equal(candidateTag([o], 'cyi-mayor', counties), '2022 當選嘉義市議員');
+  assert.equal(officeTitle({ title: '嘉義市議員', basis: 'cec_2022' }, 'x'), '2022 年當選嘉義市議員');
+  assert.equal(officeTitle({ title: '新北市議員' }, 'x'), '新北市議員');
+  assert.equal(officeSourceLabel('cyi_councilor', 'cec_2022'), '選舉結果');
+});
+
+test('county and home notes describe Chiayi City councillors as 2022 winners', () => {
+  const cyi = { iso: 'cyi', name: '嘉義市', councilor_roster: false, councilor_cec_2022: true, councilor_bulletin: true };
+  const cha = { iso: 'cha', name: '彰化縣', councilor_roster: true };
+  const n = countyNote(cyi);
+  assert.match(n, /候選人中的現任嘉義市長與 2022 年當選議員會標示，並收錄 2022 年當選議員的 2022 選舉公報政見與學經歷/);
+  assert.doesNotMatch(n, /現任議員/);
+  assert.match(homeNote([cha, cyi]), /候選人中的現任縣市長與彰化縣的現任議員、嘉義市的 2022 年當選議員會標示/);
+  assert.match(homeNote([cyi]), /候選人中的現任縣市長與嘉義市的 2022 年當選議員會標示/);
 });

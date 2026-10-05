@@ -18,11 +18,16 @@ from etl.sources.national_heads import MOI_INAUGURATION
 from etl.sources.national_districts import COUNTIES, council_id
 
 SOURCE = "roster_2026"
-ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua", "cha", "hsq", "hsz", "kin", "lie"]  # 之後逐日擴充
-# 現任數：五都依 V13 §3；其餘依 python3 -m etl.rosters 快取自我檢查（2026-10-02）
+ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua", "cha", "hsq", "hsz", "kin", "lie",
+        "yun", "pen", "pif", "ila", "ttt"]
+# 現任數：五都依 V13 §3；其餘依 python3 -m etl.rosters 快取自我檢查（2026-10-02），yun～ttt 於 2026-10-05 線上重抓一致
 EXPECTED = {"nwt": 64, "tao": 61, "txg": 62, "tnn": 55, "khh": 61,
             "kee": 28, "cyq": 37, "nan": 34, "mia": 36, "hua": 32,
-            "cha": 53, "hsq": 37, "hsz": 33, "kin": 19, "lie": 9}
+            "cha": 53, "hsq": 37, "hsz": 33, "kin": 19, "lie": 9,
+            "yun": 42, "pen": 18, "pif": 51, "ila": 33, "ttt": 30}
+# 嘉義市議會 robots.txt 禁止所有爬蟲：不爬名錄，以中選會 2022 當選人建立任職，前端標「2022 當選」而非「現任」（V13 已定案第 3 點）
+CEC_ISOS = ["cyi"]
+CEC_BASIS = "cec_2022"
 IDENTITY_PATH = Path(__file__).resolve().parents[2] / "data" / "identity_national.csv"
 TERM_START = "2022-12-25"  # 內政部 111-12-25 新聞稿：九合一當選人宣誓就職（同 national_heads）
 NAMES = dict(COUNTIES)
@@ -50,8 +55,31 @@ def load_identity(path=IDENTITY_PATH):
 
 
 def _seat_key(iso, n, name):
-    # 同縣市同選區、漢字相同（異體字視為相同）即為同一席；不看拼音詞序
-    return iso, n, han(name).translate(_VAR)
+    # 同縣市同選區、漢字相同（異體字視為相同）即為同一席；不看拼音詞序。@FA3E@ 是中選會「慨」的造字碼（澎湖 歐中慨）
+    return iso, n, han(name.replace("@FA3E@", "慨")).translate(_VAR)
+
+
+def assign_districts(roster, won):
+    """名錄沒有選區（澎湖）：縣內 2022 當選人中同名者唯一才補上選區；其餘（遞補等）回傳到審閱清單、不寫任職。純函式。"""
+    out, review = [], []
+    for r in roster:
+        if r["district_n"] is not None or not r["current"]:
+            out.append(r)
+            continue
+        hits = [c["district_n"] for c in won if _seat_key(c["iso"], 0, c["name"]) == _seat_key(r["iso"], 0, r["name"])]
+        if len(hits) == 1:
+            out.append({**r, "district_n": hits[0]})
+        else:
+            review.append({"row": r, "person_ids": [],
+                           "reason": "no_2022_district" if not hits else "ambiguous_2022_district"})
+    return out, review
+
+
+def cec_roster(won):
+    """嘉義市：2022 當選人當作名錄列，帶 basis 與開票 JSON 網址。"""
+    return [{"iso": c["iso"], "district_n": c["district_n"], "name": c["name"], "current": True, "note": "",
+             "basis": CEC_BASIS, "source_url": c.get("source_url")}
+            for c in won if c["iso"] in CEC_ISOS]
 
 
 def plan(roster, won, candidates, identity):
@@ -68,13 +96,15 @@ def plan(roster, won, candidates, identity):
     rows = []
     for i, r in enumerate(cur):
         manual = identity.get((r["iso"], r["name"], r["district_n"]))
+        basis = r.get("basis")
+        src = "中選會 2022 當選名單" if basis else "議會官網現任名錄"
         if manual:
             person_id, verified_by = manual
         elif i in links:
             person_id = links[i]
-            verified_by = "auto: etl.match 唯一同名、同縣市且選區重疊（議會官網現任名錄 vs 2026 候選人登記彙總表）"
+            verified_by = f"auto: etl.match 唯一同名、同縣市且選區重疊（{src} vs 2026 候選人登記彙總表）"
         else:
-            person_id, verified_by = None, "auto: 議會官網現任名錄，未串到 2026 候選人"
+            person_id, verified_by = None, f"auto: {src}，未串到 2026 候選人"
         w = seats.get(_seat_key(r["iso"], r["district_n"], r["name"]))
         data = {"office": f"{r['iso']}_councilor", "district_id": council_id(r["iso"], r["district_n"]),
                 "title": f"{NAMES[r['iso']]}議員"}
@@ -91,6 +121,9 @@ def plan(roster, won, candidates, identity):
             data["party"], data["party_year"] = w["party"], 2022
             if w.get("source_url"):
                 data["party_source_url"], data["party_source_label"] = w["source_url"], "中選會 2022 開票結果"
+        if basis:  # 只知道 2022 當選，不知道是否仍在任：不寫任職起日
+            data["basis"] = basis
+            w = None
         if w:
             data["inauguration_source_url"], data["inauguration_source_label"] = MOI_INAUGURATION
         # 2022 當選人才寫任職起日；其餘（遞補或補選，依據未查）留空
@@ -107,7 +140,7 @@ def fetch_won():
             continue
         time.sleep(1.1)
         url = f"{TICKETS}/{path}"
-        won += [{**c, "source_url": url} for c in parse_candidates(get_json(url), kind) if c["elected"] and c["iso"] in ISOS]
+        won += [{**c, "source_url": url} for c in parse_candidates(get_json(url), kind) if c["elected"] and c["iso"] in ISOS + CEC_ISOS]
     return won
 
 
@@ -130,7 +163,9 @@ def run(conn):
     cands = [{"person_id": r["person_id"], "name": r["name"], "district_id": json.loads(r["data"])["district_id"]}
              for r in conn.execute("SELECT f.person_id, p.name, f.data FROM fact f JOIN person p USING (person_id) "
                                    "WHERE f.kind = 'candidacy'")]
-    rows, review = plan(roster, won, cands, load_identity())
+    roster, unplaced = assign_districts(roster, won)
+    rows, review = plan(roster + cec_roster(won), won, cands, load_identity())
+    review = review + unplaced
     names = {r["person_id"]: r["name"] for r in cands}
     keys = set()
     for x in rows:
@@ -145,14 +180,14 @@ def run(conn):
                ("source", "source_key"))
         key = f"office:{r['iso']}-council-2022:{person_id}"
         keys.add(key)
-        upsert_fact(conn, key, person_id, "office", x["data"], roster_url(r["iso"], r["district_n"]), fetched_at,
+        upsert_fact(conn, key, person_id, "office", x["data"], r.get("source_url") or roster_url(r["iso"], r["district_n"]), fetched_at,
                     date=x["date"])
     # 現任以名錄為準：離開名錄（或改串他人）的舊任職要刪掉，不再顯示為現任
-    for iso in ISOS:
+    for iso in ISOS + CEC_ISOS:
         for (k,) in conn.execute("SELECT fact_key FROM fact WHERE fact_key LIKE ?", (f"office:{iso}-council-2022:%",)).fetchall():
             if k not in keys:
                 conn.execute("DELETE FROM fact WHERE fact_key = ?", (k,))
-    for iso in ISOS:
+    for iso in ISOS + CEC_ISOS:
         mine = [x for x in rows if x["row"]["iso"] == iso]
         print(f"{iso} 現任議員：{len(mine)} 人，串到 2026 候選人 {sum(1 for x in mine if x['person_id'])}、"
               f"新建 {sum(1 for x in mine if not x['person_id'])}、審閱 {sum(1 for x in review if x['row']['iso'] == iso)}、"

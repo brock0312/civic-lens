@@ -256,6 +256,25 @@ class TestCountyRosterFlag(unittest.TestCase):
                              {"nwt": True, "kee": False, "ila": False})
 
 
+    def test_cec_2022_offices_flag_the_county_separately_and_carry_basis_to_the_candidate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
+            upsert(conn, "county", {"iso": "cyi", "moi_code": "1", "name": "cyi", "source_url": "http://m",
+                                    "fetched_at": "2024-01-01T00:00:00Z"}, ("iso",))
+            _add_district(conn, "cyi-council-01")
+            upsert_person(conn, "p1", "甲")
+            upsert_fact(conn, "o1", "p1", "office", {"office": "cyi_councilor", "district_id": "cyi-council-01",
+                                                     "basis": "cec_2022"}, "http://a", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "c1", "p1", "candidacy", {"district_id": "cyi-council-01"}, "http://a", "2024-01-01T00:00:00Z")
+            export(conn, Path(tmp) / "out")
+            c = json.loads((Path(tmp) / "out" / "counties.json").read_text(encoding="utf-8"))["counties"][0]
+            self.assertEqual((c["councilor_roster"], c["councilor_cec_2022"]), (False, True))
+            d = json.loads((Path(tmp) / "out" / "districts" / "cyi-council-01.json").read_text(encoding="utf-8"))
+            self.assertEqual(d["people"][0]["incumbent"],
+                             [{"office": "cyi_councilor", "district_id": "cyi-council-01", "suspended": False,
+                               "basis": "cec_2022"}])
+
+
 class TestCandidatesOnly(unittest.TestCase):
     def test_only_candidacy_entries_are_exported_and_non_candidates_are_left_out(self):
         with tempfile.TemporaryDirectory() as tmp:

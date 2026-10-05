@@ -10,15 +10,21 @@ export const INTERPELLATION_PAGE = 20;
 const NO_RECORD ='本站目前沒有此人的任內問政紀錄（收錄範圍：第14屆臺北市議員書面質詢與口頭質詢影片）';
 // 非深度縣市的縣市頁說明：列出目前提供的資料，措辭中性；候選人中的現任議員有沒有標示依 counties.json 的 councilor_roster
 // councilor_bulletin：候選人中的現任議員另有 2022 選舉公報政見與學經歷
-export const countyNote = (county) => `目前提供 2026 候選人名單與選區，候選人中的現任${county.councilor_roster ? '議員與' : ''}${county.name}長會標示${county.councilor_bulletin ? '，並收錄現任議員的 2022 選舉公報政見與學經歷' : ''}；${county.name}議會的問政紀錄仍在建置中。`;
+// councilor_cec_2022：沒有名錄（嘉義市），議員依中選會 2022 當選名單標示，不稱「現任」
+export const countyNote = (county) => {
+  const cec = county.councilor_cec_2022;
+  return `目前提供 2026 候選人名單與選區，候選人中的現任${county.councilor_roster ? '議員與' : ''}${county.name}長${cec ? '與 2022 年當選議員' : ''}會標示${county.councilor_bulletin ? `，並收錄${cec ? ' 2022 年當選議員' : '現任議員'}的 2022 選舉公報政見與學經歷` : ''}；${county.name}議會的問政紀錄仍在建置中。`;
+};
 // 首頁縣市清單的標籤：深度縣市「含問政紀錄」；其他縣市有現任議員公報時「含 2022 公報」
 export const BULLETIN_TAG = '含 2022 公報';
 export const countyTag = (c) => (DEEP_COUNTIES.has(c.iso) ? '含問政紀錄' : c.councilor_bulletin ? BULLETIN_TAG : '');
 // 首頁縣市清單下的說明（counties 已依顯示順序排好）
 export function homeNote(counties) {
   const roster = counties.filter((c) => c.councilor_roster && !DEEP_COUNTIES.has(c.iso)).map((c) => c.name);
+  const cec = counties.filter((c) => c.councilor_cec_2022).map((c) => c.name);
+  const tagged = [roster.length && `${roster.join('、')}的現任議員`, cec.length && `${cec.join('、')}的 2022 年當選議員`].filter(Boolean);
   const bulletin = counties.some((c) => countyTag(c) === BULLETIN_TAG);
-  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；${bulletin ? `標示「${BULLETIN_TAG}」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷；` : ''}其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${roster.length ? `與${roster.join('、')}的現任議員` : ''}會標示，議員問政紀錄仍在建置中。`;
+  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；${bulletin ? `標示「${BULLETIN_TAG}」的縣市另收錄候選人中${cec.length ? '現任（或 2022 年當選）' : '現任'}議員的 2022 選舉公報政見與學經歷；` : ''}其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${tagged.length ? `與${tagged.join('、')}` : ''}會標示，議員問政紀錄仍在建置中。`;
 }
 // 非深度縣市：問政紀錄還沒建置，措辭不能讓人以為此人沒有問政
 export const noRecordNote = (county) => `${county.name}議會的問政紀錄仍在建置中，本站目前尚未收錄。`;
@@ -214,7 +220,11 @@ const pageNote = (facts) => (facts.bulletin?.[0]?.data?.page ? `（第 ${Number(
 
 // 出處標籤依職位決定：議員來自議會名冊；首長來自中選會選舉結果
 const isHead = (office) => String(office || '').endsWith('_mayor');
-export const officeSourceLabel = (office) => (office === 'legislator' ? '立法院委員資料' : isHead(office) ? '選舉結果' : '議員名冊');
+export const CEC_2022 = 'cec_2022';
+// basis=cec_2022（嘉義市）：議員任職來自中選會當選名單，不是議會名冊
+export const officeSourceLabel = (office, basis) => (office === 'legislator' ? '立法院委員資料' : isHead(office) || basis === CEC_2022 ? '選舉結果' : '議員名冊');
+// 人物頁「任職」的職稱：只知 2022 當選、不知是否仍在任時寫「2022 年當選…」
+export const officeTitle = (data, label) => `${data.basis === CEC_2022 ? '2022 年當選' : ''}${data.title || label}`;
 
 // ---------- 縣市長任職異動（V14 §3） ----------
 
@@ -228,12 +238,14 @@ export function suspensionOf(data) {
   return last?.event === 'suspended' ? last : null;
 }
 // 候選人標籤：本人在同一選區現任 →「現任」；別的選區或職位 →「現任新北市議員」；停職中不寫「現任」（V14 §3.3）
+// 只有 2022 當選名單（嘉義市）→「2022 當選」／「2022 當選嘉義市議員」
 export function candidateTag(incumbent, districtId, counties) {
   const list = incumbent || [];
   const o = list.find((x) => x.district_id === districtId) || list[0];
   if (!o) return '';
-  if (o.district_id === districtId) return o.suspended ? '停職中' : '現任';
   const label = officeLabel(o.office, counties.get(isoOf(o.district_id)));
+  if (o.basis === CEC_2022) return o.district_id === districtId ? '2022 當選' : `2022 當選${label}`;  // 嘉義市：不稱「現任」
+  if (o.district_id === districtId) return o.suspended ? '停職中' : '現任';
   return o.suspended ? `${label}（停職中）` : `現任${label}`;
 }
 // 任職的選區：2022 劃分與 2026 不同（新竹縣）時只寫 2022 選區名稱，不連到 2026 選區頁
@@ -846,9 +858,9 @@ async function renderPerson(main, ctx, id) {
       <dt>登記日期</dt><dd class="num">${esc(f.date || '')}</dd>
     </dl>`).join('');
 
-  const office = offices.map((f) => (f.data.elected_on ? headOfficeItem(f, districtLink(f.data.district_id)) : `<li><span class="name">${esc(f.data.title || label(f.data.office))}</span>
+  const office = offices.map((f) => (f.data.elected_on ? headOfficeItem(f, districtLink(f.data.district_id)) : `<li><span class="name">${esc(officeTitle(f.data, label(f.data.office)))}</span>
       <span>${officeDistrict(f.data, (id) => districtLink(id, f.data.area_name))}</span>
-      <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office))}${officeExtraRefs(f, notes)}</span></li>`)).join('');
+      <span class="meta">${f.date ? `<span class="num">${esc(f.date)}</span> 起` : ''}${notes.ref(f.source_url, f.fetched_at, officeSourceLabel(f.data.office, f.data.basis))}${officeExtraRefs(f, notes)}</span></li>`)).join('');
 
   const bulletin = bulletinSection(facts, notes);
   const jump = facts.profile?.length || facts.platform?.length ? 'k-platform' : bulletin && 'k-bulletin';
