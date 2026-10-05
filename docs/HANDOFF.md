@@ -69,7 +69,7 @@ git push origin main
 | 3 | **選舉時程維運** | 10/16 審定後移除不合格者（全國）；11/12、11/17 補號次；11/25 解析 2026 公報（全國新人的政見、學經歷與生日） | [V1](validation/V1-candidates-2026.md) |
 | 4 | **立委全國** | 程式已寫好（雲端 session，連不到 API，假資料測試；欄位名取自 openfunltd/ly.govapi.tw-v2 原始碼，Base URL 已改為 `https://ly.govapi.tw/v2`）。**下一步**：本機跑 `python3 -m etl.run`，對照 log 與實際回應確認：①`到職日`、`刊登日期`、`提案日期` 的寫法（`lyapi.to_date`）②單一選區縣市的 `選區名稱`（`lyapi.area`；對不上會印「不在 district 表」）③現任人數落在 100–113 ④審閱清單（不分區、原住民立委參選地方一律進審閱，確認後填 `data/identity_legislators.csv`）⑤`/interpellations` 是否只有書面質詢 ⑥ dump 增加的大小。表決（`/votes`）與出席（`/meets`，先做 V5）未收錄 | PLAN §2、§7、[data-sources](data-sources/legislative-yuan.md) |
 | 5 | **其他議會（L3）** | 先完成 V12 普查（新北網站曾連不上、桃園與 16 縣市未查），依平台分組；高雄最容易（影片 API 可逐人、有出席統計表），臺中、臺南可做名錄與影片 | [V12](validation/V12-councils-survey.md) |
-| 6 | **報導者觀測站議題標籤** | 使用者已同意：個人頁深連結，議題名稱與相關提案數原文照錄並標示出處（CC BY-NC-ND 3.0 TW） | README |
+| 6 | ~~報導者觀測站議題標籤~~ | **取消**（2026-10-05，使用者決定：需要對方授權的內容一律不做，含桃園議會影片） | V15 已定案第 7 點 |
 | 7 | **確定有罪判決** | 11/25 公報後補生日核對；建 `kind=conviction` 的 ETL 與人工核可表；每筆由 Claude 初審、verifier 複核 | [V7](validation/V7-criminal-records.md) |
 | 8 | **法遵** | 黨徽使用、判決顯示上線前的審查（security-executor） | PLAN §6 第 4 點、[公開前審查](validation/pre-publication-review.md) |
 
