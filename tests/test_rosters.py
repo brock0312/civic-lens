@@ -135,3 +135,33 @@ class RosterTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FetchRetryTest(unittest.TestCase):
+    def test_retries_transient_disconnects_but_not_http_errors(self):
+        import http.client
+        import urllib.error
+        from etl import rosters
+        calls = []
+
+        def flaky(iso):
+            calls.append(iso)
+            if len(calls) < 3:
+                raise http.client.RemoteDisconnected("closed")
+            return ["ok"]
+        saved = rosters._fetch_roster
+        rosters._fetch_roster = flaky
+        try:
+            self.assertEqual(rosters.fetch_roster("nwt", wait=0), ["ok"])
+            self.assertEqual(len(calls), 3)
+
+            def broken(iso):
+                calls.append(iso)
+                raise urllib.error.HTTPError("u", 404, "nf", None, None)
+            rosters._fetch_roster = broken
+            calls.clear()
+            with self.assertRaises(urllib.error.HTTPError):
+                rosters.fetch_roster("nwt", wait=0)
+            self.assertEqual(len(calls), 1)
+        finally:
+            rosters._fetch_roster = saved

@@ -1,6 +1,8 @@
 """五都議會官網的現任議員名錄解析（純函式）。以官網名錄為現任依據。"""
 import html as _html
+import http.client
 import http.cookiejar
+import urllib.error
 import json
 import re
 import time
@@ -250,7 +252,23 @@ def _fetch_hsz(url):
     return pages
 
 
-def fetch_roster(iso):
+# 議會網站偶爾中途斷線（2026-10 新竹市、另一縣市各一次），一個縣市失敗會讓整批名錄回滾，所以連線類錯誤重試
+_TRANSIENT = (http.client.RemoteDisconnected, http.client.IncompleteRead, ConnectionError, TimeoutError, urllib.error.URLError)
+
+
+def fetch_roster(iso, attempts=3, wait=5):
+    for i in range(attempts):
+        try:
+            return _fetch_roster(iso)
+        except urllib.error.HTTPError:
+            raise  # HTTP 錯誤（404、500）不是斷線，不重試
+        except _TRANSIENT:
+            if i == attempts - 1:
+                raise
+            time.sleep(wait * (i + 1))
+
+
+def _fetch_roster(iso):
     url = ROSTER_URLS[iso]
     if iso == "hsz":
         pages = _fetch_hsz(url)
