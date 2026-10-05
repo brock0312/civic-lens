@@ -129,9 +129,10 @@ def export(conn, out_dir):
         )
 
     # 有現任議員名錄（議員任職 fact，含沒參選者）的縣市：代表該縣市候選人的現任身分已標示
-    # 其中現任議員掛到 2022 公報（bulletin／profile／platform 任一）的縣市：前端說明「另收錄現任議員的 2022 選舉公報」
+    # 其中現任議員有 2022 公報文字（profile／platform）的縣市：前端說明「另收錄現任議員的 2022 選舉公報政見與學經歷」。
+    # 只有 bulletin fact（原檔連結）不算：雲林、屏東、宜蘭、臺東、澎湖整縣市只連原檔，沒有政見文字
     rosters, bulletins = set(), set()
-    has_bulletin = {r["person_id"] for r in facts if r["kind"] in ("bulletin", "profile", "platform")}
+    has_bulletin = {r["person_id"] for r in facts if r["kind"] in ("profile", "platform")}
     for row in facts:
         if row["kind"] == "office":
             d = json.loads(row["data"])
