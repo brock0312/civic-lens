@@ -93,9 +93,10 @@ export const RECORDS = {
   // 新北（V15 已定案第 4 點）：書面質詢一人一會期一份掃描 PDF（不抓題目）、整場會議影片、大會出席只有出席名單
   nwt: {
     depts: [], written: true,
-    countLine: (written, videos) => `書面質詢及答復 <span class="num">${written.length}</span> 個會期（掃描檔）、口頭質詢影片 <span class="num">${videos.length}</span> 筆`,
+    // ponytail: 口頭質詢影片暫不收：新北影音網站的單支影片連結依賴 session，連續開啟會出錯（V15 已定案第 6 點）
+    countLine: (written) => `書面質詢及答復 <span class="num">${written.length}</span> 個會期（掃描檔）；口頭質詢影片尚未收錄`,
     writtenBlurb: '每個會期一筆，連結至新北市議會議事錄附錄「書面質詢及答復」的掃描檔（PDF），本站未擷取個別題目；只收個人書面質詢，不含聯合質詢。',
-    noRecord: '本站目前沒有此人的書面質詢與口頭質詢影片紀錄（收錄範圍：第4屆新北市議員個人書面質詢及答復、口頭質詢影片）。',
+    noRecord: '本站目前沒有此人的書面質詢紀錄（收錄範圍：第4屆新北市議員個人書面質詢及答復；口頭質詢影片尚未收錄）。',
   },
 };
 

@@ -721,7 +721,7 @@ test('New Taipei is a deep county with a neutral scope note and no department ch
   const r = RECORDS.nwt;
   assert.equal(r.written, true);
   assert.deepEqual(r.depts, []);
-  assert.match(r.noRecord, /第4屆新北市議員個人書面質詢及答復、口頭質詢影片/);
+  assert.match(r.noRecord, /第4屆新北市議員個人書面質詢及答復；口頭質詢影片尚未收錄/);
   assert.match(r.writtenBlurb, /掃描檔/);
   assert.doesNotMatch(r.noRecord + r.writtenBlurb, /沒有問政|無問政|未質詢|缺席/);
 });
@@ -751,7 +751,7 @@ test('summary card for New Taipei counts written sessions and videos and uses th
   const v = { data: { video_id: 'x', whole_session: true, group_size: 5 } };
   const att = [nwtAtt('第4屆第6次定期會', 45, 43, 1)];
   const card = summaryCard({ attendance: att }, { offices: [], inters: [w, v, v], written: [w], videos: [v, v], rec: RECORDS.nwt });
-  assert.match(card, /書面質詢及答復 <span class="num">1<\/span> 個會期（掃描檔）、口頭質詢影片 <span class="num">2<\/span> 筆/);
+  assert.match(card, /書面質詢及答復 <span class="num">1<\/span> 個會期（掃描檔）；口頭質詢影片尚未收錄/);
   assert.doesNotMatch(card, /部門分布|出席率|請假率|<span>缺席/);
   assert.match(card, /出席 <span class="num">43<\/span>／<span class="num">45<\/span> 次、請假 <span class="num">1<\/span> 次/);
   // 其他縣市的摘要卡不受影響
