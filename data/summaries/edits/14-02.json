@@ -1,0 +1,140 @@
+[
+  {
+    "person_id": "p3092978976",
+    "name": "秦慧珠",
+    "issue_topic": "重大刑事被告報到監管制度與科技化改善",
+    "action": "drop_issue",
+    "reason": "議員段落與市府回應均點名非公職第三人（刑事被告朱國榮）並提及其刑案與脫逃情節，依本站不點名第三人刑案的原則；議員段落無法只刪一句",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p3092978976",
+    "name": "秦慧珠",
+    "issue_topic": "環南市場改建與停車場空間規劃",
+    "action": "drop_response_sentence",
+    "text": "，後續改建案會參考議員指教進行考量",
+    "reason": "原文第3708頁市場處處長只回答「是，謝謝議員的指教」，沒有承諾後續改建案參考議員意見，屬誇大",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p3092978976",
+    "name": "秦慧珠",
+    "issue_topic": "環南市場改建與停車場空間規劃",
+    "action": "drop_response_sentence",
+    "text": "、「謝謝議員的指教」",
+    "reason": "上一句刪除後，此引文已無對應敘述",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "基泰大直新建案鄰損與賠償處理",
+    "action": "drop_response_sentence",
+    "text": "，並已於網站公開預售屋契約訊息及督促基泰匯入專戶",
+    "reason": "原文第5847–5848頁地政局科長只說「有設置專區，可以公開……我們會把……」（未說已公開）；督促基泰匯入專戶是都發局局長答「這個部分我們應該會要求……」，非都更處處長或地政局科長，屬誇大與歸屬錯誤",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "pccc2308c1b",
+    "name": "侯漢廷",
+    "issue_topic": "YouBike營運管理與契約裁罰機制",
+    "action": "drop_response_sentence",
+    "text": "，並表示會再行研議評估票價與車輛採購等建議",
+    "reason": "原文第185頁「市府可以再行研議評估」是市長所說，交通局局長（第5781–5783頁）沒有表示研議票價或車輛採購，歸屬錯誤",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p4b727b88dc",
+    "name": "吳世正",
+    "issue_topic": "學校校舍改建審查與市有資產小組運作檢討",
+    "action": "drop_response_sentence",
+    "text": "，並重申修德國小案已依照原規劃通過",
+    "reason": "原文第3431頁「剛才那個是已經通過了，本席已經處理了」是議員所說，財政局局長沒有此說明，歸屬錯誤",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p4b727b88dc",
+    "name": "吳世正",
+    "issue_topic": "學校校舍改建審查與市有資產小組運作檢討",
+    "action": "drop_response_sentence",
+    "text": "財政局局長表示會重新檢視會議運作機制，並持續留意教育與學生權益。",
+    "reason": "財政建設部門質詢第4組（第3426–3433頁）財政局局長沒有此表態；「重新檢視一下這個會議的運作機制」是市長在另一場次（市政總質詢第11組第458頁）所說，屬跨場次錯置與歸屬錯誤",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p155e15fe02",
+    "name": "張志豪",
+    "issue_topic": "道路施工瓦斯管線安全處置與SOP落實",
+    "action": "drop_response_sentence",
+    "text": "工務局局長與",
+    "reason": "原文第60頁同意以書面報告回覆的是市長（「可以，第 1……」）；工務局局長第59頁「我們後續把整個調查清楚，再跟議員回報」是針對事故調查，不是書面報告",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p155e15fe02",
+    "name": "張志豪",
+    "issue_topic": "道路施工瓦斯管線安全處置與SOP落實",
+    "action": "drop_response_sentence",
+    "text": "「我們再回報」、",
+    "reason": "引號內文字不是原話（原文第59頁為「我們後續把整個調查清楚，再跟議員回報」），且所指不是書面報告",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p28d7d936d9",
+    "name": "游淑慧",
+    "issue_topic": "海外出生子女國籍認定與參選資格查核",
+    "action": "drop_response_sentence",
+    "text": "，若中央選舉委員會需要資料市府應配合提供",
+    "reason": "原文第673頁民政局局長只答「非常清楚」「對」，配合提供資料是市長所說（下一句已正確歸屬市長），歸屬錯誤",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p70a5d9018c",
+    "name": "王閔生",
+    "issue_topic": "臺北河濱花海資訊整合與宣傳優化",
+    "action": "drop_response_sentence",
+    "text": "、「2 個星期內把初步改進的方法提供給我的辦公室……可以」",
+    "reason": "引文混雜議員（第5891頁要求2個星期內提供）與處長（「好」「可以」）兩人發言，易被誤讀為處長所說；承諾內容屬實，保留敘述、刪除此段引文",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p8ff8ce5488",
+    "name": "苗博雅",
+    "issue_topic": "第二殯儀館試營運與回饋金機制",
+    "action": "drop_response_sentence",
+    "text": "、「廣納大安區跟文山區里長的意見，好不好？……好」",
+    "reason": "引文混雜議員（第419頁「是不是可以廣納……好不好？」）與民政局局長（「好。」）兩人發言；承諾內容屬實，保留敘述、刪除此段引文",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "p32da79905a",
+    "name": "王孝維",
+    "issue_topic": "機車退出騎樓與人行道2.0政策配套",
+    "action": "drop_response_sentence",
+    "text": "承諾「1 個月內要提出來」配套措施，並",
+    "reason": "引號內「1 個月內要提出來」是議員原話（第257頁），市長只答「好，可以」（第258頁），以引號呈現易被誤讀為市長所說",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  },
+  {
+    "person_id": "pcdef61ef89",
+    "name": "林杏兒",
+    "issue_topic": "陽明山農舍興建案與農民身分審查",
+    "action": "drop_issue",
+    "reason": "議員段落以「業界所稱的法拍教父」指認非公職第三人（原文第91頁點名其姓名），並指其違規開挖、可獲「27 億元暴利」，屬可辨識私人的違法指控；議員段落無法只刪一句",
+    "reviewer": "Claude (orchestrator) + verifier",
+    "date": "2026-10-05"
+  }
+]
