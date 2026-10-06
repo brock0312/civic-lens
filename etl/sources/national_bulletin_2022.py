@@ -7,6 +7,8 @@
 - facts 格式照臺北（platform、profile；學經歷用同一套 split_items 接行與條列）；另寫 kind=bulletin：
   對到公報檔的人一律記下原檔網址與頁碼，政見或學經歷沒收到時前端只放原檔連結（使用者 2026-10-02 決定）。
 - bulletin fact 的 data.elected 記下對到的 2022 開票紀錄是否當選（依開票紀錄，不從任職起日推斷）；落選者前端加註。
+- 整縣市只連原檔（bulletin_grid.NO_TEXT_LAYER：雲林錯碼；屏東、宜蘭、臺東、澎湖沒有文字層，V13 定案不 OCR）：
+  不切格、不下載，只寫 bulletin fact（原檔網址、elected，沒有頁碼）。
 - 姓名只差異體字（黄／黃）的人只放原檔連結，不寫政見（同一決定）。
 - 同一份 PDF 出現在兩個目錄（新北市長檔＝議員第 12 區檔、臺中市長檔含第 1 區）：市長取市長檔、議員取議員檔，同一人只寫一次。
 """
@@ -14,7 +16,7 @@ import json
 import time
 from pathlib import Path
 
-from etl.bulletin2022 import _req, file_map
+from etl.bulletin2022 import VOLUMES, _req, file_map
 from etl.bulletin_grid import B_FAMILY, NO_TEXT_FILES, NO_TEXT_LAYER, cut_pages, cut_pages_b, process
 from etl.cec2022 import SOURCES, TICKETS, parse_candidates
 from etl.db import upsert_fact
@@ -26,7 +28,8 @@ from etl.sources.tpe_bulletin_2022 import ELECTION, VOTE_DATE, bulletin_url, nor
 ROOT = Path(__file__).resolve().parents[2]
 PDF_ROOT = ROOT / "data" / "cache" / "bulletin2022"
 INDEX = ROOT / "tests" / "fixtures" / "bulletin2022_index.json"
-ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua", "cha", "hsq", "hsz", "kin", "lie"]
+ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua", "cha", "hsq", "hsz", "kin", "lie",
+        "cyi", "yun", "pif", "ila", "ttt", "pen"]
 NAMES = dict(COUNTIES)
 KINDS = ("platform", "profile", "bulletin")
 _VAR = str.maketrans(VARIANTS)
@@ -39,9 +42,11 @@ def own_dir(path, office):
     return ("長/" in path.split("111年")[0]) == (office == "mayor")
 
 
-def file_for(files, office, n):
-    """涵蓋該選區的公報檔路徑，職位相符的目錄優先；沒有回 None。files：file_map 的列。"""
-    hits = [f["path"] for f in files if [office, n] in f["districts"]]
+def file_for(files, office, n, cand_no=None):
+    """涵蓋該選區的公報檔路徑，職位相符的目錄優先；沒有回 None。files：file_map 的列。
+    選區分冊（VOLUMES）的檔只在號次落在該冊時才算。"""
+    hits = [f["path"] for f in files
+            if [office, n] in f["districts"] and (f["path"] not in VOLUMES or cand_no in VOLUMES[f["path"]])]
     return next((p for p in hits if own_dir(p, office)), hits[0] if hits else None)
 
 
@@ -86,13 +91,14 @@ def plan_person(person, cec, files, picked):
     if c is None:
         return {"status": "missing", "reason": why}
     hit = picked.get((person["office"], person["district_n"], c["cand_no"]))
-    path = hit[0] if hit else file_for(files, person["office"], person["district_n"])
+    path = hit[0] if hit else file_for(files, person["office"], person["district_n"], c["cand_no"])
     if path is None:
         return {"status": "missing", "reason": "沒有涵蓋此選區的公報檔"}
     if hit and full:
         return {"status": "full", "path": path, "page": hit[1]["page"], "cand": to_cand(hit[1]), "reason": None,
                 "elected": c["elected"]}
-    reason = why or (NO_TEXT_FILES.get(path) and f"無文字層（{NO_TEXT_FILES[path]}）") or "公報列未通過身分關卡"
+    no_text = NO_TEXT_LAYER.get(NAMES[person["iso"]]) or NO_TEXT_FILES.get(path)
+    reason = why or (no_text and f"無文字層（{no_text}）") or "公報列未通過身分關卡"
     return {"status": "link", "path": path, "page": hit[1]["page"] if hit else None, "reason": reason,
             "elected": c["elected"]}
 

@@ -235,25 +235,26 @@ class TestCountyRosterFlag(unittest.TestCase):
             out = json.loads((Path(tmp) / "out" / "counties.json").read_text(encoding="utf-8"))
             self.assertTrue(out["counties"][0]["councilor_roster"])
 
-    def test_bulletin_flag_needs_an_incumbent_councillor_with_a_2022_bulletin_fact(self):
+    def test_bulletin_flag_needs_an_incumbent_councillor_with_2022_bulletin_text_not_just_a_link(self):
         with tempfile.TemporaryDirectory() as tmp:
             conn = open_db(Path(tmp) / "civic.db", Path(tmp) / "civic.sql")
-            for iso in ("nwt", "kee", "ila"):
+            for iso in ("nwt", "kee", "ila", "pif"):
                 upsert(conn, "county", {"iso": iso, "moi_code": "1", "name": iso, "source_url": "http://m",
                                         "fetched_at": "2024-01-01T00:00:00Z"}, ("iso",))
-            for did in ("nwt-council-01", "kee-council-01", "ila-mayor"):
+            for did in ("nwt-council-01", "kee-council-01", "ila-mayor", "pif-council-01"):
                 _add_district(conn, did)
             for pid, office, did in (("p1", "nwt_councilor", "nwt-council-01"), ("p2", "kee_councilor", "kee-council-01"),
-                                     ("p3", "ila_mayor", "ila-mayor")):
+                                     ("p3", "ila_mayor", "ila-mayor"), ("p4", "pif_councilor", "pif-council-01")):
                 upsert_person(conn, pid, pid)
                 upsert_fact(conn, f"o-{pid}", pid, "office", {"office": office, "district_id": did},
                             "http://a", "2024-01-01T00:00:00Z")
-            upsert_fact(conn, "b1", "p1", "bulletin", {"page": 3}, "http://b", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "b1", "p1", "profile", {"education": ["x"]}, "http://b", "2024-01-01T00:00:00Z")
             upsert_fact(conn, "b3", "p3", "platform", {"text": "x"}, "http://b", "2024-01-01T00:00:00Z")
+            upsert_fact(conn, "b4", "p4", "bulletin", {"elected": True}, "http://b", "2024-01-01T00:00:00Z")  # 只連原檔
             export(conn, Path(tmp) / "out")
             out = json.loads((Path(tmp) / "out" / "counties.json").read_text(encoding="utf-8"))
             self.assertEqual({c["iso"]: c["councilor_bulletin"] for c in out["counties"]},
-                             {"nwt": True, "kee": False, "ila": False})
+                             {"nwt": True, "kee": False, "ila": False, "pif": False})
 
 
     def test_cec_2022_offices_flag_the_county_separately_and_carry_basis_to_the_candidate(self):

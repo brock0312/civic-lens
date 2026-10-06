@@ -78,7 +78,8 @@ def pdf_layers(data):
         bbox = run("pdftotext", "-bbox-layout", str(pdf), "-")
         raw = run("pdftotext", "-raw", str(pdf), "-")
         subprocess.run(["pdftohtml", "-xml", "-q", "-zoom", "1", str(pdf), f"{tmp}/o"], capture_output=True, check=True)
-        xml = Path(f"{tmp}/o.xml").read_text(encoding="utf-8")
+        # 只用來找 <image>；雲林的字型名（fontspec family）是 Big5 原始位元組，不是 UTF-8，換成 U+FFFD 即可
+        xml = Path(f"{tmp}/o.xml").read_text(encoding="utf-8", errors="replace")
         subprocess.run(["pdftoppm", "-r", str(DPI), "-gray", str(pdf), f"{tmp}/g"], capture_output=True, check=True)
         grays = [read_pgm(p.read_bytes()) for p in sorted(Path(tmp).glob("g-*.pgm"), key=lambda p: int(p.stem.split("-")[1]))]
     return bbox, raw, xml, grays

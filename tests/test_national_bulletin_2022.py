@@ -104,6 +104,38 @@ class PlanTest(unittest.TestCase):
         self.assertIn("無文字層", p["reason"])
         self.assertIn(TAO_7, bg.NO_TEXT_FILES)
 
+    def test_whole_county_without_text_layer_gives_link_only_with_result_and_no_page(self):
+        path = P + "06縣市議員/111年/16臺東縣/臺東縣第1、7、14選舉區.pdf"
+        files = [{"path": path, "iso": "ttt", "districts": [["councilor", 1], ["councilor", 7], ["councilor", 14]]}]
+        cec = {("ttt", "councilor", 7): {2: cand("王五", 2, elected=False)}}
+        p = nb.plan_person({"iso": "ttt", "office": "councilor", "district_n": 7, "name": "王五"}, cec, files, {})
+        self.assertEqual((p["status"], p["path"], p["page"], p["elected"]), ("link", path, None, False))
+        self.assertIn("無文字層", p["reason"])
+        self.assertNotIn("cand", p)
+
+    def test_link_only_counties_are_in_scope_and_never_cut(self):
+        for iso in ("yun", "pif", "ila", "ttt", "pen"):
+            self.assertIn(iso, nb.ISOS)
+            self.assertIn(nb.NAMES[iso], bg.NO_TEXT_LAYER)
+        self.assertIn("cyi", nb.ISOS)
+        self.assertNotIn("嘉義市", bg.NO_TEXT_LAYER)
+
+
+class VolumeTest(unittest.TestCase):
+    V1 = P + "06縣市議員/111年/13屏東縣/屏東縣第01選舉區1.pdf"
+    V2 = P + "06縣市議員/111年/13屏東縣/屏東縣第01選舉區2.pdf"
+    files = [{"path": V1, "iso": "pif", "districts": [["councilor", 1]]},
+             {"path": V2, "iso": "pif", "districts": [["councilor", 1]]}]
+
+    def test_split_district_links_the_volume_holding_the_ballot_number(self):
+        self.assertEqual(nb.file_for(self.files, "councilor", 1, 20), self.V1)
+        self.assertEqual(nb.file_for(self.files, "councilor", 1, 21), self.V2)
+
+    def test_plan_for_split_district_uses_matched_candidate_number(self):
+        cec = {("pif", "councilor", 1): {23: cand("趙六", 23)}}
+        p = nb.plan_person({"iso": "pif", "office": "councilor", "district_n": 1, "name": "趙六"}, cec, self.files, {})
+        self.assertEqual((p["status"], p["path"]), ("link", self.V2))
+
 
 class SamePartyTest(unittest.TestCase):
     def test_tai_variants_are_equal_for_party_only(self):
