@@ -106,7 +106,7 @@ class NationalCouncilorsTest(unittest.TestCase):
                                                       "yun", "pen", "pif", "ila", "ttt")},
                          {"kee": 28, "cyq": 37, "nan": 34, "mia": 36, "hua": 32,
                           "cha": 53, "hsq": 37, "hsz": 33, "kin": 19, "lie": 9,
-                          "yun": 42, "pen": 18, "pif": 51, "ila": 33, "ttt": 30})
+                          "yun": 42, "pen": 19, "pif": 51, "ila": 33, "ttt": 30})
         self.assertNotIn("cyi", nc.ISOS)  # 嘉義市不爬名錄
 
     def test_penghu_district_comes_from_unique_2022_winner_and_unmatched_go_to_review(self):

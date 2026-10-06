@@ -24,7 +24,7 @@ ISOS = ["nwt", "tao", "txg", "tnn", "khh", "kee", "cyq", "nan", "mia", "hua", "c
 EXPECTED = {"nwt": 64, "tao": 61, "txg": 62, "tnn": 55, "khh": 61,
             "kee": 28, "cyq": 37, "nan": 34, "mia": 36, "hua": 32,
             "cha": 53, "hsq": 37, "hsz": 33, "kin": 19, "lie": 9,
-            "yun": 42, "pen": 18, "pif": 51, "ila": 33, "ttt": 30}
+            "yun": 42, "pen": 19, "pif": 51, "ila": 33, "ttt": 30}
 # 嘉義市議會 robots.txt 禁止所有爬蟲：不爬名錄，以中選會 2022 當選人建立任職，前端標「2022 當選」而非「現任」（V13 已定案第 3 點）
 CEC_ISOS = ["cyi"]
 CEC_BASIS = "cec_2022"

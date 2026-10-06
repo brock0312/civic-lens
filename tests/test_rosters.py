@@ -80,8 +80,9 @@ class RosterTest(unittest.TestCase):
 
     def test_pen_has_no_district_and_drops_officer_title(self):
         h = ('<a href="meet.php?councillor=M24080001">陳毓仁 議長</a>'
-             '<a href="meet.php?councillor=M24080003">陳海山</a><a href="meet.php?x=1">議場</a>')
-        self.assertEqual(self._dn(r.parse_pen(h)), [(None, "陳毓仁"), (None, "陳海山")])
+             '<a href="meet.php?councillor=M24080003">陳海山</a><a href="meet.php?x=1">議場</a>'
+             '<a href="meet.php?councillor=M24080019" style="border-bottom: 1px solid #ccc">張仁和</a>')
+        self.assertEqual(self._dn(r.parse_pen(h)), [(None, "陳毓仁"), (None, "陳海山"), (None, "張仁和")])
 
     def test_kin_ignores_menu_links_after_last_district_list(self):
         h = ('<h3>第三選區/烈嶼鄉</h3><ul><li> <a target="_self" title="吳佩雯">吳佩雯</a> </li></ul>'

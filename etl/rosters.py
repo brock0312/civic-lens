@@ -171,7 +171,7 @@ def parse_hua(html):
 def parse_pen(html):
     # 名錄頁沒有選區資訊，district_n 一律 None
     return [_row("pen", None, _nm(re.sub(r"副?議[長員]$", "", x.strip())))
-            for x in re.findall(r'meet\.php\?councillor=M\d+">([^<]*)<', html)]
+            for x in re.findall(r'meet\.php\?councillor=M\d+"[^>]*>([^<]*)<', html)]
 
 
 def parse_kin(html):
