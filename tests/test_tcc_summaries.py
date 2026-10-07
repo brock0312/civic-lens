@@ -56,7 +56,10 @@ class TestTccSummaries(unittest.TestCase):
         data = json.loads(r["data"])
         self.assertEqual(sorted(data), ["disclaimer", "generated_at", "generator", "issues", "session", "sources", "status"])
         self.assertEqual(data["session"], "第14屆第5次定期大會")
-        self.assertEqual(data["issues"][0]["citations"][0]["page"], 10)
+        self.assertEqual(data["issues"][0]["citations"], [{"source_url": VIEWER + "#page=3", "page": 10}])
+
+    def test_citation_excerpts_from_old_session_files_never_reach_the_db(self):
+        self.assertFalse([k for k, r in self.rows.items() if "cited_text" in r["data"]])
 
     def test_pending_rejected_and_unreviewed_sessions_write_no_summary_facts(self):
         for tag in ("14-02", "14-03", "14-04"):

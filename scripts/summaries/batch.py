@@ -18,9 +18,9 @@
   - 輸出檔的 review 一律是 pending；人工審閱通過改成 approved 後，ETL（etl/sources/tcc_summaries.py）才會收。
     已核可的會期不覆寫：重跑時改寫到 data/cache/transcripts/14-0N/pending.json，審閱通過後再取代 data/summaries 的檔並設為 approved。
 輸出：
-  data/summaries/14-0N.json                    要 commit 的資料：摘要、引文（source_url、頁碼、cited_text）、出處清單
+  data/summaries/14-0N.json                    要 commit 的資料：摘要、引文（source_url、頁碼；不含引文原文）、出處清單
   data/cache/transcripts/14-0N/batch_report.json 檢查報告（失敗、被移除的議題、空引文數、自動檢查問題）
-  data/cache/transcripts/14-0N/review.md         審閱稿
+  data/cache/transcripts/14-0N/review.md         審閱稿（含引文原文前 300 字；完整引文在同目錄的 nlm_<person_id>.json）
 """
 import json
 import pathlib
@@ -46,10 +46,17 @@ class EditMismatch(Exception):
 
 
 def apply_edits(summary, edits):
-    """人工修訂 → 新摘要（不改輸入）。edits 每筆 {person_id, name, issue_topic, action, text?, reason, reviewer, date}：
+    """人工修訂 → 新摘要（不改輸入）。
+    edits 每筆 {person_id, name, issue_topic, action, text?, page?, cited_prefix?, reason, reviewer, date}。
+    只有刪除、沒有新增或改寫：審閱者不能藉修訂寫入任何文字。
       - drop_issue：移除議題名稱等於 issue_topic 的議題。
       - drop_response_sentence：從該議題的市府回應刪掉 text（逐字比對），刪完沒有文字時回應設為 None。
-    對不上（姓名、議題、句子）或 action 不認得時 raise EditMismatch。"""
+      - drop_point_text：從該議題的議員訴求刪掉 text（逐字比對，必須恰好出現在一點裡），刪完沒有文字的那點移除；
+        刪到一點都不剩時 raise（要整題刪請用 drop_issue）。
+      - drop_citation：刪掉該議題公報第 page 頁的引文。同頁有不只一段不同的引文時，要加 cited_prefix
+        （cache 裡完整引文的開頭，可從 review.md 複製）指定是哪一段；同一段引文被多個 [n] 引用時一起刪。
+        刪完該議題沒有可定位的引文時 raise：議題會被自動檢查整題移除，網站也不會顯示沒有引文的議題。
+    對不上（姓名、議題、句子、頁碼）、指定不明確，或 action 不認得時 raise EditMismatch。"""
     issues = summary["issues"]
     for e in edits:
         if e["name"] != summary["name"]:
@@ -64,9 +71,51 @@ def apply_edits(summary, edits):
                 raise EditMismatch(f"{e['name']}「{e['issue_topic']}」的市府回應裡沒有「{e.get('text')}」")
             issues = [{**i, "response": i["response"].replace(e["text"], "", 1).strip() or None}
                       if i["topic"] == e["issue_topic"] else i for i in issues]
+        elif e["action"] == "drop_point_text":
+            issues = [{**i, "councilor_points": drop_point_text(i["councilor_points"], e)}
+                      if i["topic"] == e["issue_topic"] else i for i in issues]
+        elif e["action"] == "drop_citation":
+            issues = [{**i, "citations": drop_citation(i["citations"], e)}
+                      if i["topic"] == e["issue_topic"] else i for i in issues]
         else:
             raise EditMismatch(f"不認得的修訂 action：{e['action']}")
     return {**summary, "issues": issues}
+
+
+def drop_point_text(points, e):
+    """議員訴求 → 刪掉 e['text'] 後的新清單；text 必須恰好出現在一點裡。"""
+    where = [k for k, p in enumerate(points) if e.get("text") and e["text"] in p]
+    if len(where) != 1:
+        raise EditMismatch(f"{e['name']}「{e['issue_topic']}」的議員訴求裡「{e.get('text')}」出現在 {len(where)} 點（要恰好 1 點）")
+    k = where[0]
+    rest = points[k].replace(e["text"], "", 1).strip()
+    out = points[:k] + ([rest] if rest else []) + points[k + 1:]
+    if not out:
+        raise EditMismatch(f"{e['name']}「{e['issue_topic']}」刪完沒有議員訴求；要整題刪請用 drop_issue")
+    return out
+
+
+def usable(c):
+    """會留到公開檔的引文：有文字、定位成功、不是短答（與 check_report.filter_citations 一致）。"""
+    return bool((c.get("cited_text") or "").strip()) and c.get("located", True) and not c.get("short") \
+        and bool(c.get("source_url"))
+
+
+def drop_citation(citations, e):
+    """引文清單 → 刪掉公報第 e['page'] 頁（＋cited_prefix）那段引文後的新清單。"""
+    prefix = (e.get("cited_prefix") or "").strip()
+    hit = [c for c in citations if e.get("page") is not None and c.get("page") == e["page"]
+           and (c.get("cited_text") or "").strip().startswith(prefix)]
+    texts = {c.get("cited_text") for c in hit}
+    where = f"{e['name']}「{e['issue_topic']}」公報第{e.get('page')}頁" + (f"「{prefix}…」" if prefix else "")
+    if not hit:
+        raise EditMismatch(f"{where}沒有引文")
+    if len(texts) > 1:
+        raise EditMismatch(f"{where}有 {len(texts)} 段不同的引文，請加 cited_prefix 指定")
+    out = [c for c in citations if c not in hit]
+    if not any(usable(c) for c in out):
+        raise EditMismatch(f"{where}刪完後議題沒有可定位的引文；要整題刪請用 drop_issue")
+    return out
 
 
 def candidate_ids(db=DB):
@@ -90,8 +139,9 @@ def public_summary(s):
         "issues": [{
             "topic": i["topic"], "councilor_points": i["councilor_points"], "response": i["response"],
             "response_removed": i["response_removed"],
-            "citations": [{"source_url": c["source_url"], "page": c["page"], "cited_text": c["cited_text"]}
-                          for c in i["citations"]],
+            # 不含 cited_text：公報原文會點名非公職人員，網站也用不到；審閱者看 cache 的 review.md 與 nlm_<id>.json。
+            # etl/sources/tcc_summaries.py 寫 fact 時也做同樣的投影。
+            "citations": [{"source_url": c["source_url"], "page": c["page"]} for c in i["citations"]],
         } for i in s["issues"]],
         "sources": public_sources(s["sources"]),
         "generator": s["generator"], "generated_at": s["generated_at"], "disclaimer": s["disclaimer"],

@@ -40,6 +40,64 @@ class TestApplyEdits(unittest.TestCase):
                 apply_edits(SUMMARY, [bad])
 
 
+
+def cite(page, text, **kw):
+    return {"n": 1, "page": page, "cited_text": text, "located": True, "short": False,
+            "source_url": f"A#page={page}", **kw}
+
+
+CITED = {"person_id": "p1", "name": "甲", "issues": [
+    {"topic": "捷運漏水", "councilor_points": ["指出捷運站漏水，劉姓保母投訴", "要求改善漏水"], "response": None,
+     "citations": [cite(10, "甲議員：捷運站漏水很嚴重。"), cite(11, "甲議員：劉姓保母來信投訴。"),
+                   cite(11, "甲議員：劉姓保母來信投訴。", n=2), cite(12, "甲議員：漏水一。"),
+                   cite(12, "甲議員：漏水二。")]},
+    {"topic": "公園照明", "councilor_points": ["要求增設路燈"], "response": None,
+     "citations": [cite(20, "甲議員：路燈不足。"), cite(21, "好。", short=True)]},
+]}
+
+
+class TestDeleteOnlyEdits(unittest.TestCase):
+    def test_drop_point_text_removes_the_substring_without_mutating_input(self):
+        got = apply_edits(CITED, [edit("drop_point_text", "捷運漏水", text="，劉姓保母投訴")])
+        self.assertEqual(got["issues"][0]["councilor_points"], ["指出捷運站漏水", "要求改善漏水"])
+        self.assertEqual(CITED["issues"][0]["councilor_points"][0], "指出捷運站漏水，劉姓保母投訴")
+
+    def test_drop_point_text_removes_a_point_left_empty(self):
+        got = apply_edits(CITED, [edit("drop_point_text", "捷運漏水", text="要求改善漏水")])
+        self.assertEqual(got["issues"][0]["councilor_points"], ["指出捷運站漏水，劉姓保母投訴"])
+
+    def test_drop_point_text_mismatches_fail(self):
+        for bad in (edit("drop_point_text", "捷運漏水", text="不存在"),
+                    edit("drop_point_text", "捷運漏水"),
+                    edit("drop_point_text", "捷運漏水", text="漏水"),  # 出現在不只一點：不明確
+                    edit("drop_point_text", "公園照明", text="要求增設路燈"),  # 刪完沒有訴求
+                    edit("drop_point_text", "不存在的議題", text="要求")):
+            with self.assertRaises(EditMismatch, msg=bad):
+                apply_edits(CITED, [bad])
+
+    def test_drop_citation_by_unique_page(self):
+        got = apply_edits(CITED, [edit("drop_citation", "捷運漏水", page=10)])
+        self.assertEqual([c["page"] for c in got["issues"][0]["citations"]], [11, 11, 12, 12])
+        self.assertEqual(len(CITED["issues"][0]["citations"]), 5)
+
+    def test_drop_citation_drops_the_same_excerpt_cited_under_several_marks(self):
+        got = apply_edits(CITED, [edit("drop_citation", "捷運漏水", page=11)])
+        self.assertEqual([c["page"] for c in got["issues"][0]["citations"]], [10, 12, 12])
+
+    def test_drop_citation_with_prefix_picks_one_excerpt_on_a_shared_page(self):
+        got = apply_edits(CITED, [edit("drop_citation", "捷運漏水", page=12, cited_prefix="甲議員：漏水二")])
+        self.assertEqual([c["cited_text"] for c in got["issues"][0]["citations"] if c["page"] == 12], ["甲議員：漏水一。"])
+
+    def test_drop_citation_mismatches_fail(self):
+        for bad in (edit("drop_citation", "捷運漏水", page=99),
+                    edit("drop_citation", "捷運漏水"),
+                    edit("drop_citation", "捷運漏水", page=12),  # 同頁兩段不同引文：不明確
+                    edit("drop_citation", "捷運漏水", page=12, cited_prefix="不相符"),
+                    edit("drop_citation", "公園照明", page=20),  # 剩下的只有短答：議題會被整題移除
+                    edit("drop_citation", "不存在的議題", page=10)):
+            with self.assertRaises(EditMismatch, msg=bad):
+                apply_edits(CITED, [bad])
+
 class TestRelevanceFilter(unittest.TestCase):
     def test_issue_supported_only_by_pleasantries_is_removed(self):
         corpus = ["謝謝議員，這個我們會研議。", "好，謝謝局長。", "這個部分我們會再研議。", "謝謝。"] * 50 + [

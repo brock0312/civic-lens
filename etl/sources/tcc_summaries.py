@@ -13,6 +13,12 @@ from etl.sources.tcc_councilors import load_identity
 SUMMARIES_DIR = Path(__file__).resolve().parents[2] / "data" / "summaries"
 
 
+def public_issues(issues):
+    """引文只留速記錄頁碼連結與公報頁碼：舊版會期檔帶的 cited_text（公報原文，會點名非公職人員）不進 dump 與網站。"""
+    return [{**i, "citations": [{"source_url": c["source_url"], "page": c["page"]} for c in i["citations"]]}
+            for i in issues]
+
+
 def run(conn, summaries_dir=SUMMARIES_DIR, identity=None):
     person_ids = {pid for pid, _ in (identity or load_identity()).values()}
     n = 0
@@ -27,8 +33,8 @@ def run(conn, summaries_dir=SUMMARIES_DIR, identity=None):
                 continue
             upsert_fact(
                 conn, f"summary:{doc['session']}:{s['person_id']}", s["person_id"], "summary",
-                {k: s[k] for k in ("issues", "sources", "status", "generator", "generated_at", "disclaimer")}
-                | {"session": doc["label"]},
+                {k: s[k] for k in ("sources", "status", "generator", "generated_at", "disclaimer")}
+                | {"session": doc["label"], "issues": public_issues(s["issues"])},
                 s["sources"][0]["transcript_url"],
                 s["generated_at"] or doc["generated_at"],  # no_speech 沒有產生時間，用該會期檔的時間
                 date=doc["last_date"],

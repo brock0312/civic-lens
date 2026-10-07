@@ -104,6 +104,19 @@ class DataInvariants(unittest.TestCase):
                 bad.append((path.name, status))
         self.assertEqual(bad, [], "git 追蹤了 review.status 不是 approved 的摘要檔")
 
+    # 摘要引文的公報原文（cited_text）會點名非公職人員，網站用不到，不進任何公開輸出；審閱者看 data/cache
+    def test_citation_excerpts_are_never_published(self):
+        bad = [f"civic.sql fact {r['fact_key']}" for r in self.conn.execute("SELECT fact_key, data FROM fact")
+               if "cited_text" in (r["data"] or "")]
+        bad += [f"export {f}" for f, text in self.files.items() if "cited_text" in text]
+        site_data = SITE / "data"
+        if site_data.is_dir():  # 本機 ETL 匯出的網站資料（gitignored，CI 上不存在）
+            bad += [p.relative_to(ROOT).as_posix() for p in site_data.rglob("*.json")
+                    if "cited_text" in p.read_text(encoding="utf-8")]
+        bad += [p.relative_to(ROOT).as_posix() for p in tracked("data/summaries/*.json")
+                if "cited_text" in p.read_text(encoding="utf-8")]
+        self.assertEqual(bad[:20], [], f"{len(bad)} 個公開輸出含 cited_text")
+
     # §3 第 9 條：網站只呈現 2026 候選人
     def test_people_files_are_exactly_the_2026_candidates(self):
         exported = {k.split("/", 1)[1].removesuffix(".json") for k in self.people()}
