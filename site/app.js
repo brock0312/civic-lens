@@ -63,6 +63,10 @@ export function videoNote(d) {
     return n > 1 ? `${n} 位議員聯合質詢的影片` : '影片即該議員的質詢時段';
   }
   const size = Number(d?.group_size) || 0;
+  if (d?.whole) {  // 花蓮：半天一支的整場影片，標題列出本場質詢議員，沒有個人起點
+    const names = (d.councillors || []).join('、');
+    return size > 1 ? `本場質詢議員：${names}（${size} 位），未細分到個人` : '整場影片，未標示本人質詢起點';
+  }
   const group = size > 1 ? `同組 ${size} 位議員，未細分到個人` : '';
   if (d?.seekable) return group ? `從本組開始播放；${group}` : '從本組開始播放';
   return `本組約從 ${hms(d?.start_sec)} 開始${group ? `；${group}` : ''}`;
@@ -76,6 +80,11 @@ export const KHH_DEPTS = ['民政', '財經', '教育', '交通', '警消衛環'
 export const TXG_DEPTS = ['民政', '財政經濟', '教育文化', '交通地政', '警消環衛', '都發建設水利'];
 
 export const NWT_VOD_HOME = 'https://vod.ntp.gov.tw/VodCloud/index.htm';
+
+// 花蓮議事錄的口頭質詢答覆表、議員質詢索引表（質詢錄音紀錄）：都是沒有影片的 interpellation，依 doc_type 另列
+export const HUA_ORAL = '口頭質詢答覆';
+export const HUA_TRANSCRIPT = '質詢錄音紀錄';
+export const HUA_ATTENDANCE_NOTE = '依花蓮縣議會議事錄每次大會「會議紀錄」的出席與請假名單計算。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、會議紀錄列有出席名單的大會次數（定期大會與臨時大會）；分組審查會議不列入。議事錄目前刊出第 2 至第 6 次定期大會與第 4 至第 20 次臨時大會（2023 年 9 月至 2026 年 3 月），其他會期本站未收錄。';
 
 // 深度縣市的收錄範圍：部門清單、有沒有收書面質詢、沒有紀錄時的說明（措辭中性，不暗示此人沒有問政）
 export const RECORDS = {
@@ -101,6 +110,21 @@ export const RECORDS = {
     writtenBlurb: '每個會期一筆，連結至新北市議會議事錄附錄「書面質詢及答復」的掃描檔（PDF），本站未擷取個別題目；只收個人書面質詢，不含聯合質詢。',
     videoBlurb: `每筆是一場發言議員名單列有此人的整場會議影片，本人發言時段未標示。新北市議會影音網的單支影片網址無法穩定連結，請至<a href="${NWT_VOD_HOME}" target="_blank" rel="noopener">影音網首頁</a>以日期查詢。影片來源：新北市議會。`,
     noRecord: '本站目前沒有此人的書面質詢與口頭質詢影片紀錄（收錄範圍：第4屆新北市議員個人書面質詢及答復、口頭質詢影片）。',
+  },
+  // 花蓮（V16 已定案第 6 點）：議事錄的書面質詢、口頭質詢答覆表題目照官方原文；質詢（錄音）紀錄只連議員質詢索引表；整場影片
+  hua: {
+    depts: [], written: true,
+    countLine: (written, videos) => {
+      const n = (t) => written.filter((f) => f.data?.doc_type === t).length;
+      return `書面質詢 <span class="num">${n('書面質詢')}</span> 筆、口頭質詢答覆 <span class="num">${n(HUA_ORAL)}</span> 筆、縣政總質詢影片 <span class="num">${videos.length}</span> 筆`;
+    },
+    note: '質詢答覆與出缺勤取自花蓮縣議會議事錄，目前刊出第 2 至第 6 次定期大會與第 4 至第 20 次臨時大會（2023 年 9 月至 2026 年 3 月）；成立大會、第 1 次定期大會、第 1 至第 3 次臨時大會與第 7 次定期大會以後的議事錄尚未刊出，本站未收錄。',
+    writtenBlurb: '依花蓮縣議會議事錄「書面質詢」答覆表，題目照官方原文（質詢事項），類別是答覆的縣府單位；連結至議事錄 PDF 該頁。',
+    oralBlurb: '依議事錄「口頭質詢」答覆表：縣府對議員口頭質詢事項的書面答覆，一格一題，題目照官方原文；聯合質詢列在每位質詢人名下。連結至議事錄 PDF 該頁。',
+    transcriptBlurb: '每個定期大會一筆，連結至議事錄的「議員質詢索引表」，表上列出本人發言所在的頁碼（議長、副議長含主持會議的發言）；本站未摘要內容。',
+    videoBlurb: '連結至花蓮縣議會發布在 YouTube 的縣政總質詢影片；一支影片是半天的會議，有多位議員質詢，本人質詢時段未標示。影片來源：花蓮縣議會。',
+    attendance: { note: HUA_ATTENDANCE_NOTE, duty: false },
+    noRecord: '本站目前沒有此人的質詢紀錄（收錄範圍：第20屆花蓮縣議員，議事錄已刊出的定期大會書面質詢、口頭質詢答覆表與縣政總質詢影片）。',
   },
 };
 
@@ -172,7 +196,8 @@ export function khhAttendanceBlock(list, excluded = []) {
 // 兩份名單都沒有的次數原因不明，不另列（使用者 2026-10-04 決定）；公假和高雄一樣與請假分開列
 export const NWT_ATTENDANCE_NOTE = '依新北市議會議事錄每次會議「摘要紀錄」的出席與請假名單計算；請假名單上註記公假的，列為公差／公假，和請假分開。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、摘要紀錄列有出席名單的會議次數（定期會與臨時會，任職以後）；出席欄只寫「詳如簽到簿」的會議（多為審查委員會業務質詢與市政總質詢會議）不列入。';
 
-export function nwtAttendanceBlock(list) {
+// 花蓮沿用同一區塊（opts：note 換成花蓮的定義；duty: false 不列公差／公假，花蓮的名單沒有這一類）
+export function nwtAttendanceBlock(list, { note = NWT_ATTENDANCE_NOTE, duty = true } = {}) {
   const sum = (k) => list.reduce((s, f) => s + (Number(f.data?.[k]) || 0), 0);
   const total = sum('meetings');
   const rate = (n) => (total ? n / total : 0);
@@ -180,12 +205,12 @@ export function nwtAttendanceBlock(list) {
   const sessions = list.map((f) => {  // export 已依日期由新到舊
     const d = f.data || {};
     const u = safeUrl(f.source_url);
-    return `<li>${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：會議 <span class="num">${Number(d.meetings)}</span> 次，出席 <span class="num">${Number(d.present)}</span>、請假 <span class="num">${Number(d.leave) || 0}</span>、公差／公假 <span class="num">${Number(d.duty) || 0}</span></li>`;
+    return `<li>${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：會議 <span class="num">${Number(d.meetings)}</span> 次，出席 <span class="num">${Number(d.present)}</span>、請假 <span class="num">${Number(d.leave) || 0}</span>${duty ? `、公差／公假 <span class="num">${Number(d.duty) || 0}</span>` : ''}</li>`;
   }).join('');
   return `<h3>出缺勤</h3>
-      <ul class="bars rates">${row('出席', sum('present'))}${row('請假', sum('leave'))}${row('公差／公假', sum('duty'))}</ul>
-      <p class="muted small">出席 <span class="num">${sum('present')}</span>／<span class="num">${total}</span> 次、請假 <span class="num">${sum('leave')}</span> 次、公差／公假 <span class="num">${sum('duty')}</span> 次（分母是 <span class="num">${total}</span> 次會議）。</p>
-      <p class="muted small">${NWT_ATTENDANCE_NOTE}</p>
+      <ul class="bars rates">${row('出席', sum('present'))}${row('請假', sum('leave'))}${duty ? row('公差／公假', sum('duty')) : ''}</ul>
+      <p class="muted small">出席 <span class="num">${sum('present')}</span>／<span class="num">${total}</span> 次、請假 <span class="num">${sum('leave')}</span> 次${duty ? `、公差／公假 <span class="num">${sum('duty')}</span> 次` : ''}（分母是 <span class="num">${total}</span> 次會議）。</p>
+      <p class="muted small">${note}</p>
       <details class="sess"><summary>各會期（<span class="num">${list.length}</span> 個，連結至議事錄原檔）</summary><ul class="plain small">${sessions}</ul></details>`;
 }
 
@@ -592,11 +617,20 @@ function interSection(key, heading, { list, rows, blurb }) {
     ${hidden.length ? `<button type="button" class="more">顯示全部 ${list.length} 筆</button>` : ''}</section>`;
 }
 
-function interpellationRows(list) {
+// 官方原文題目偶有整段答覆被排進質詢事項（上千字）：超過 TITLE_MAX 字只顯示開頭，全文見原檔
+export const TITLE_MAX = 300;
+export const clipTitle = (t) => (t.length > TITLE_MAX ? `${t.slice(0, TITLE_MAX)}…（全文見原檔）` : t);
+
+// 花蓮議事錄的答覆表沒有逐題日期（data.no_date）：日期欄改寫會期；f.date 是會期首日，只用來排序
+const dateCell = (f) => (f.data?.no_date
+  ? `<span class="date">${esc(String(f.data.session || '').replace(/^第\d+屆/, ''))}</span>`
+  : `<time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>`);
+
+export function interpellationRows(list) {
   return list.map((f) => {
     const u = safeUrl(f.source_url);
-    const title = esc(f.data?.title || f.data?.doc_no || '');
-    return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
+    const title = esc(clipTitle(String(f.data?.title || f.data?.doc_no || '')));
+    return `<li>${dateCell(f)}
       <span class="dept">${esc(f.data?.dept || '')}</span>
       <span class="title">${u ? ext(u, title) : title}${moreFiles(f.data?.files)}</span></li>`;
   }).join('');
@@ -799,7 +833,7 @@ export function summaryCard(facts, { offices, inters, written, videos, jump, rec
   const att = facts.attendance || [];
   const attExcluded = facts.attendance_excluded || [];
   if (att.length && att[0].data?.from_lists) {
-    did += nwtAttendanceBlock(att);
+    did += nwtAttendanceBlock(att, rec.attendance);
   } else if (attExcluded.length || (att.length && typeof att[0].data?.meetings === 'number')) {
     did += khhAttendanceBlock(att, attExcluded);
   } else if (att.length) {
@@ -830,6 +864,8 @@ async function renderPerson(main, ctx, id) {
   const inters = facts.interpellation || [];
   const videos = inters.filter((f) => f.data?.video_id);
   const written = inters.filter((f) => !f.data?.video_id);
+  const docs = (t) => written.filter((f) => f.data?.doc_type === t);
+  const writtenOnly = written.filter((f) => ![HUA_ORAL, HUA_TRANSCRIPT].includes(f.data?.doc_type));
   // 議員、縣市長選區連到選區頁；立委選區沒有頁面，只寫選區名稱；不分區、原住民立委沒有選區 id，用 fallback 文字
   const districtLink = (districtId, fallback = '') => {
     const m = districtMeta(ctx, districtId);
@@ -843,7 +879,9 @@ async function renderPerson(main, ctx, id) {
   const leadMeta = lead && districtMeta(ctx, lead.data.district_id);
   const rec = RECORDS[leadCounty?.iso];
   const kinds = {
-    written: { list: written, rows: interpellationRows, blurb: rec?.writtenBlurb || '標題連結至臺北市議會公報原文。' },
+    written: { list: writtenOnly, rows: interpellationRows, blurb: rec?.writtenBlurb || '標題連結至臺北市議會公報原文。' },
+    oral: { list: docs(HUA_ORAL), rows: interpellationRows, blurb: rec?.oralBlurb || '' },
+    transcript: { list: docs(HUA_TRANSCRIPT), rows: interpellationRows, blurb: rec?.transcriptBlurb || '' },
     video: { list: videos, rows: videoRows, blurb: rec?.videoBlurb || videoBlurb(videos) },
     ...Object.fromEntries(Object.entries(LY_KINDS).map(([k, m]) => [k, { list: facts[k] || [], rows: lyRows, blurb: m.blurb }])),
   };
@@ -867,7 +905,9 @@ async function renderPerson(main, ctx, id) {
 
   const inter = inters.length ? `<section aria-labelledby="k-inter"><h2 id="k-inter">質詢紀錄</h2>
       ${interSection('written', '書面質詢', kinds.written)}
-      ${interSection('video', '口頭質詢（影片）', kinds.video)}</section>` : '';
+      ${interSection('oral', '口頭質詢答覆', kinds.oral)}
+      ${interSection('video', '口頭質詢（影片）', kinds.video)}
+      ${interSection('transcript', '質詢（錄音）紀錄', kinds.transcript)}</section>` : '';
   const ly = lyCounts(facts).length ? `<section aria-labelledby="k-ly"><h2 id="k-ly">立法院問政紀錄</h2>
       <p class="count">${esc(LY_NOTE)}</p>
       ${Object.entries(LY_KINDS).map(([k, m]) => interSection(k, m.heading, kinds[k])).join('')}</section>` : '';

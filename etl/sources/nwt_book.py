@@ -145,21 +145,21 @@ def key(name):
     return han(name).translate(_VAR)
 
 
-def targets(conn):
-    """有新北市議員任職 fact 且有 2026 candidacy 的人：[{person_id, name, since}]（since＝任職起日）。"""
+def targets(conn, office="nwt_councilor"):
+    """有新北市議員（或 office 指定的）任職 fact 且有 2026 candidacy 的人：[{person_id, name, since}]（since＝任職起日）。"""
     rows = conn.execute("""
         SELECT p.person_id, p.name, MIN(o.date) AS since FROM fact o JOIN person p USING (person_id)
-        WHERE o.kind = 'office' AND json_extract(o.data, '$.office') = 'nwt_councilor'
+        WHERE o.kind = 'office' AND json_extract(o.data, '$.office') = ?
           AND EXISTS (SELECT 1 FROM fact c WHERE c.person_id = o.person_id AND c.kind = 'candidacy')
-        GROUP BY p.person_id ORDER BY p.person_id""")
+        GROUP BY p.person_id ORDER BY p.person_id""", (office,))
     return [{"person_id": r["person_id"], "name": r["name"], "since": r["since"] or TERM_START} for r in rows]
 
 
-def roster_index(conn):
-    """全部新北市議員任職 fact（含沒參選者，用來判斷同名）的正規化姓名 → [person_id]。"""
+def roster_index(conn, office="nwt_councilor"):
+    """全部新北市議員（或 office 指定的）任職 fact（含沒參選者，用來判斷同名）的正規化姓名 → [person_id]。"""
     rows = conn.execute("""
         SELECT DISTINCT p.person_id, p.name FROM fact o JOIN person p USING (person_id)
-        WHERE o.kind = 'office' AND json_extract(o.data, '$.office') = 'nwt_councilor'""")
+        WHERE o.kind = 'office' AND json_extract(o.data, '$.office') = ?""", (office,))
     idx = {}
     for r in rows:
         idx.setdefault(key(r["name"]), []).append(r["person_id"])

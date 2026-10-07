@@ -50,9 +50,9 @@ def get_json(url, headers=None):
     return json.loads(get(url, headers=headers))
 
 
-def pdf_text(data):
+def pdf_text(data, mode="-layout"):
     return subprocess.run(
-        ["pdftotext", "-layout", "-", "-"], input=data, capture_output=True, check=True
+        ["pdftotext", mode, "-", "-"], input=data, capture_output=True, check=True
     ).stdout.decode("utf-8")
 
 

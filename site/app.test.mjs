@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
+import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows, TITLE_MAX } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -785,4 +786,54 @@ test('county and home notes describe Chiayi City councillors as 2022 winners', (
   assert.doesNotMatch(n, /現任議員/);
   assert.match(homeNote([cha, cyi]), /候選人中的現任縣市長與彰化縣的現任議員、嘉義市的 2022 年當選議員會標示/);
   assert.match(homeNote([cyi]), /候選人中的現任縣市長與嘉義市的 2022 年當選議員會標示/);
+});
+
+// ---------- 花蓮（V16 已定案第 6 點） ----------
+
+test('Hualien is a deep county whose summary card counts written questions, oral answers and videos separately', () => {
+  assert.ok(DEEP_COUNTIES.has('hua'));
+  const r = RECORDS.hua;
+  assert.deepEqual(r.depts, []);
+  const w = { data: { doc_type: '書面質詢', no_date: true } };
+  const o = { data: { doc_type: HUA_ORAL, no_date: true } };
+  const t = { data: { doc_type: HUA_TRANSCRIPT, no_date: true } };
+  const v = { data: { video_id: 'x', whole: true, group_size: 3 } };
+  const card = summaryCard({}, { offices: [], inters: [w, o, o, t, v], written: [w, o, o, t], videos: [v], rec: r });
+  assert.match(card, /書面質詢 <span class="num">1<\/span> 筆、口頭質詢答覆 <span class="num">2<\/span> 筆、縣政總質詢影片 <span class="num">1<\/span> 筆/);
+  assert.match(card, /第 2 至第 6 次定期大會.*尚未刊出，本站未收錄/);
+  assert.doesNotMatch(card, /部門分布|<span>缺席/);
+  assert.doesNotMatch(r.noRecord + r.writtenBlurb + r.oralBlurb + r.transcriptBlurb, /沒有問政|無問政|未質詢|缺席/);
+});
+
+test('Hualien attendance reuses the list-based block without an official-duty row', () => {
+  const att = [nwtAtt('第20屆第6次定期大會', 25, 24, 1, 0, 'https://www.hlcc.gov.tw/upfile/a.pdf#page=16')];
+  const html = nwtAttendanceBlock(att, RECORDS.hua.attendance);
+  assert.match(html, /出席 <span class="num">24<\/span>／<span class="num">25<\/span> 次、請假 <span class="num">1<\/span> 次（分母/);
+  assert.match(html, /第20屆第6次定期大會<\/a>：會議 <span class="num">25<\/span> 次，出席 <span class="num">24<\/span>、請假 <span class="num">1<\/span><\/li>/);
+  assert.doesNotMatch(html, /公差／公假|<span>缺席/);
+  assert.ok(html.includes(HUA_ATTENDANCE_NOTE));
+  assert.ok(!html.includes(NWT_ATTENDANCE_NOTE));
+  assert.match(HUA_ATTENDANCE_NOTE, /出席與請假名單.*不區分缺席.*分組審查會議不列入/);
+  const card = summaryCard({ attendance: att }, { offices: [], inters: [], written: [], videos: [], rec: RECORDS.hua });
+  assert.doesNotMatch(card, /公差／公假/);
+});
+
+test('Hualien answer-table rows show the session instead of a date, link to the PDF page and clip runaway titles', () => {
+  const f = { date: '2025-10-31', source_url: 'https://www.hlcc.gov.tw/upfile/a.pdf#page=807',
+    data: { session: '第20屆第6次定期大會', dept: '原住民行政處', title: '有關補助原住民社工員實施計畫', no_date: true } };
+  const html = interpellationRows([f]);
+  assert.match(html, /<span class="date">第6次定期大會<\/span>/);
+  assert.doesNotMatch(html, /2025-10-31/);
+  assert.match(html, /<span class="dept">原住民行政處<\/span>/);
+  assert.match(html, /href="https:\/\/www\.hlcc\.gov\.tw\/upfile\/a\.pdf#page=807"[^>]*>有關補助原住民社工員實施計畫</);
+  const long = interpellationRows([{ ...f, data: { ...f.data, title: '甲'.repeat(TITLE_MAX + 5) } }]);
+  assert.match(long, new RegExp(`>${'甲'.repeat(TITLE_MAX)}…（全文見原檔）<`));
+  // 有日期的其他縣市不受影響
+  assert.match(interpellationRows([{ date: '2024-01-02', source_url: 'https://x.org/a', data: { title: 't' } }]), /<time class="date" datetime="2024-01-02">2024-01-02<\/time>/);
+});
+
+test('Hualien whole-session videos name the askers in that session and say there is no personal start time', () => {
+  assert.equal(videoNote({ whole: true, group_size: 3, councillors: ['黃馨', '簡智隆', '傅國淵'] }), '本場質詢議員：黃馨、簡智隆、傅國淵（3 位），未細分到個人');
+  assert.equal(videoNote({ whole: true, group_size: 1, councillors: ['甲'] }), '整場影片，未標示本人質詢起點');
+  assert.match(RECORDS.hua.videoBlurb, /YouTube.*本人質詢時段未標示.*影片來源：花蓮縣議會/);
 });
