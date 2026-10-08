@@ -127,6 +127,14 @@ class TestHuaBookBuild(unittest.TestCase):
         self.assertNotIn("p4", att)  # 沒參選 2026
         self.assertNotIn("p7", att)  # 名錄同名
 
+    def test_question_header_clipped_at_page_edge_still_starts_a_new_cell(self):
+        page = ("花蓮縣議會第 20 屆第 6 次定期大會口頭質詢\n"
+                "質 詢 人：甲乙丙 類 別：衛生局\n質詢事項：農藥殘留。\n"
+                "詢 人：丁戊己 類 別：觀光處\n質詢事項：屋頂光電。\n")
+        qs = hua_book.parse_questions([page])
+        self.assertEqual([(q["names"], q["dept"], q["title"]) for q in qs],
+                         [(["甲乙丙"], "衛生局", "農藥殘留。"), (["丁戊己"], "觀光處", "屋頂光電。")])
+
     def test_questions_go_to_every_resolved_asker_with_a_page_link(self):
         (ts, meetings, att, qs, tr, held), logs = self.build()
         keys = [k for k, *_ in qs["p2"]]

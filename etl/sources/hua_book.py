@@ -228,11 +228,13 @@ def parse_questions(pages):
                 continue
             if chapter is None:
                 continue
-            if s.startswith("質詢人："):
+            # 頁緣裁掉「質」的格首（「詢 人：林源富 類 別：觀光處」）也要開新格，否則題目會併進上一位質詢人（verifier 2026-10-08）
+            head = "質詢人：" if s.startswith("質詢人：") else "詢人：" if s.startswith("詢人：") and "類別：" in s else None
+            if head:
                 cur = {"session": chapter[0], "doc_type": chapter[1], "names": "", "dept": None, "q": [], "page": pno, "n": n}
                 n += 1
                 out.append(cur)
-                part, s = "head", s[len("質詢人："):]
+                part, s = "head", s[len(head):]
             elif cur is None:
                 continue
             elif s.startswith("質詢事項："):
