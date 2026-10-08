@@ -6,7 +6,7 @@ import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, de
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
-import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS } from './app.js';
+import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -876,4 +876,30 @@ test('Hsinchu City question-record rows show the date, the question type and lin
   assert.match(html, /<time class="date" datetime="2025-11-10">2025-11-10<\/time>/);
   assert.match(html, /<span class="dept">單位業務質詢<\/span>/);
   assert.match(html, /href="https:\/\/www\.hsinchu-cc\.gov\.tw\/upload\/41\/a\.pdf"[^>]*>單位業務質詢紀錄（PDF）</);
+});
+
+// ---------- 臺東（V16 已定案第 3、6 點） ----------
+
+test('Taitung is a deep county whose summary card counts written questions with its coverage note', () => {
+  assert.ok(DEEP_COUNTIES.has('ttt'));
+  const r = RECORDS.ttt;
+  assert.deepEqual(r.depts, []);
+  const w = { data: { doc_type: '書面質詢', no_date: true } };
+  const card = summaryCard({}, { offices: [], inters: [w, w], written: [w, w], videos: [], rec: r });
+  assert.match(card, /書面質詢 <span class="num">2<\/span> 筆/);
+  assert.match(card, /第 1 至第 7 次定期會與第 1 至第 20 次臨時會（2023 年 1 月至 2026 年 6 月）/);
+  assert.doesNotMatch(card, /部門分布|影片|<span>缺席/);
+  assert.doesNotMatch(r.noRecord + r.writtenBlurb + r.note, /沒有問政|無問政|未質詢/);
+});
+
+test('Taitung attendance says when a session printed no leave list instead of showing zero leave', () => {
+  const url = 'https://www.taitungcc.gov.tw/img/download/meeting/meeting20_07/02.pdf#page=246';
+  const att = [nwtAtt('第20屆第7次定期會', 22, 21, 1, 0, url), { ...nwtAtt('第20屆第1次定期會', 22, 20, 0, 0, url), data: { ...nwtAtt('第20屆第1次定期會', 22, 20).data, leave: null } }];
+  const html = nwtAttendanceBlock(att, RECORDS.ttt.attendance);
+  assert.match(html, /出席 <span class="num">41<\/span>／<span class="num">44<\/span> 次、請假 <span class="num">1<\/span> 次（分母/);
+  assert.match(html, /第20屆第7次定期會<\/a>：會議 <span class="num">22<\/span> 次，出席 <span class="num">21<\/span>、請假 <span class="num">1<\/span><\/li>/);
+  assert.match(html, /第20屆第1次定期會<\/a>：會議 <span class="num">22<\/span> 次，出席 <span class="num">20<\/span>、會議紀錄未列請假名單<\/li>/);
+  assert.doesNotMatch(html, /公差／公假|<span>缺席/);
+  assert.ok(html.includes(TTT_ATTENDANCE_NOTE));
+  assert.match(TTT_ATTENDANCE_NOTE, /不區分缺席.*分母是本站收錄.*沒有請假名單.*請假次數不明/);
 });

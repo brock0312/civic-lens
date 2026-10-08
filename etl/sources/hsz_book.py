@@ -24,7 +24,7 @@ import urllib.request
 from collections import Counter
 from pathlib import Path
 
-from etl.fetch import UA, get
+from etl.fetch import _V4_OPENER, UA, get
 from etl.sources.hua_book import write
 from etl.sources.national_councilors import TERM_START
 from etl.sources.nwt_book import resolve, roster_index, targets
@@ -66,8 +66,8 @@ def quote(path):
     return HOST + urllib.parse.quote(path)
 
 
-def download(url, dest, attempts=20):
-    """大檔（議事錄每冊可達 700 MB）串流寫入 dest.part，中途逾時就以 Range 續傳，完成才改名。"""
+def download(url, dest, attempts=20, ipv4=False):
+    """大檔（議事錄每冊可達 700 MB）串流寫入 dest.part，中途逾時就以 Range 續傳，完成才改名。ipv4=True 只連 IPv4（臺東）。"""
     global _last
     part = dest.with_suffix(".part")
     part.parent.mkdir(parents=True, exist_ok=True)
@@ -78,14 +78,16 @@ def download(url, dest, attempts=20):
         if wait > 0:
             time.sleep(wait)
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60) as resp:
+            with (_V4_OPENER.open if ipv4 else urllib.request.urlopen)(urllib.request.Request(url, headers=headers), timeout=60) as resp:
                 if done and resp.status != 206:
                     raise ValueError(f"伺服器不支援續傳：{url}")
-                total = done + int(resp.headers["Content-Length"])
+                # 臺東主機有一行格式錯誤的標頭，Python 會丟掉它之後的所有標頭（含 Content-Length）：沒有長度就讀到結束，由呼叫端檢查檔尾
+                length = resp.headers["Content-Length"]
+                total = done + int(length) if length else None
                 with open(part, "ab") as f:
                     while chunk := resp.read(1 << 20):
                         f.write(chunk)
-            if part.stat().st_size == total:
+            if total is None or part.stat().st_size == total:
                 part.rename(dest)
                 return
         except (TimeoutError, OSError) as e:
