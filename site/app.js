@@ -617,9 +617,6 @@ function interSection(key, heading, { list, rows, blurb }) {
     ${hidden.length ? `<button type="button" class="more">顯示全部 ${list.length} 筆</button>` : ''}</section>`;
 }
 
-// 官方原文題目偶有整段答覆被排進質詢事項（上千字）：超過 TITLE_MAX 字只顯示開頭，全文見原檔
-export const TITLE_MAX = 300;
-export const clipTitle = (t) => (t.length > TITLE_MAX ? `${t.slice(0, TITLE_MAX)}…（全文見原檔）` : t);
 
 // 花蓮議事錄的答覆表沒有逐題日期（data.no_date）：日期欄改寫會期；f.date 是會期首日，只用來排序
 const dateCell = (f) => (f.data?.no_date
@@ -629,7 +626,7 @@ const dateCell = (f) => (f.data?.no_date
 export function interpellationRows(list) {
   return list.map((f) => {
     const u = safeUrl(f.source_url);
-    const title = esc(clipTitle(String(f.data?.title || f.data?.doc_no || '')));
+    const title = esc(String(f.data?.title || f.data?.doc_no || ''));
     return `<li>${dateCell(f)}
       <span class="dept">${esc(f.data?.dept || '')}</span>
       <span class="title">${u ? ext(u, title) : title}${moreFiles(f.data?.files)}</span></li>`;

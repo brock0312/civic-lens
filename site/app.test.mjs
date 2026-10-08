@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
-import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows, TITLE_MAX } from './app.js';
+import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -818,7 +818,7 @@ test('Hualien attendance reuses the list-based block without an official-duty ro
   assert.doesNotMatch(card, /公差／公假/);
 });
 
-test('Hualien answer-table rows show the session instead of a date, link to the PDF page and clip runaway titles', () => {
+test('Hualien answer-table rows show the session instead of a date, link to the PDF page and show long titles in full', () => {
   const f = { date: '2025-10-31', source_url: 'https://www.hlcc.gov.tw/upfile/a.pdf#page=807',
     data: { session: '第20屆第6次定期大會', dept: '原住民行政處', title: '有關補助原住民社工員實施計畫', no_date: true } };
   const html = interpellationRows([f]);
@@ -826,8 +826,9 @@ test('Hualien answer-table rows show the session instead of a date, link to the 
   assert.doesNotMatch(html, /2025-10-31/);
   assert.match(html, /<span class="dept">原住民行政處<\/span>/);
   assert.match(html, /href="https:\/\/www\.hlcc\.gov\.tw\/upfile\/a\.pdf#page=807"[^>]*>有關補助原住民社工員實施計畫</);
-  const long = interpellationRows([{ ...f, data: { ...f.data, title: '甲'.repeat(TITLE_MAX + 5) } }]);
-  assert.match(long, new RegExp(`>${'甲'.repeat(TITLE_MAX)}…（全文見原檔）<`));
+  // 官方原文題目全文顯示（使用者 2026-10-08 決定），不截斷
+  const long = interpellationRows([{ ...f, data: { ...f.data, title: '甲'.repeat(4000) } }]);
+  assert.match(long, new RegExp(`>${'甲'.repeat(4000)}<`));
   // 有日期的其他縣市不受影響
   assert.match(interpellationRows([{ date: '2024-01-02', source_url: 'https://x.org/a', data: { title: 't' } }]), /<time class="date" datetime="2024-01-02">2024-01-02<\/time>/);
 });
