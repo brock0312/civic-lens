@@ -110,11 +110,29 @@ class TestTttBookBuild(unittest.TestCase):
         self.assertTrue(any("第4會次" in x and "同時在出席與請假" in x for x in logs))
         k, d, url, date = att["p5"][0]
         self.assertEqual(k, "tttattend:7r:p5")
-        self.assertEqual((d["meetings"], d["present"], d["leave"]), (3, 1, 2))
+        self.assertEqual((d["meetings"], d["present"], d["leave"], d["duty"]), (3, 1, 1, 1))  # 預備會「周駿宥(出差)」列公差
         self.assertEqual(url, "https://www.taitungcc.gov.tw/img/download/meeting/meeting20_07/02.pdf#page=1")
         self.assertEqual(date, "2026-05-06")  # 文件中第一次會議，不取誤植年份的最早日期
         self.assertNotIn("p4", att)  # 沒參選 2026
         self.assertEqual(att["p6"][0][1]["present"], 0)
+
+    def test_official_trip_in_leave_list_counts_as_duty_not_leave(self):
+        ms = ttt_book.parse_meetings(["第 20 屆第 7 次定期會會議紀錄\n第 1 會次會議紀錄\n時間：115 年 5 月 7 日\n"
+                                      "出席：甲乙丙\n請假：林琮翰(出差)、丁戊\n己（公假）、周駿宥\n列席：某\n"])
+        self.assertEqual((ms[0]["leave"], ms[0]["duty"]), (["林琮翰", "丁戊己", "周駿宥"], ["林琮翰", "丁戊己"]))
+
+    def test_replacement_counts_only_from_first_listed_meeting(self):
+        def m(session, date, present, leave=(), listed=True):
+            return {"session": session, "meeting": "x", "date": date, "page": 1, "book": {"path": "/b.pdf"}, "leave_listed": listed,
+                    "present_ids": set(present), "leave_ids": set(leave), "duty_ids": set()}
+        meetings = [m("第20屆第1次定期會", "2023-05-04", ["a"], listed=False), m("第20屆第1次定期會", "2023-05-05", ["a"], listed=False),
+                    m("第20屆第8次臨時會", "2024-04-15", ["a"]), m("第20屆第8次臨時會", "2024-04-16", ["a", "r"]),
+                    m("第20屆第3次定期會", "2024-05-06", ["a"], ["r"]), m("第20屆第2次臨時會", "2023-03-06", ["a"], listed=False)]
+        out = ttt_book.attendance_facts(meetings, {"a", "r"}, {"r"})
+        self.assertEqual([(d["session"], d["meetings"], d["present"], d["leave"]) for _, d, _, _ in out["r"]],
+                         [("第20屆第8次臨時會", 1, 1, 0), ("第20屆第3次定期會", 1, 0, 1)])
+        self.assertEqual(sum(d["meetings"] for _, d, _, _ in out["a"]), 6)  # 原任議員照全部會議算
+        self.assertEqual(out["r"][0][3], "2024-04-16")
 
     def test_questions_link_to_the_pdf_page_and_skip_bad_or_withheld_items(self):
         (ts, meetings, questions, att, qs, held), logs = self.build()

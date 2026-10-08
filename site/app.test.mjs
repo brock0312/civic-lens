@@ -896,10 +896,10 @@ test('Taitung attendance says when a session printed no leave list instead of sh
   const url = 'https://www.taitungcc.gov.tw/img/download/meeting/meeting20_07/02.pdf#page=246';
   const att = [nwtAtt('第20屆第7次定期會', 22, 21, 1, 0, url), { ...nwtAtt('第20屆第1次定期會', 22, 20, 0, 0, url), data: { ...nwtAtt('第20屆第1次定期會', 22, 20).data, leave: null } }];
   const html = nwtAttendanceBlock(att, RECORDS.ttt.attendance);
-  assert.match(html, /出席 <span class="num">41<\/span>／<span class="num">44<\/span> 次、請假 <span class="num">1<\/span> 次（分母/);
-  assert.match(html, /第20屆第7次定期會<\/a>：會議 <span class="num">22<\/span> 次，出席 <span class="num">21<\/span>、請假 <span class="num">1<\/span><\/li>/);
+  assert.match(html, /出席 <span class="num">41<\/span>／<span class="num">44<\/span> 次、請假 <span class="num">1<\/span> 次、公差／公假 <span class="num">0<\/span> 次（分母/);
+  assert.match(html, /第20屆第7次定期會<\/a>：會議 <span class="num">22<\/span> 次，出席 <span class="num">21<\/span>、請假 <span class="num">1<\/span>、公差／公假 <span class="num">0<\/span><\/li>/);
   assert.match(html, /第20屆第1次定期會<\/a>：會議 <span class="num">22<\/span> 次，出席 <span class="num">20<\/span>、會議紀錄未列請假名單<\/li>/);
-  assert.doesNotMatch(html, /公差／公假|<span>缺席/);
+  assert.doesNotMatch(html, /<span>缺席/);
   assert.ok(html.includes(TTT_ATTENDANCE_NOTE));
-  assert.match(TTT_ATTENDANCE_NOTE, /不區分缺席.*分母是本站收錄.*沒有請假名單.*請假次數不明/);
+  assert.match(TTT_ATTENDANCE_NOTE, /出差的，列為公差／公假.*不區分缺席.*分母是本站收錄.*從任職起算.*遞補.*第一次列入.*沒有請假名單.*次數不明/);
 });

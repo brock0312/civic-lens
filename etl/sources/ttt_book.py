@@ -46,6 +46,7 @@ DATE = re.compile(r"(\d{2,3})年(\d{1,2})月(\d{1,2})日")
 # 頁首頁尾：頁碼「-5-」、欄目名稱、會期名稱、「質詢」；名單跨頁時要跳過，否則會黏進姓名
 FURNITURE = re.compile(r"^(-?\d+-?|議事日程表、.*|(臺東縣議會)?第20屆第[\d、]+次(定期會|臨時會).*|質詢)$")
 NOTE = re.compile(r"[（(][^）)]*[）)]")
+DUTY = re.compile(r"[（(][^）)]*(出差|公差|公假)[^）)]*[）)]")  # 請假名單上註記出差的列為公差／公假（比照高雄、新北）
 NAME = re.compile(r"^[一-鿿]{2,5}$")
 Q_HEAD = re.compile(r"^(?:臺東縣議會第20屆第\d+次定期會)?([一-鿿]{2,8}?)書面質詢事項([一二三四五六七八九十]+)[：:]?(.*)$")
 ANSWER = re.compile(r"^依(.+?)\d{2,3}年\d{1,2}月\d{1,2}日.*字第")
@@ -177,7 +178,8 @@ def parse_meetings(pages):
                 cur["leave"] += s
             elif field in ("主席", "記錄", "紀錄"):
                 cur = None
-    return [{**m, "present": split_names(m["present"]) if m["present"] is not None else None, "leave": split_names(m["leave"])}
+    return [{**m, "present": split_names(m["present"]) if m["present"] is not None else None, "leave": split_names(m["leave"]),
+             "duty": split_names("、".join(t for t in m["leave"].split("、") if DUTY.search(t)))}
             for m in out]
 
 
@@ -279,7 +281,8 @@ def check_meeting(m, roster):
         lists[label] = set(ids)
     if lists["present"] & lists["leave"]:
         return None, "同一人同時在出席與請假名單"
-    return (lists["present"], lists["leave"], unknown), None
+    duty = {pid for pid in (resolve(t, roster)[0] for t in m["duty"]) if pid}
+    return (lists["present"], lists["leave"] - duty, duty, unknown), None
 
 
 def collect(books, texts, roster, log=print):
@@ -309,12 +312,12 @@ def collect(books, texts, roster, log=print):
             if not got:
                 log(f"ttt_book：{m['session']}{m['meeting']}（{b['title']} PDF 第 {m['page']} 頁）{why}，不列入")
                 continue
-            present, leave, unknown = got
+            present, leave, duty, unknown = got
             for u in unknown:
                 log(f"ttt_book：{m['session']} 名單 {u}")
             if len(m["present"]) + len(m["leave"]) != SEATS:
                 log(f"ttt_book：{m['session']}{m['meeting']} 出席 {len(m['present'])}＋請假 {len(m['leave'])} 人，不是 {SEATS} 席（照收）")
-            meetings.append({**m, "book": b, "present_ids": present, "leave_ids": leave})
+            meetings.append({**m, "book": b, "present_ids": present, "leave_ids": leave, "duty_ids": duty})
     return meetings, questions
 
 
@@ -326,23 +329,32 @@ def session_starts(meetings):
     return out
 
 
-def attendance_facts(meetings, pids):
-    """{person_id: [(fact_key, data, url, date)]}：每人每會期一筆。"""
-    by_session = {}
-    for m in meetings:
-        by_session.setdefault(m["session"], []).append(m)
+def attendance_facts(meetings, pids, replacements=frozenset()):
+    """{person_id: [(fact_key, data, url, date)]}：每人每會期一筆。
+
+    replacements：任期中遞補的人（任職 fact 沒有起日）。他們只從第一次列入出席、請假名單的會議起算，之前的會議不計入分母、
+    之前的會期不寫 fact。原任議員不這樣算：早期會議紀錄沒有請假名單，以第一次出現起算會把缺席從分母拿掉。"""
     first = session_starts(meetings)
+    ordered = sorted(enumerate(meetings), key=lambda x: (first[x[1]["session"]]["date"], x[0]))  # 會期依首日排序，會期內依文件順序
+    ordered = [m for _, m in ordered]
     out = {}
-    for session, ms in by_session.items():
-        # 第 1、2 次定期會與第 1–6 次臨時會的會議紀錄都沒有請假名單：請假次數不明，寫 None（不是 0）
-        listed = any(m["leave_listed"] for m in ms)
-        slug = re.sub(r"\D+", "-", session.replace(f"第{TERM}屆", "")).strip("-") + ("r" if "定期" in session else "t")
-        f = first[session]
-        for pid in pids:
+    for pid in pids:
+        ms_all = ordered
+        if pid in replacements:
+            seen = [i for i, m in enumerate(ordered) if pid in m["present_ids"] | m["leave_ids"] | m["duty_ids"]]
+            ms_all = ordered[seen[0]:] if seen else []
+        by_session = {}
+        for m in ms_all:
+            by_session.setdefault(m["session"], []).append(m)
+        for session, ms in by_session.items():
+            # 第 1、2 次定期會與第 1–6 次臨時會的會議紀錄都沒有請假名單：請假、公差次數不明，寫 None（不是 0）
+            listed = any(m["leave_listed"] for m in ms)
+            slug = re.sub(r"\D+", "-", session.replace(f"第{TERM}屆", "")).strip("-") + ("r" if "定期" in session else "t")
+            f = ms[0]
             data = {"term": TERM, "session": session, "title": f"{session}會議紀錄", "meetings": len(ms),
                     "present": sum(pid in m["present_ids"] for m in ms),
                     "leave": sum(pid in m["leave_ids"] for m in ms) if listed else None,
-                    "duty": 0, "from_lists": True}
+                    "duty": sum(pid in m["duty_ids"] for m in ms) if listed else None, "from_lists": True}
             out.setdefault(pid, []).append((f"tttattend:{slug}:{pid}", data, pdf_url(f["book"], f["page"]), f["date"]))
     return out
 
@@ -388,7 +400,9 @@ def build(conn, books, texts, withheld, log=print):
         if not m["leave_listed"] and any(x["leave_listed"] for x in meetings if x["session"] == m["session"]) \
                 and len(m["present"]) != full[m["session"]]:
             log(f"ttt_book：{m['session']}{m['meeting']} 沒有請假名單，出席 {len(m['present'])} 人少於該會期的 {full[m['session']]} 人（照收）")
-    att = attendance_facts(meetings, pids)
+    replacements = {r[0] for r in conn.execute(
+        "SELECT person_id FROM fact WHERE kind = 'office' AND json_extract(data, '$.office') = ? AND date IS NULL", (OFFICE,))}
+    att = attendance_facts(meetings, pids, replacements)
     qs, held = question_facts(questions, roster, pids, session_starts(meetings), withheld, log)
     return ts, meetings, questions, att, qs, held
 
