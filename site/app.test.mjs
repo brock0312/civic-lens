@@ -6,6 +6,7 @@ import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, de
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
+import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -837,4 +838,42 @@ test('Hualien whole-session videos name the askers in that session and say there
   assert.equal(videoNote({ whole: true, group_size: 3, councillors: ['黃馨', '簡智隆', '傅國淵'] }), '本場質詢議員：黃馨、簡智隆、傅國淵（3 位），未細分到個人');
   assert.equal(videoNote({ whole: true, group_size: 1, councillors: ['甲'] }), '整場影片，未標示本人質詢起點');
   assert.match(RECORDS.hua.videoBlurb, /YouTube.*本人質詢時段未標示.*影片來源：花蓮縣議會/);
+});
+
+// ---------- 新竹市（V16） ----------
+
+test('Hsinchu City is a deep county whose summary card counts question records and videos with its coverage note', () => {
+  assert.ok(DEEP_COUNTIES.has('hsz'));
+  const r = RECORDS.hsz;
+  assert.deepEqual(r.depts, []);
+  assert.ok(TRANSCRIPTS.includes(HSZ_TRANSCRIPT));
+  const t = { date: '2025-11-21', data: { doc_type: HSZ_TRANSCRIPT, dept: '市政總質詢' } };
+  const v = { data: { video_id: 'x', whole: true, group_size: 2 } };
+  const card = summaryCard({}, { offices: [], inters: [t, t, v], written: [t, t], videos: [v], rec: r });
+  assert.match(card, /質詢紀錄 <span class="num">2<\/span> 筆、質詢影片 <span class="num">1<\/span> 筆/);
+  assert.match(card, /第1至第6次定期會/);
+  assert.doesNotMatch(card, /部門分布|<span>缺席|書面質詢/);
+  assert.equal(r.transcriptHeading, '質詢紀錄');
+  assert.match(r.transcriptBlurb, /未摘要.*資料來源：新竹市議會/);
+  assert.match(r.videoBlurb, /YouTube.*本人質詢時段未標示.*影片來源：新竹市議會/);
+  assert.doesNotMatch(r.noRecord + r.transcriptBlurb + r.note, /沒有問政|無問政|未質詢|HSZ_/);
+});
+
+test('Hsinchu City attendance states the denominator rule and has no official-duty row', () => {
+  const att = [nwtAtt('第11屆第6次定期會', 25, 22, 3, 0, 'https://www.hsinchu-cc.gov.tw/upload/79/a.pdf#page=1509')];
+  const html = nwtAttendanceBlock(att, RECORDS.hsz.attendance);
+  assert.match(html, /出席 <span class="num">22<\/span>／<span class="num">25<\/span> 次、請假 <span class="num">3<\/span> 次（分母/);
+  assert.doesNotMatch(html, /公差／公假|<span>缺席/);
+  assert.ok(html.includes(HSZ_ATTENDANCE_NOTE));
+  assert.match(HSZ_ATTENDANCE_NOTE, /議員出缺席表.*不另列缺席.*分母是本站收錄的出缺席表上的會議日數/);
+  assert.doesNotMatch(HSZ_ATTENDANCE_NOTE, /HSZ_/);
+});
+
+test('Hsinchu City question-record rows show the date, the question type and link to the PDF', () => {
+  const f = { date: '2025-11-10', source_url: 'https://www.hsinchu-cc.gov.tw/upload/41/a.pdf',
+    data: { session: '第11屆第6次定期會', doc_type: HSZ_TRANSCRIPT, dept: '單位業務質詢', title: '單位業務質詢紀錄（PDF）' } };
+  const html = interpellationRows([f]);
+  assert.match(html, /<time class="date" datetime="2025-11-10">2025-11-10<\/time>/);
+  assert.match(html, /<span class="dept">單位業務質詢<\/span>/);
+  assert.match(html, /href="https:\/\/www\.hsinchu-cc\.gov\.tw\/upload\/41\/a\.pdf"[^>]*>單位業務質詢紀錄（PDF）</);
 });

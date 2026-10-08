@@ -84,6 +84,10 @@ export const NWT_VOD_HOME = 'https://vod.ntp.gov.tw/VodCloud/index.htm';
 // 花蓮議事錄的口頭質詢答覆表、議員質詢索引表（質詢錄音紀錄）：都是沒有影片的 interpellation，依 doc_type 另列
 export const HUA_ORAL = '口頭質詢答覆';
 export const HUA_TRANSCRIPT = '質詢錄音紀錄';
+// 新竹市：逐人質詢紀錄 PDF（議事錄抽印的逐字紀錄）只連結、不摘要（V16 已定案第 6 點），和花蓮的錄音紀錄索引同列一區
+export const HSZ_TRANSCRIPT = '質詢紀錄';
+export const TRANSCRIPTS = [HUA_TRANSCRIPT, HSZ_TRANSCRIPT];
+export const HSZ_ATTENDANCE_NOTE = '依新竹市議會議事錄附錄「議員出缺席表」：表上逐日標記每位議員出席或請假，本站照各表的出席、請假合計數加總。官方表只有出席與請假兩欄，本站因此不另列缺席。比例的分母是本站收錄的出缺席表上的會議日數（定期會與臨時會）；逐日標記與合計不一致的會期，該議員該會期不收錄。議事錄目前刊出第 1 至第 6 次定期會與第 1 至第 22 次臨時會（2023 年 1 月至 2026 年 5 月），其他會期本站未收錄。';
 export const HUA_ATTENDANCE_NOTE = '依花蓮縣議會議事錄每次大會「會議紀錄」的出席與請假名單計算。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、會議紀錄列有出席名單的大會次數（定期大會與臨時大會）；分組審查會議不列入。議事錄目前刊出第 2 至第 6 次定期大會與第 4 至第 20 次臨時大會（2023 年 9 月至 2026 年 3 月），其他會期本站未收錄。';
 
 // 深度縣市的收錄範圍：部門清單、有沒有收書面質詢、沒有紀錄時的說明（措辭中性，不暗示此人沒有問政）
@@ -125,6 +129,17 @@ export const RECORDS = {
     videoBlurb: '連結至花蓮縣議會發布在 YouTube 的縣政總質詢影片；一支影片是半天的會議，有多位議員質詢，本人質詢時段未標示。影片來源：花蓮縣議會。',
     attendance: { note: HUA_ATTENDANCE_NOTE, duty: false },
     noRecord: '本站目前沒有此人的質詢紀錄（收錄範圍：第20屆花蓮縣議員，議事錄已刊出的定期大會書面質詢、口頭質詢答覆表與縣政總質詢影片）。',
+  },
+  // 新竹市（V16）：沒有書面質詢；逐人質詢紀錄 PDF 只連結（清單沒有題目）、質詢影片一支 1–3 位議員、出缺勤取自議事錄附錄
+  hsz: {
+    depts: [], written: false,
+    countLine: (written, videos) => `質詢紀錄 <span class="num">${written.filter((f) => f.data?.doc_type === HSZ_TRANSCRIPT).length}</span> 筆、質詢影片 <span class="num">${videos.length}</span> 筆`,
+    note: '質詢紀錄收錄第1至第6次定期會（2023 年 5 月至 2025 年 11 月），第 7 次定期會以後的質詢紀錄議會尚未刊出；質詢影片收錄第1至第7次定期會（2023 年 5 月至 2026 年 6 月）；出缺勤取自議事錄附錄，收錄至第 22 次臨時會（2026 年 5 月）。',
+    transcriptHeading: '質詢紀錄',
+    transcriptBlurb: '每筆是一場市政總質詢或單位業務質詢的逐字紀錄（議事錄抽印本，PDF），依新竹市議會「質詢紀錄」查詢列在此人名下；聯合質詢列在每位質詢議員名下。官方清單沒有題目，本站未摘要內容。資料來源：新竹市議會。',
+    videoBlurb: '連結至新竹市議會發布在 YouTube 的市政總質詢、單位業務質詢影片；一支影片是同場 1 至 3 位議員的質詢，本人質詢時段未標示。影片來源：新竹市議會。',
+    attendance: { note: HSZ_ATTENDANCE_NOTE, duty: false },
+    noRecord: '本站目前沒有此人的質詢紀錄（收錄範圍：第11屆新竹市議員，第1至第6次定期會的質詢紀錄與第1至第7次定期會的質詢影片）。',
   },
 };
 
@@ -862,7 +877,7 @@ async function renderPerson(main, ctx, id) {
   const videos = inters.filter((f) => f.data?.video_id);
   const written = inters.filter((f) => !f.data?.video_id);
   const docs = (t) => written.filter((f) => f.data?.doc_type === t);
-  const writtenOnly = written.filter((f) => ![HUA_ORAL, HUA_TRANSCRIPT].includes(f.data?.doc_type));
+  const writtenOnly = written.filter((f) => ![HUA_ORAL, ...TRANSCRIPTS].includes(f.data?.doc_type));
   // 議員、縣市長選區連到選區頁；立委選區沒有頁面，只寫選區名稱；不分區、原住民立委沒有選區 id，用 fallback 文字
   const districtLink = (districtId, fallback = '') => {
     const m = districtMeta(ctx, districtId);
@@ -878,7 +893,7 @@ async function renderPerson(main, ctx, id) {
   const kinds = {
     written: { list: writtenOnly, rows: interpellationRows, blurb: rec?.writtenBlurb || '標題連結至臺北市議會公報原文。' },
     oral: { list: docs(HUA_ORAL), rows: interpellationRows, blurb: rec?.oralBlurb || '' },
-    transcript: { list: docs(HUA_TRANSCRIPT), rows: interpellationRows, blurb: rec?.transcriptBlurb || '' },
+    transcript: { list: written.filter((f) => TRANSCRIPTS.includes(f.data?.doc_type)), rows: interpellationRows, blurb: rec?.transcriptBlurb || '' },
     video: { list: videos, rows: videoRows, blurb: rec?.videoBlurb || videoBlurb(videos) },
     ...Object.fromEntries(Object.entries(LY_KINDS).map(([k, m]) => [k, { list: facts[k] || [], rows: lyRows, blurb: m.blurb }])),
   };
@@ -904,7 +919,7 @@ async function renderPerson(main, ctx, id) {
       ${interSection('written', '書面質詢', kinds.written)}
       ${interSection('oral', '口頭質詢答覆', kinds.oral)}
       ${interSection('video', '口頭質詢（影片）', kinds.video)}
-      ${interSection('transcript', '質詢（錄音）紀錄', kinds.transcript)}</section>` : '';
+      ${interSection('transcript', rec?.transcriptHeading || '質詢（錄音）紀錄', kinds.transcript)}</section>` : '';
   const ly = lyCounts(facts).length ? `<section aria-labelledby="k-ly"><h2 id="k-ly">立法院問政紀錄</h2>
       <p class="count">${esc(LY_NOTE)}</p>
       ${Object.entries(LY_KINDS).map(([k, m]) => interSection(k, m.heading, kinds[k])).join('')}</section>` : '';
