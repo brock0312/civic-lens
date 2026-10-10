@@ -12,7 +12,7 @@
   同一檔對不上的列 ≥ UNRELIABLE_MIN 且超過 UNRELIABLE_SHARE 就整檔不可靠（一列都不收）。
   選區：選舉區別欄（合併格）＞表頭上方最近一行標題＞檔案只涵蓋一區（etl.bulletin2022.file_map）。
 - 學歷、經歷、政見：去空白後必須是 pdftotext -raw 的連續子字串；格內有圖片、亂碼比例超過 GARBLE_MAX、
-  或有看不見／重疊的文字（臺北的 parse_pages 判斷）就丟該欄。
+  有看不見／重疊的文字（臺北的 parse_pages 判斷），或有印出來卻沒有文字的字（inked_gap）就丟該欄。
 - 號次、姓名格有看不見的文字，整列不收。
 """
 import json
@@ -26,7 +26,7 @@ from pathlib import Path
 from etl.bulletin2022 import file_map, parse_districts
 from etl.cec2022 import SOURCES, parse_candidates
 from etl.sources.national_districts import COUNTIES
-from etl.sources.tpe_bulletin_2022 import (DPI, NO_PARTY, line_text, norm_name, overlaps, parse_pages,
+from etl.sources.tpe_bulletin_2022 import (DPI, NO_PARTY, has_ink, line_text, norm_name, overlaps, parse_pages,
                                            pdf_layers, squeeze, suspect_words, to_lines)
 
 CACHE = Path("data/cache")
@@ -530,8 +530,21 @@ def _plain(text):
     return re.sub(r"[\s\x00-\x1f]+", "", text)
 
 
-def gate_field(parts, images, suspect, flat_raw):
-    """學歷／經歷／政見一欄 → (文字, None) 或 (None, 丟棄原因)。"""
+def inked_gap(words, gray):
+    """同一行相鄰兩個字詞之間空出 ≥ 半個字寬、空隙裡卻有墨跡：那裡印了字，但沒有對應的文字（字形沒有 ToUnicode，
+    或字是向量路徑畫的）。例：嘉義市第 2 區林雪峰經歷「台南玄空法寺顧問」的「寺」是路徑，文字層只有「台南玄空法 顧問」。
+    空隙左右各內縮 1.5pt，免得吃到相鄰字的反鋸齒；墨跡只看字框中段（has_ink）。
+    ponytail: 只看行內字詞之間；缺字落在行首、行尾或直排格裡抓不到。"""
+    for line in to_lines(words):
+        for a, b in zip(line, line[1:]):
+            if b[0] - a[2] >= 0.5 * min(a[3] - a[1], b[3] - b[1]) and has_ink(
+                    (a[2] + 1.5, min(a[1], b[1]), b[0] - 1.5, max(a[3], b[3])), gray):
+                return True
+    return False
+
+
+def gate_field(parts, images, suspect, flat_raw, gray):
+    """學歷／經歷／政見一欄 → (文字, None) 或 (None, 丟棄原因)。gray：該頁灰階圖（找有墨跡沒有文字的字）。"""
     words = [w for _, ws in parts for w in ws]
     for (x0, y0, x1, y1), ws in parts:  # 先看圖片：整格是圖片時也沒有字，不能當成「空白」（候選人沒填）
         if any(overlaps(im, x0 + 2, y0 + 2, x1 - 2, y1 - 2) for im in images):
@@ -548,6 +561,8 @@ def gate_field(parts, images, suspect, flat_raw):
         return None, "亂碼"
     if _plain(text) not in flat_raw:
         return None, "-raw 對不上"
+    if any(inked_gap(ws, gray) for _, ws in parts):
+        return None, "有字沒有文字"
     return re.sub(r"[\x00-\x08\x0b-\x1f]+", "", text), None
 
 
@@ -649,7 +664,8 @@ def process(pdf, iso, districts, cec, cutter=cut_pages):
                "party": c["party"], "page": r["page"], "box": r["box"]}
         out["dropped"] = {}
         for f in TEXT_FIELDS:
-            out[f], why = gate_field(r["fields"].get(f, []), pg["images"], pg["suspect"], flat)
+            out[f], why = gate_field(r["fields"].get(f, []), pg["images"], pg["suspect"], flat,
+                                       grays[r["page"] - 1])
             if why:
                 rep["drops"][f][why] += 1
                 out["dropped"][f] = why

@@ -315,8 +315,17 @@ class NameOnlyRejectTest(unittest.TestCase):
 
 class GateFieldTest(unittest.TestCase):
     def test_image_only_cell_is_image_not_blank(self):
-        self.assertEqual(bg.gate_field([((0, 0, 100, 100), [])], [(10, 10, 50, 50)], set(), ""), (None, "圖片"))
-        self.assertEqual(bg.gate_field([((0, 0, 100, 100), [])], [], set(), ""), (None, "空白"))
+        self.assertEqual(bg.gate_field([((0, 0, 100, 100), [])], [(10, 10, 50, 50)], set(), "", gray(1, 1)), (None, "圖片"))
+        self.assertEqual(bg.gate_field([((0, 0, 100, 100), [])], [], set(), "", gray(1, 1)), (None, "空白"))
+
+    def test_inked_glyph_without_text_drops_the_field(self):
+        # 嘉義市林雪峰：「寺」是向量路徑，文字層讀成「台南玄空法 顧問」，空隙裡有墨跡
+        ws = [word(10, 10, 106, 22, "台南玄空法"), word(118, 10, 142, 22, "顧問")]
+        cell = [((0, 0, 200, 40), ws)]
+        page = gray(300, 60, vs=range(int(108 * bg.DPI / 72), int(116 * bg.DPI / 72)))
+        self.assertEqual(bg.gate_field(cell, [], set(), "台南玄空法顧問", page), (None, "有字沒有文字"))
+        # 一樣的空隙但沒有墨跡（真的空白）照收
+        self.assertEqual(bg.gate_field(cell, [], set(), "台南玄空法顧問", gray(300, 60)), ("台南玄空法 顧問", None))
 
 
 class SideLabelTest(unittest.TestCase):
