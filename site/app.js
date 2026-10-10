@@ -558,10 +558,12 @@ export function partyOf(data, parties) {
 }
 
 // 議員任職：2022 推薦政黨與任職起日各自的出處（臺北議員沒有這些欄位，不多註腳）
+// 與任職本身同一出處（嘉義市 cec_2022 的政黨與當選都取自開票結果）或彼此重複的不再加註，否則同一個 [n] 會出現兩次
 export function officeExtraRefs(f, notes) {
   const d = f.data || {};
   return [[d.party_source_url, d.party_source_label], [d.inauguration_source_url, d.inauguration_source_label]]
-    .filter(([u, label]) => u && label).map(([u, label]) => notes.ref(u, f.fetched_at, label)).join('');
+    .filter(([u, label], i, all) => u && label && u !== f.source_url && all.findIndex(([v]) => v === u) === i)
+    .map(([u, label]) => notes.ref(u, f.fetched_at, label)).join('');
 }
 
 function rosterRow(p, fn, parties, tag) {
@@ -829,7 +831,7 @@ function lyRows(list) {
 export function summaryCard(facts, { offices, inters, written, videos, jump, rec = RECORDS.tpe, pending = [] }) {
   const ly = lyCounts(facts);
   const said = `<div class="said"><h2>說過什麼</h2>
-    ${jump ? `<p><a href="#${jump}" data-jump="${jump}">2022 選舉公報政見與學經歷</a></p>` : '<p>本站目前沒有此人的 2022 選舉公報資料。</p>'}
+    ${jump ? `<p><a href="#${jump}" data-jump="${jump}">${jump === 'k-platform' ? '2022 選舉公報政見與學經歷' : '2022 選舉公報原檔'}</a></p>` : '<p>本站目前沒有此人的 2022 選舉公報資料。</p>'}
     <p class="muted small">2026 選舉公報預計 11/25 前公布。</p></div>`;
   if (!offices.length && !inters.length) return `<section class="summary" aria-label="摘要">${said}</section>`;
 

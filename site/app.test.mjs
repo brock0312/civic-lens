@@ -616,6 +616,21 @@ test('office extra refs add 2022 party and inauguration sources only when the fi
   assert.equal(officeExtraRefs({ fetched_at: 't', data: { party: 'x' } }, notes), '');
 });
 
+test('office extra refs skip a source already cited by the office itself or by each other', () => {
+  const notes = { ref: (u, t, label) => `[${label}]` };
+  // 嘉義市 cec_2022：任職與政黨都取自同一份開票結果
+  const cyi = { source_url: 'https://c', fetched_at: 't', data: { basis: 'cec_2022', party_source_url: 'https://c', party_source_label: 'CEC' } };
+  assert.equal(officeExtraRefs(cyi, notes), '');
+  const twice = { source_url: 'https://r', fetched_at: 't', data: { party_source_url: 'https://c', party_source_label: 'CEC', inauguration_source_url: 'https://c', inauguration_source_label: 'MOI' } };
+  assert.equal(officeExtraRefs(twice, notes), '[CEC]');
+});
+
+test('summary jump link names the original bulletin file when no text was extracted', () => {
+  const opts = { offices: [], inters: [], written: [], videos: [] };
+  assert.match(summaryCard({}, { ...opts, jump: 'k-bulletin' }), /data-jump="k-bulletin">2022 選舉公報原檔<\/a>/);
+  assert.match(summaryCard({}, { ...opts, jump: 'k-platform' }), /data-jump="k-platform">2022 選舉公報政見與學經歷<\/a>/);
+});
+
 // 臺北以外的公報：bulletin fact 記原檔網址與頁碼
 const NWT_PDF = 'https://bulletin.cec.gov.tw/01%E9%81%B8%E8%88%89%E5%85%AC%E5%A0%B1/x.pdf';
 const noNotes = { ref: () => '' };
