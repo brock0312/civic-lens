@@ -7,6 +7,7 @@ import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, K
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
+import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -987,4 +988,42 @@ test('Keelung video rows link the mp4 file with its size in the link text and ma
   assert.match(html, /2 位議員聯合質詢的影片/);
   assert.doesNotMatch(html, /觀看影片/);
   assert.match(videoRows([{ ...f, data: { ...f.data, mp4: undefined } }]), /觀看影片/);
+});
+
+// ---------- 新竹縣（V16 已定案第 5、6 點） ----------
+
+test('Hsinchu County is a deep county counting transcripts and scanned question files separately', () => {
+  assert.ok(DEEP_COUNTIES.has('hsq'));
+  const r = RECORDS.hsq;
+  assert.deepEqual(r.depts, []);
+  const doc = (t) => ({ data: { doc_type: t, no_date: true, session: '第20屆第7次定期會' } });
+  const written = [doc(KIN_TRANSCRIPT), doc(KIN_TRANSCRIPT), doc(HSQ_SCANNED)];
+  const card = summaryCard({}, { offices: [], inters: written, written, videos: [], rec: r });
+  assert.match(card, /縣政總質詢紀錄 <span class="num">2<\/span> 份、質詢資料（掃描檔）<span class="num">1<\/span> 份/);
+  assert.match(card, /第 1 至第 7 次定期會.*官方連結失效.*第 24 次臨時會.*沒有質詢影片/);
+  assert.doesNotMatch(card, /部門分布/);
+  assert.equal(r.writtenHeading, '質詢資料（掃描檔）');
+  assert.match(r.writtenBlurb, /沒有文字層的掃描檔.*本站未擷取內容.*資料來源：新竹縣議會/);
+  assert.match(r.transcriptBlurb, /連結文字.*核對.*聯合質詢列在每位質詢議員名下.*未摘要/);
+  assert.ok(TRANSCRIPTS.includes(KIN_TRANSCRIPT));
+  assert.ok(!TRANSCRIPTS.includes(HSQ_SCANNED));
+  assert.doesNotMatch(r.noRecord + r.note + r.writtenBlurb + r.transcriptBlurb, /沒有問政|無問政|未質詢/);
+});
+
+test('Hsinchu County attendance shows present only with the no-leave-list explanation', () => {
+  const att = [{ source_url: 'https://www.hcc.gov.tw/upload/web_program/2026/09/11/a.pdf',
+    data: { session: '第20屆第24次臨時會', meetings: 4, present: 3, leave: null, duty: null, from_lists: true } }];
+  const html = nwtAttendanceBlock(att, RECORDS.hsq.attendance);
+  assert.match(html, /出席 <span class="num">3<\/span>／<span class="num">4<\/span> 次/);
+  assert.doesNotMatch(html, /<span>請假|請假 <span|公差|<span>缺席|未列請假/);
+  assert.ok(html.includes(HSQ_ATTENDANCE_NOTE));
+  assert.match(HSQ_ATTENDANCE_NOTE, /只列出席議員，沒有請假或缺席名單.*只計出席次數.*沒有記載出席人數.*整次不收錄.*遞補.*第一次列入/);
+});
+
+test('Hsinchu County question rows show the session instead of a date', () => {
+  const f = { date: '2026-04-16', source_url: 'https://www.hcc.gov.tw/upload/web_program/2026/08/18/x.pdf',
+    data: { session: '第20屆第7次定期會', doc_type: KIN_TRANSCRIPT, no_date: true, title: '縣政總質詢紀錄（聯合質詢：張珈源、何建樺、吳傳地）（PDF）' } };
+  const html = interpellationRows([f]);
+  assert.match(html, /<span class="date">第7次定期會<\/span>/);
+  assert.match(html, /聯合質詢：張珈源、何建樺、吳傳地/);
 });

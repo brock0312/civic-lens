@@ -93,9 +93,12 @@ export const HSZ_TRANSCRIPT = '質詢紀錄';
 // 金門：縣政總質詢紀錄詳細頁（逐場全文）只連結、不摘要，同列一區
 export const KIN_TRANSCRIPT = '縣政總質詢紀錄';
 export const TRANSCRIPTS = [HUA_TRANSCRIPT, HSZ_TRANSCRIPT, KIN_TRANSCRIPT];
+// 新竹縣：「議員質詢」頁沒有文字層的逐人 PDF（多為書面質詢資料，也有質詢大綱），只連結、標掃描檔；逐字紀錄同金門用 KIN_TRANSCRIPT
+export const HSQ_SCANNED = '質詢資料';
 export const HSZ_ATTENDANCE_NOTE = '依新竹市議會議事錄附錄「議員出缺席表」：表上逐日標記每位議員出席或請假，本站照各表的出席、請假合計數加總。官方表只有出席與請假兩欄，本站因此不另列缺席。比例的分母是本站收錄的出缺席表上的會議日數（定期會與臨時會）；逐日標記與合計不一致的會期，該議員該會期不收錄。議事錄目前刊出第 1 至第 6 次定期會與第 1 至第 22 次臨時會（2023 年 1 月至 2026 年 5 月），其他會期本站未收錄。';
 export const TTT_ATTENDANCE_NOTE = '依臺東縣議會議事錄每次會議「會議紀錄」的出席與請假名單計算；請假名單上註記出差的，列為公差／公假，和請假分開。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、會議紀錄列有出席名單的會議次數（定期會與臨時會，含預備會與會勘），從任職起算；任期中遞補的議員，從第一次列入出席或請假名單的會議起算。第 1、2 次定期會與第 1 至第 6 次臨時會的會議紀錄沒有請假名單，這些會期的請假與公差次數不明，不計入。議事錄目前刊出第 1 至第 7 次定期會與第 1 至第 20 次臨時會（2023 年 1 月至 2026 年 6 月），成立大會本站未收錄。';
 export const KIN_ATTENDANCE_NOTE = '依金門縣議會「會議紀錄」每次會議摘要的出席名單計算（定期會與臨時會的大會及全體議員的聯席審查；分組審查委員會不列入）。會議紀錄只列出席議員，沒有請假或缺席名單，本站因此只計出席次數，不區分請假與缺席。比例的分母是本站收錄、名單人數與記載人數相符的大會次數；任期中遞補的議員，從第一次列入出席名單的會議起算。';
+export const HSQ_ATTENDANCE_NOTE = '依新竹縣議會「會議紀錄」每次大會「會議紀要」的出席議員名單計算（定期會與臨時會；程序委員會不列入）。會議紀要只列出席議員，沒有請假或缺席名單，本站因此只計出席次數，不區分請假與缺席。會議紀要沒有記載出席人數，本站無法核對名單是否完整；名單上有無法對應到議員名錄的姓名（例如兩個姓名之間漏了頓號）的會議，整次不收錄；沒有出席名單的會議紀錄（總預算審議聯席會的下午場次等）不列入。比例的分母是本站收錄的大會次數；任期中遞補的議員，從第一次列入出席名單的會議起算。';
 export const HUA_ATTENDANCE_NOTE = '依花蓮縣議會議事錄每次大會「會議紀錄」的出席與請假名單計算。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、會議紀錄列有出席名單的大會次數（定期大會與臨時大會）；分組審查會議不列入。議事錄目前刊出第 2 至第 6 次定期大會與第 4 至第 20 次臨時大會（2023 年 9 月至 2026 年 3 月），其他會期本站未收錄。';
 
 // 深度縣市的收錄範圍：部門清單、有沒有收書面質詢、沒有紀錄時的說明（措辭中性，不暗示此人沒有問政）
@@ -148,6 +151,21 @@ export const RECORDS = {
     videoBlurb: '連結至新竹市議會發布在 YouTube 的市政總質詢、單位業務質詢影片；一支影片是同場 1 至 3 位議員的質詢，本人質詢時段未標示。影片來源：新竹市議會。',
     attendance: { note: HSZ_ATTENDANCE_NOTE, duty: false },
     noRecord: '本站目前沒有此人的質詢紀錄（收錄範圍：第11屆新竹市議員，第1至第6次定期會的質詢紀錄與第1至第7次定期會的質詢影片）。',
+  },
+  // 新竹縣（V16 已定案第 5、6 點）：逐人質詢 PDF 只連結（逐字紀錄依連結文字歸屬，封面質詢議員要相符）；掃描檔另列；沒有影片（只有直播）；出席只有出席名單
+  hsq: {
+    depts: [], written: true,
+    countLine: (written) => {
+      const n = (t) => written.filter((f) => f.data?.doc_type === t).length;
+      return `縣政總質詢紀錄 <span class="num">${n(KIN_TRANSCRIPT)}</span> 份、質詢資料（掃描檔）<span class="num">${n(HSQ_SCANNED)}</span> 份`;
+    },
+    note: '質詢紀錄收錄第 1 至第 7 次定期會（2023 年 5 月至 2026 年 4 月），第 4 次定期會有 2 份官方連結失效、未收錄；出席取自會議紀錄，收錄第 1 至第 24 次臨時會與第 1 至第 7 次定期會（2023 年 2 月至 2026 年 9 月）。新竹縣議會只有會議直播，沒有質詢影片，本站未收錄影片。',
+    writtenHeading: '質詢資料（掃描檔）',
+    writtenBlurb: '每筆是新竹縣議會「議員質詢」頁列在此人名下、沒有文字層的掃描檔（PDF），多為書面質詢資料，也有質詢大綱；本站未擷取內容。資料來源：新竹縣議會。',
+    transcriptHeading: '縣政總質詢紀錄',
+    transcriptBlurb: '每筆是一個定期會中本人的縣政總質詢逐字紀錄（PDF），依新竹縣議會「議員質詢」頁的連結文字列在此人名下，並與紀錄開頭的質詢議員核對；聯合質詢列在每位質詢議員名下。紀錄沒有逐場日期，日期欄顯示會期。本站未摘要內容。資料來源：新竹縣議會。',
+    attendance: { note: HSQ_ATTENDANCE_NOTE, duty: false, leave: false },
+    noRecord: '本站目前沒有此人的質詢紀錄（收錄範圍：第20屆新竹縣議員，第 1 至第 7 次定期會「議員質詢」頁的縣政總質詢紀錄與質詢資料）。',
   },
   // 臺東（V16 已定案第 3、6 點）：議事錄第四冊的書面質詢題目照官方原文；YouTube 頻道官網未連結，不收影片；口頭總質詢逐字紀錄沒有逐人索引，不收
   ttt: {
@@ -963,7 +981,7 @@ async function renderPerson(main, ctx, id) {
   const jump = facts.profile?.length || facts.platform?.length ? 'k-platform' : bulletin && 'k-bulletin';
 
   const inter = inters.length ? `<section aria-labelledby="k-inter"><h2 id="k-inter">質詢紀錄</h2>
-      ${interSection('written', '書面質詢', kinds.written)}
+      ${interSection('written', rec?.writtenHeading || '書面質詢', kinds.written)}
       ${interSection('oral', '口頭質詢答覆', kinds.oral)}
       ${interSection('video', '口頭質詢（影片）', kinds.video)}
       ${interSection('transcript', rec?.transcriptHeading || '質詢（錄音）紀錄', kinds.transcript)}</section>` : '';
