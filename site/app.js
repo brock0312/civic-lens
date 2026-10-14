@@ -63,8 +63,9 @@ export function videoNote(d) {
     return n > 1 ? `${n} 位議員聯合質詢的影片` : '影片即該議員的質詢時段';
   }
   const size = Number(d?.group_size) || 0;
-  if (d?.whole) {  // 花蓮：半天一支的整場影片，標題列出本場質詢議員，沒有個人起點
+  if (d?.whole) {  // 花蓮：半天一支的整場影片，標題列出本場質詢議員，沒有個人起點；金門（day）：依日期對到當天的總質詢紀錄
     const names = (d.councillors || []).join('、');
+    if (d.day) return `當天質詢議員：${names}（${size} 位），未細分到個人`;
     return size > 1 ? `本場質詢議員：${names}（${size} 位），未細分到個人` : '整場影片，未標示本人質詢起點';
   }
   const group = size > 1 ? `同組 ${size} 位議員，未細分到個人` : '';
@@ -86,9 +87,12 @@ export const HUA_ORAL = '口頭質詢答覆';
 export const HUA_TRANSCRIPT = '質詢錄音紀錄';
 // 新竹市：逐人質詢紀錄 PDF（議事錄抽印的逐字紀錄）只連結、不摘要（V16 已定案第 6 點），和花蓮的錄音紀錄索引同列一區
 export const HSZ_TRANSCRIPT = '質詢紀錄';
-export const TRANSCRIPTS = [HUA_TRANSCRIPT, HSZ_TRANSCRIPT];
+// 金門：縣政總質詢紀錄詳細頁（逐場全文）只連結、不摘要，同列一區
+export const KIN_TRANSCRIPT = '縣政總質詢紀錄';
+export const TRANSCRIPTS = [HUA_TRANSCRIPT, HSZ_TRANSCRIPT, KIN_TRANSCRIPT];
 export const HSZ_ATTENDANCE_NOTE = '依新竹市議會議事錄附錄「議員出缺席表」：表上逐日標記每位議員出席或請假，本站照各表的出席、請假合計數加總。官方表只有出席與請假兩欄，本站因此不另列缺席。比例的分母是本站收錄的出缺席表上的會議日數（定期會與臨時會）；逐日標記與合計不一致的會期，該議員該會期不收錄。議事錄目前刊出第 1 至第 6 次定期會與第 1 至第 22 次臨時會（2023 年 1 月至 2026 年 5 月），其他會期本站未收錄。';
 export const TTT_ATTENDANCE_NOTE = '依臺東縣議會議事錄每次會議「會議紀錄」的出席與請假名單計算；請假名單上註記出差的，列為公差／公假，和請假分開。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、會議紀錄列有出席名單的會議次數（定期會與臨時會，含預備會與會勘），從任職起算；任期中遞補的議員，從第一次列入出席或請假名單的會議起算。第 1、2 次定期會與第 1 至第 6 次臨時會的會議紀錄沒有請假名單，這些會期的請假與公差次數不明，不計入。議事錄目前刊出第 1 至第 7 次定期會與第 1 至第 20 次臨時會（2023 年 1 月至 2026 年 6 月），成立大會本站未收錄。';
+export const KIN_ATTENDANCE_NOTE = '依金門縣議會「會議紀錄」每次會議摘要的出席名單計算（定期會與臨時會的大會及全體議員的聯席審查；分組審查委員會不列入）。會議紀錄只列出席議員，沒有請假或缺席名單，本站因此只計出席次數，不區分請假與缺席。比例的分母是本站收錄、名單人數與記載人數相符的大會次數；任期中遞補的議員，從第一次列入出席名單的會議起算。';
 export const HUA_ATTENDANCE_NOTE = '依花蓮縣議會議事錄每次大會「會議紀錄」的出席與請假名單計算。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、會議紀錄列有出席名單的大會次數（定期大會與臨時大會）；分組審查會議不列入。議事錄目前刊出第 2 至第 6 次定期大會與第 4 至第 20 次臨時大會（2023 年 9 月至 2026 年 3 月），其他會期本站未收錄。';
 
 // 深度縣市的收錄範圍：部門清單、有沒有收書面質詢、沒有紀錄時的說明（措辭中性，不暗示此人沒有問政）
@@ -150,6 +154,17 @@ export const RECORDS = {
     writtenBlurb: '依臺東縣議會議事錄第四冊「縣政總質詢」中議員改以書面提出的「書面質詢事項」，題目照官方原文全文，單位是答復的縣府單位；連結至議事錄 PDF 該頁。',
     attendance: { note: TTT_ATTENDANCE_NOTE },
     noRecord: '本站目前沒有此人的書面質詢紀錄（收錄範圍：第20屆臺東縣議員，議事錄已刊出的定期會縣政總質詢中改以書面提出的質詢）。議事錄只在議員改以書面質詢時刊出題目；口頭總質詢的逐字紀錄與影片本站未收錄。',
+  },
+  // 金門（V16 已定案第 5、6 點）：沒有書面質詢；縣政總質詢紀錄只連詳細頁；影片標題沒有姓名，依日期對到當天的總質詢紀錄；出席只有出席名單
+  kin: {
+    depts: [], written: false,
+    countLine: (written, videos) => `縣政總質詢紀錄 <span class="num">${written.filter((f) => f.data?.doc_type === KIN_TRANSCRIPT).length}</span> 場、縣政總質詢當天影片 <span class="num">${videos.length}</span> 段`,
+    note: '縣政總質詢紀錄收錄第 1 至第 5 次定期會（2023 年 5 月至 2025 年 6 月），第 6 次定期會以後的紀錄議會尚未刊出；出席取自會議紀錄，收錄至第 18 次臨時會（2026 年 7 月）。',
+    transcriptHeading: '縣政總質詢紀錄',
+    transcriptBlurb: '每筆是一場縣政總質詢，依金門縣議會「縣政總質詢會議紀錄」該場所列的質詢議員歸入（聯合質詢列在每位質詢議員名下），連結至議會網站的該場紀錄全文；本站未摘要內容。資料來源：金門縣議會。',
+    videoBlurb: '連結至金門縣議會發布在 YouTube 的議事影片。第 8 屆影片標題沒有議員姓名，本站依日期對到當天的縣政總質詢紀錄，列出當天全部影片；本人質詢時段未標示。影片來源：金門縣議會。',
+    attendance: { note: KIN_ATTENDANCE_NOTE, duty: false, leave: false },
+    noRecord: '本站目前沒有此人的縣政總質詢紀錄（收錄範圍：第8屆金門縣議員，第 1 至第 5 次定期會的縣政總質詢紀錄與當天影片）。金門縣議會沒有書面質詢紀錄。',
   },
 };
 
@@ -222,7 +237,7 @@ export function khhAttendanceBlock(list, excluded = []) {
 export const NWT_ATTENDANCE_NOTE = '依新北市議會議事錄每次會議「摘要紀錄」的出席與請假名單計算；請假名單上註記公假的，列為公差／公假，和請假分開。兩份名單都沒有列出的情形無法判斷原因，本站因此不區分缺席，也不另列次數。比例的分母是本站收錄、摘要紀錄列有出席名單的會議次數（定期會與臨時會，任職以後）；出席欄只寫「詳如簽到簿」的會議（多為審查委員會業務質詢與市政總質詢會議）不列入。';
 
 // 花蓮沿用同一區塊（opts：note 換成花蓮的定義；duty: false 不列公差／公假，花蓮的名單沒有這一類）
-export function nwtAttendanceBlock(list, { note = NWT_ATTENDANCE_NOTE, duty = true } = {}) {
+export function nwtAttendanceBlock(list, { note = NWT_ATTENDANCE_NOTE, duty = true, leave = true } = {}) {
   const sum = (k) => list.reduce((s, f) => s + (Number(f.data?.[k]) || 0), 0);
   const total = sum('meetings');
   const rate = (n) => (total ? n / total : 0);
@@ -230,8 +245,17 @@ export function nwtAttendanceBlock(list, { note = NWT_ATTENDANCE_NOTE, duty = tr
   const sessions = list.map((f) => {  // export 已依日期由新到舊
     const d = f.data || {};
     const u = safeUrl(f.source_url);
-    return `<li>${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：會議 <span class="num">${Number(d.meetings)}</span> 次，出席 <span class="num">${Number(d.present)}</span>、${d.leave === null ? '會議紀錄未列請假名單' : `請假 <span class="num">${Number(d.leave) || 0}</span>${duty ? `、公差／公假 <span class="num">${Number(d.duty) || 0}</span>` : ''}`}</li>`;
+    const head = `${u ? ext(u, esc(d.session || '')) : esc(d.session || '')}：會議 <span class="num">${Number(d.meetings)}</span> 次，出席 <span class="num">${Number(d.present)}</span>`;
+    if (!leave) return `<li>${head}</li>`;
+    return `<li>${head}、${d.leave === null ? '會議紀錄未列請假名單' : `請假 <span class="num">${Number(d.leave) || 0}</span>${duty ? `、公差／公假 <span class="num">${Number(d.duty) || 0}</span>` : ''}`}</li>`;
   }).join('');
+  if (!leave) {  // 金門：會議紀錄只有出席名單
+    return `<h3>出缺勤</h3>
+      <ul class="bars rates">${row('出席', sum('present'))}</ul>
+      <p class="muted small">出席 <span class="num">${sum('present')}</span>／<span class="num">${total}</span> 次（分母是 <span class="num">${total}</span> 次會議）。</p>
+      <p class="muted small">${note}</p>
+      <details class="sess"><summary>各會期（<span class="num">${list.length}</span> 個，連結至會議紀錄原檔）</summary><ul class="plain small">${sessions}</ul></details>`;
+  }
   return `<h3>出缺勤</h3>
       <ul class="bars rates">${row('出席', sum('present'))}${row('請假', sum('leave'))}${duty ? row('公差／公假', sum('duty')) : ''}</ul>
       <p class="muted small">出席 <span class="num">${sum('present')}</span>／<span class="num">${total}</span> 次、請假 <span class="num">${sum('leave')}</span> 次${duty ? `、公差／公假 <span class="num">${sum('duty')}</span> 次` : ''}（分母是 <span class="num">${total}</span> 次會議）。</p>

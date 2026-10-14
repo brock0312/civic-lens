@@ -6,7 +6,7 @@ import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, de
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
-import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE } from './app.js';
+import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -917,4 +917,47 @@ test('Taitung attendance says when a session printed no leave list instead of sh
   assert.doesNotMatch(html, /<span>缺席/);
   assert.ok(html.includes(TTT_ATTENDANCE_NOTE));
   assert.match(TTT_ATTENDANCE_NOTE, /出差的，列為公差／公假.*不區分缺席.*分母是本站收錄.*從任職起算.*遞補.*第一次列入.*沒有請假名單.*次數不明/);
+});
+
+// ---------- 金門（V16 已定案第 5、6 點） ----------
+
+test('Kinmen is a deep county whose summary card counts general-question records and same-day videos', () => {
+  assert.ok(DEEP_COUNTIES.has('kin'));
+  const r = RECORDS.kin;
+  assert.deepEqual(r.depts, []);
+  assert.ok(TRANSCRIPTS.includes(KIN_TRANSCRIPT));
+  const t = { date: '2024-12-11', data: { doc_type: KIN_TRANSCRIPT } };
+  const v = { data: { video_id: 'x', whole: true, day: true, group_size: 3 } };
+  const card = summaryCard({}, { offices: [], inters: [t, v, v], written: [t], videos: [v, v], rec: r });
+  assert.match(card, /縣政總質詢紀錄 <span class="num">1<\/span> 場、縣政總質詢當天影片 <span class="num">2<\/span> 段/);
+  assert.match(card, /第 1 至第 5 次定期會.*議會尚未刊出/);
+  assert.doesNotMatch(card, /部門分布|<span>缺席|書面質詢 </);
+  assert.equal(r.transcriptHeading, '縣政總質詢紀錄');
+  assert.match(r.transcriptBlurb, /未摘要.*資料來源：金門縣議會/);
+  assert.match(r.videoBlurb, /依日期對到.*本人質詢時段未標示.*影片來源：金門縣議會/);
+  assert.doesNotMatch(r.videoBlurb, /\d 至 \d 段/);  // 一天的段數不固定（2024-06-18 有 6 段）
+  assert.doesNotMatch(r.noRecord + r.transcriptBlurb + r.note + r.videoBlurb, /沒有問政|無問政|未質詢|KIN_/);
+});
+
+test('Kinmen same-day videos name the councillors who questioned that day', () => {
+  assert.equal(videoNote({ whole: true, day: true, councillors: ['許玉昭', '董森堡'], group_size: 2 }),
+    '當天質詢議員：許玉昭、董森堡（2 位），未細分到個人');
+});
+
+test('Kinmen attendance shows present only, with no leave row or per-session leave text', () => {
+  const att = [{ ...nwtAtt('第8屆第7次定期會', 17, 16, 0, 0, 'https://agenda.kmcc.gov.tw/ServerFile/Get/a'), data: { ...nwtAtt('第8屆第7次定期會', 17, 16).data, leave: null, duty: null } }];
+  const html = nwtAttendanceBlock(att, RECORDS.kin.attendance);
+  assert.match(html, /出席 <span class="num">16<\/span>／<span class="num">17<\/span> 次（分母是 <span class="num">17<\/span> 次會議）/);
+  assert.match(html, /第8屆第7次定期會<\/a>：會議 <span class="num">17<\/span> 次，出席 <span class="num">16<\/span><\/li>/);
+  assert.doesNotMatch(html, /<span>請假|請假 <span|公差|<span>缺席|未列請假/);
+  assert.ok(html.includes(KIN_ATTENDANCE_NOTE));
+  assert.match(KIN_ATTENDANCE_NOTE, /只列出席議員，沒有請假或缺席名單.*只計出席次數.*分母是本站收錄.*遞補.*第一次列入/);
+});
+
+test('Kinmen general-question rows with an out-of-session official date show the session instead', () => {
+  const f = { date: null, source_url: 'https://agenda.kmcc.gov.tw/CouncilManage/AgendaGovMinutes/Detail/x',
+    data: { session: '第8屆第4次定期會', doc_type: KIN_TRANSCRIPT, no_date: true, title: '縣政總質詢紀錄（本場質詢議員：歐陽儀雄、唐麗輝）（官方記載日期 114-12-11）' } };
+  const html = interpellationRows([f]);
+  assert.match(html, /<span class="date">第4次定期會<\/span>/);
+  assert.match(html, /官方記載日期 114-12-11/);
 });
