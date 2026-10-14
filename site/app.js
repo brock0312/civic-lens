@@ -80,6 +80,9 @@ export const KHH_DEPTS = ['民政', '財經', '教育', '交通', '警消衛環'
 // 臺中市議會：業務質詢六個分組，依定期會的質詢順序
 export const TXG_DEPTS = ['民政', '財政經濟', '教育文化', '交通地政', '警消環衛', '都發建設水利'];
 
+// 基隆：影片連結是 mp4 檔直連，連結文字先講清楚檔案大小
+export const MP4_LINK = '影片檔（mp4，約 1–2 GB）';
+
 export const NWT_VOD_HOME = 'https://vod.ntp.gov.tw/VodCloud/index.htm';
 
 // 花蓮議事錄的口頭質詢答覆表、議員質詢索引表（質詢錄音紀錄）：都是沒有影片的 interpellation，依 doc_type 另列
@@ -165,6 +168,14 @@ export const RECORDS = {
     videoBlurb: '連結至金門縣議會發布在 YouTube 的議事影片。第 8 屆影片標題沒有議員姓名，本站依日期對到當天的縣政總質詢紀錄，列出當天全部影片；本人質詢時段未標示。影片來源：金門縣議會。',
     attendance: { note: KIN_ATTENDANCE_NOTE, duty: false, leave: false },
     noRecord: '本站目前沒有此人的縣政總質詢紀錄（收錄範圍：第8屆金門縣議員，第 1 至第 5 次定期會的縣政總質詢紀錄與當天影片）。金門縣議會沒有書面質詢紀錄。',
+  },
+  // 基隆（V16 已定案第 7 點）：議事錄是掃描影像、不 OCR，只做市長施政總質詢影片；影片是 mp4 直連（每支 1–2 GB），沒有播放頁
+  kee: {
+    depts: [], written: false,
+    countLine: (written, videos) => `市長施政總質詢影片 <span class="num">${videos.length}</span> 支（其中聯合質詢 <span class="num">${videos.filter((f) => f.data?.joint).length}</span> 支）`,
+    note: '質詢影片收錄第 20 屆第 1 至第 8 次定期會的市長施政總質詢（2023 年 5 月至 2026 年 10 月）。基隆市議會的議事錄是掃描影像，出缺勤本站未收錄；議會網站沒有書面質詢專區，本站也未收錄。',
+    videoBlurb: '連結至基隆市議會議事影音平台的市長施政總質詢影片，每支就是該議員的質詢時段；黨團聯合質詢列在每位列名議員名下。連結是 mp4 影片檔（每支約 1 至 2 GB），點選後由瀏覽器直接開啟或下載，沒有播放頁面。影片來源：基隆市議會。',
+    noRecord: '本站目前沒有此人的質詢影片紀錄（收錄範圍：第20屆基隆市議員，第 1 至第 8 次定期會的市長施政總質詢影片）。出缺勤與書面質詢本站未收錄。',
   },
 };
 
@@ -654,7 +665,7 @@ export function videoRows(list) {
     return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
       <span class="dept">${esc(f.data?.dept || '')}</span>
       <span class="title">${esc(f.data?.title || '')}
-        <span class="video">${u ? ext(u, '觀看影片') : ''}<span class="muted">${esc(videoNote(f.data))}</span></span></span></li>`;
+        <span class="video">${u ? ext(u, f.data?.mp4 ? MP4_LINK : '觀看影片') : ''}<span class="muted">${esc(videoNote(f.data))}</span></span></span></li>`;
   }).join('');
 }
 

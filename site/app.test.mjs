@@ -6,7 +6,7 @@ import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, de
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
-import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE } from './app.js';
+import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -960,4 +960,31 @@ test('Kinmen general-question rows with an out-of-session official date show the
   const html = interpellationRows([f]);
   assert.match(html, /<span class="date">第4次定期會<\/span>/);
   assert.match(html, /官方記載日期 114-12-11/);
+});
+
+// ---------- 基隆（V16 已定案第 7 點） ----------
+
+test('Keelung is a deep county with mayoral general-question videos only, counting joint ones', () => {
+  assert.ok(DEEP_COUNTIES.has('kee'));
+  const r = RECORDS.kee;
+  assert.deepEqual(r.depts, []);
+  const v = (joint) => ({ data: { video_id: 'x.mp4', clip: true, mp4: true, joint, group_size: joint ? 2 : 1 } });
+  const card = summaryCard({}, { offices: [], inters: [v(false), v(true), v(true)], written: [], videos: [v(false), v(true), v(true)], rec: r });
+  assert.match(card, /市長施政總質詢影片 <span class="num">3<\/span> 支（其中聯合質詢 <span class="num">2<\/span> 支）/);
+  assert.match(card, /第 1 至第 8 次定期會.*掃描影像，出缺勤本站未收錄.*書面質詢/);
+  assert.doesNotMatch(card, /部門分布|<span>出席|<span>缺席/);
+  assert.match(r.videoBlurb, /mp4 影片檔（每支約 1 至 2 GB）.*直接開啟或下載，沒有播放頁面.*影片來源：基隆市議會/);
+  assert.doesNotMatch(r.noRecord + r.note + r.videoBlurb, /沒有問政|無問政|未質詢/);
+});
+
+test('Keelung video rows link the mp4 file with its size in the link text and mark joint sessions', () => {
+  const f = { date: '2026-10-02', source_url: 'https://streamak0104vod.akamaized.net/1151002Q_20_W1101_x.mp4',
+    data: { title: '市長施政總質詢（民進黨團聯合質詢：施偉政、許睿慈）', video_id: 'x.mp4', clip: true, mp4: true, joint: true, group_size: 2 } };
+  const html = videoRows([f]);
+  assert.ok(html.includes(`>${MP4_LINK}</a>`));
+  assert.match(MP4_LINK, /mp4.*GB/);
+  assert.match(html, /民進黨團聯合質詢：施偉政、許睿慈/);
+  assert.match(html, /2 位議員聯合質詢的影片/);
+  assert.doesNotMatch(html, /觀看影片/);
+  assert.match(videoRows([{ ...f, data: { ...f.data, mp4: undefined } }]), /觀看影片/);
 });
