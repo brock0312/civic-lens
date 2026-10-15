@@ -1114,3 +1114,30 @@ test('Lienchiang video rows show the session instead of the publish date and lin
   // 其他縣市的影片列照舊顯示日期
   assert.match(videoRows([{ ...f, data: { ...f.data, no_date: undefined } }]), /<time class="date" datetime="2024-11-29">/);
 });
+
+// ---------- 宜蘭（V16） ----------
+
+test('Yilan is a deep county counting per-councillor clips linked to the council play page', () => {
+  assert.ok(DEEP_COUNTIES.has('ila'));
+  const r = RECORDS.ila;
+  assert.deepEqual(r.depts, []);
+  const v = { data: { video_id: '12939', clip: true, session: '第20屆第7次定期會' } };
+  const card = summaryCard({}, { offices: [], inters: [v, v], written: [], videos: [v, v], rec: r });
+  assert.match(card, /業務質詢與縣長施政總質詢影片 <span class="num">2<\/span> 支/);
+  assert.match(card, /第 1 至第 8 次定期會.*出缺勤與書面質詢本站未收錄/);
+  assert.doesNotMatch(card, /部門分布|<span>出席|<span>缺席/);
+  assert.match(r.videoBlurb, /播放頁.*開會日期.*影片來源：宜蘭縣議會/);
+  assert.doesNotMatch(r.noRecord + r.note + r.videoBlurb, /沒有問政|無問政|未質詢/);
+});
+
+test('Yilan clip rows show the meeting date and session, newest session first even on the same day', () => {
+  const clip = (id, date, nth, meeting) => ({ date, source_url: `https://mod.ilcc.gov.tw/mod/front2016/vod_show_mp4_play.asp?id=${id}&rule=1&film_spec=MP4`,
+    data: { title: `第${meeting}次會議 縣長施政總質詢及答復`, dept: `第${nth}次定期會`, video_id: String(id), clip: true, seq: nth * 100 + meeting } });
+  const html = videoRows([clip(12939, '2026-05-13', 7, 26)]);
+  assert.match(html, /<time class="date" datetime="2026-05-13">/);
+  assert.match(html, /<span class="dept">第7次定期會<\/span>/);
+  assert.match(html, /href="https:\/\/mod\.ilcc\.gov\.tw\/mod\/front2016\/vod_show_mp4_play\.asp\?id=12939&#38;rule=1&#38;film_spec=MP4"/);
+  assert.match(html, /影片即該議員的質詢時段/);
+  const { shown } = splitLatest([clip(1, '2025-11-20', 6, 27), clip(2, '2025-11-20', 6, 28), clip(3, '2025-11-13', 6, 17)]);
+  assert.deepEqual(shown.map((f) => f.data.video_id), ['2', '1', '3']);
+});
