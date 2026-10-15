@@ -156,6 +156,11 @@ test('splitLatest shows the newest 20 interpellations and keeps the rest hidden'
   assert.equal(list[0].date, '2025-01-01', 'input not mutated');
 });
 
+test('splitLatest breaks same-date ties by session order newest first', () => {
+  const list = [6, 7, 8, 9].map((seq) => ({ date: '2024-11-29', data: { seq } }));
+  assert.deepEqual(splitLatest(list).shown.map((f) => f.data.seq), [9, 8, 7, 6]);
+});
+
 test('splitLatest hides nothing when there are 20 or fewer records', () => {
   const { shown, hidden } = splitLatest([{ date: '2024-01-01' }, { date: '2024-05-01' }]);
   assert.deepEqual(shown.map((f) => f.date), ['2024-05-01', '2024-01-01']);
@@ -690,15 +695,15 @@ test('publisherOf names county councils and the interior ministry from their dom
 
 test('county note and tag mention 2022 bulletins only when the data flags them', () => {
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true, councilor_bulletin: true };
-  const lie = { iso: 'lie', name: '連江縣', councilor_roster: false, councilor_bulletin: false };
+  const pif = { iso: 'pif', name: '屏東縣', councilor_roster: false, councilor_bulletin: false };
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true, councilor_bulletin: true };
   assert.match(countyNote(tao), /並收錄現任議員的 2022 選舉公報政見與學經歷；桃園市議會的問政紀錄仍在建置中/);
-  assert.doesNotMatch(countyNote(lie), /公報/);
+  assert.doesNotMatch(countyNote(pif), /公報/);
   assert.equal(countyTag(tpe), '含問政紀錄');
   assert.equal(countyTag(tao), BULLETIN_TAG);
-  assert.equal(countyTag(lie), '');
-  assert.match(homeNote([tpe, tao, lie]), /標示「含 2022 公報」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷/);
-  assert.doesNotMatch(homeNote([tpe, lie]), /2022 公報/);
+  assert.equal(countyTag(pif), '');
+  assert.match(homeNote([tpe, tao, pif]), /標示「含 2022 公報」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷/);
+  assert.doesNotMatch(homeNote([tpe, pif]), /2022 公報/);
 });
 
 test('incumbent councillors outside deep counties get the records-pending note, once per county', () => {
@@ -1081,4 +1086,31 @@ test('Nantou suggestion rows show the meeting date, category and the full offici
   assert.match(html, /<span class="dept">社政<\/span>/);
   assert.match(html, /202609011615240\.pdf#page=129/);
   assert.ok(html.includes(text));
+});
+
+// ---------- 連江（V16 已定案第 3 點） ----------
+
+test('Lienchiang is a deep county counting general-question videos linked to council pages', () => {
+  assert.ok(DEEP_COUNTIES.has('lie'));
+  const r = RECORDS.lie;
+  assert.deepEqual(r.depts, []);
+  const v = { data: { video_id: '112242', clip: true, no_date: true, session: '第8屆第7次定期大會' } };
+  const card = summaryCard({}, { offices: [], inters: [v, v], written: [], videos: [v, v], rec: r });
+  assert.match(card, /縣政總質詢與施政報告質詢影片 <span class="num">2<\/span> 筆/);
+  assert.match(card, /發布日期，不是質詢日期.*手寫簽名掃描.*書面質詢/);
+  assert.doesNotMatch(card, /部門分布|<span>出席|<span>缺席/);
+  assert.match(r.videoBlurb, /連結至議會網站該頁.*影片來源：連江縣議會網站/);
+  assert.doesNotMatch(r.noRecord + r.note + r.videoBlurb, /沒有問政|無問政|未質詢|YouTube/);
+});
+
+test('Lienchiang video rows show the session instead of the publish date and link the council page', () => {
+  const f = { date: '2024-11-29', source_url: 'https://www.mtcc.gov.tw/ch/Detail/7176?mcid=108523',
+    data: { title: '第八屆第三次定期大會縣政總質詢', video_id: '108523', clip: true, no_date: true, session: '第8屆第3次定期大會' } };
+  const html = videoRows([f]);
+  assert.match(html, /<span class="date">第3次定期大會<\/span>/);
+  assert.doesNotMatch(html, /2024-11-29/);
+  assert.match(html, /href="https:\/\/www\.mtcc\.gov\.tw\/ch\/Detail\/7176\?mcid=108523"/);
+  assert.match(html, /影片即該議員的質詢時段/);
+  // 其他縣市的影片列照舊顯示日期
+  assert.match(videoRows([{ ...f, data: { ...f.data, no_date: undefined } }]), /<time class="date" datetime="2024-11-29">/);
 });

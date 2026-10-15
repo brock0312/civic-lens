@@ -44,7 +44,9 @@ export function emblemFor(party, parties) {
 
 // 質詢紀錄依日期新到舊，切成先顯示的前 n 筆與其餘
 export function splitLatest(list, n = INTERPELLATION_PAGE) {
-  const sorted = [...list].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  // 同日以 data.seq（會期內先後，如連江）由新到舊；沒有 seq 的維持原順序
+  const sorted = [...list].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))
+    || (b.data?.seq ?? 0) - (a.data?.seq ?? 0));
   return { shown: sorted.slice(0, n), hidden: sorted.slice(n) };
 }
 
@@ -207,6 +209,15 @@ export const RECORDS = {
     transcriptBlurb: '每筆是一天的縣政質詢中本人的質詢，依議事錄當天主席宣布的質詢議員名單歸入（聯合質詢列在每位質詢議員名下；名單上改提書面質詢、當天沒有發言的不列），連結至議事錄電子書本人開始發言的那一頁；電子書頁碼與印刷頁碼不同。本站未摘要內容。資料來源：彰化縣議會。',
     videoBlurb: '連結至彰化縣議會發布在 YouTube 的議事影片，一天一支，依影片說明欄列出的當天質詢議員歸入；本人質詢時段未標示。議事錄已刊出的日期（第 1、2、4、5、6 次定期會），議事錄顯示當天改提書面質詢、沒有口頭質詢的議員不列入；議事錄未刊出的日期（第 3、7、8 次定期會），名單只取自影片說明欄，可能包含當天改提書面質詢的議員。本站只提供連結，不轉錄或剪輯影片。影片來源：彰化縣議會。',
     noRecord: '本站目前沒有此人的縣政質詢紀錄（收錄範圍：第20屆彰化縣議員，議事錄已刊出的第 1、2、4、5、6 次定期會縣政質詢紀錄與第 1 至第 8 次定期會的縣政質詢影片）。出缺勤與書面質詢本站未收錄。',
+  },
+  // 連江（V16 已定案第 3 點）：官網「質詢影音」依議員列的總質詢頁，只連議會詳細頁（YouTube 剪輯頻道顯示名稱是個人，不直接連）；
+  // 簽到簿是手寫掃描、沒有書面質詢，都不收
+  lie: {
+    depts: [], written: false,
+    countLine: (written, videos) => `縣政總質詢與施政報告質詢影片 <span class="num">${videos.length}</span> 筆`,
+    note: '質詢影片取自連江縣議會網站「質詢影音」各議員的清單，收錄第8屆第1至第7次定期大會（2023 年至 2026 年 6 月）。清單上的日期是議會網站的發布日期，不是質詢日期，本站因此只標會期。會議紀錄的簽到簿是手寫簽名掃描檔，出缺勤本站未收錄；議事錄沒有書面質詢，本站也未收錄。',
+    videoBlurb: '每筆是連江縣議會網站「質詢影音」列在此人名下的一個會期的縣政總質詢或縣長施政報告質詢，連結至議會網站該頁，頁面上嵌入該議員質詢時段的影片（可能分成數段）。本站只提供連結。影片來源：連江縣議會網站。',
+    noRecord: '本站目前沒有此人的質詢影片紀錄（收錄範圍：第8屆連江縣議員，議會網站「質詢影音」第1至第7次定期大會的縣政總質詢與縣長施政報告質詢）。出缺勤與書面質詢本站未收錄。',
   },
   // 南投（V16 已定案第 6 點）：議事錄縣政總質詢各會次所附「議員建議事項」表，一格一筆，內容照官方原文全文；
   // 會議紀錄的出席寫「如簽到簿」、影片一場一支且標題沒有姓名、沒有書面質詢，都不收
@@ -703,7 +714,7 @@ export function videoRows(list) {
         <span class="video"><span class="muted">本場發言議員 ${n} 位</span></span></span></li>`;
     }
     const u = safeUrl(f.source_url);
-    return `<li><time class="date" datetime="${esc(f.date || '')}">${esc(f.date || '')}</time>
+    return `<li>${dateCell(f)}
       <span class="dept">${esc(f.data?.dept || '')}</span>
       <span class="title">${esc(f.data?.title || '')}
         <span class="video">${u ? ext(u, f.data?.mp4 ? MP4_LINK : '觀看影片') : ''}<span class="muted">${esc(videoNote(f.data))}</span></span></span></li>`;
