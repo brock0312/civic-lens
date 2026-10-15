@@ -8,7 +8,7 @@ from etl.sources import (
     cha_book, cha_videos, hsq_book, hsz_book, hsz_videos, hua_book, hua_videos, ila_videos, kee_videos, khh_attendance, khh_videos, kin_book, kin_videos, lie_videos, ly_legislators, ly_records, nan_book, national_bulletin_2022, national_candidates,
     national_councilors, national_districts, national_heads, national_legislators, nwt_book, nwt_videos, tcc_attendance,
     tcc_councilors, tcc_interpellations, tcc_summaries, tcc_videos, ttt_book,
-    tpe_bulletin_2022, tpe_candidates, tpe_districts, tnn_videos, txg_videos,
+    tpe_bulletin_2022, tpe_candidates, tpe_districts, tnn_videos, txg_videos, yun_videos,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -16,17 +16,18 @@ ROOT = Path(__file__).resolve().parent.parent
 # 每個模組提供 run(conn)；districts 要先跑（FK）；公報要在 tcc_councilors（寫生日）與 tpe_candidates（登記冊對照）之後
 # national_candidates 要在 national_districts（名額核對）與 tpe_candidates（臺北交叉核對）之後
 # national_heads、national_councilors 要在 national_candidates 之後（串接 2026 候選人）
-# khh_videos、txg_videos、tnn_videos、khh_attendance、nwt_book、nwt_videos、hua_book、hua_videos、hsz_book、hsz_videos、ttt_book、kin_book、kin_videos、kee_videos、hsq_book、cha_book、cha_videos、nan_book、lie_videos、ila_videos 要在 national_councilors 之後（現任議員的任職 fact 與 person_id）
+# khh_videos、txg_videos、tnn_videos、khh_attendance、nwt_book、nwt_videos、hua_book、hua_videos、hsz_book、hsz_videos、ttt_book、kin_book、kin_videos、kee_videos、hsq_book、cha_book、cha_videos、nan_book、lie_videos、ila_videos、yun_videos 要在 national_councilors 之後（現任議員的任職 fact 與 person_id）
 # national_bulletin_2022 要在 national_heads、national_councilors 之後（掛到有任職 fact 的人）
 # kin_videos 要在 kin_book 之後（讀它剛更新的縣政總質詢紀錄快取，依日期對影片）
 # tcc_attendance 要在 tcc_councilors（identity 對照）之後
 # tcc_summaries 讀 repo 內的 data/summaries/，不連網；要在 tcc_councilors（person 列）之後
 # ly_legislators 要在 national_legislators（立委選區）與 national_candidates、tpe_candidates（串接 2026 候選人）之後；ly_records 在它之後
+# yun_videos 只讀 data/cache/yun/ 的快取（查詢很慢，抓取另跑 python3 -m etl.sources.yun_videos --fetch）
 # nwt_videos 只列清單、連新北議會影音網首頁：單支影片網址依賴 session，官方 YouTube 沒有逐人對應（V15 已定案第 6 點）
 SOURCES = [
     tpe_districts, tpe_candidates, national_districts, national_legislators, national_candidates, national_heads,
     national_councilors, khh_videos, txg_videos, tnn_videos, khh_attendance, nwt_book, nwt_videos, hua_book, hua_videos,
-    hsz_book, hsz_videos, ttt_book, kin_book, kin_videos, kee_videos, hsq_book, cha_book, cha_videos, nan_book, lie_videos, ila_videos, national_bulletin_2022,
+    hsz_book, hsz_videos, ttt_book, kin_book, kin_videos, kee_videos, hsq_book, cha_book, cha_videos, nan_book, lie_videos, ila_videos, yun_videos, national_bulletin_2022,
     tcc_councilors, tcc_interpellations, tcc_videos, tcc_attendance, tcc_summaries, tpe_bulletin_2022, ly_legislators, ly_records,
 ]
 

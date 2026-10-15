@@ -1141,3 +1141,30 @@ test('Yilan clip rows show the meeting date and session, newest session first ev
   const { shown } = splitLatest([clip(1, '2025-11-20', 6, 27), clip(2, '2025-11-20', 6, 28), clip(3, '2025-11-13', 6, 17)]);
   assert.deepEqual(shown.map((f) => f.data.video_id), ['2', '1', '3']);
 });
+
+// ---------- 雲林（V16 已定案第 2、8 點） ----------
+
+test('Yunlin is a deep county counting speaker-tagged videos from May 2025 on', () => {
+  assert.ok(DEEP_COUNTIES.has('yun'));
+  const r = RECORDS.yun;
+  assert.deepEqual(r.depts, []);
+  const v = { data: { video_id: '24171', starts: ['00:50:08'] } };
+  const card = summaryCard({}, { offices: [], inters: [v, v], written: [], videos: [v, v], rec: r });
+  assert.match(card, /標記本人發言的議事影片 <span class="num">2<\/span> 支/);
+  assert.match(card, /2025 年 5 月.*出缺勤與書面質詢本站未收錄/);
+  assert.doesNotMatch(card, /部門分布|<span>出席|<span>缺席/);
+  assert.match(r.videoBlurb, /播放頁.*起點時間.*影片來源：雲林縣議會/);
+  assert.doesNotMatch(r.noRecord + r.note + r.videoBlurb, /沒有問政|無問政|未質詢/);
+});
+
+test('Yunlin video rows link the play page and list every start time as text, newest first on the same day', () => {
+  const v = (id, date, seq, starts) => ({ date, source_url: `http://msr.ylcc.gov.tw/portal/temp_3_G.php?id=${id}`,
+    data: { title: '115.9.30第20屆第8次定期會-縣政總質詢16', dept: '第8次定期會', video_id: String(id), starts, seq } });
+  const html = videoRows([v(24171, '2026-09-30', 90630, ['00:50:08', '01:27:15'])]);
+  assert.match(html, /<time class="date" datetime="2026-09-30">/);
+  assert.match(html, /<span class="dept">第8次定期會<\/span>/);
+  assert.match(html, /href="http:\/\/msr\.ylcc\.gov\.tw\/portal\/temp_3_G\.php\?id=24171"/);
+  assert.match(html, /本人發言自 00:50:08、01:27:15 起/);
+  const { shown } = splitLatest([v(1, '2026-09-30', 90630, ['0']), v(2, '2026-09-30', 141323, ['0']), v(3, '2026-09-23', 91036, ['0'])]);
+  assert.deepEqual(shown.map((f) => f.data.video_id), ['2', '1', '3']);
+});
