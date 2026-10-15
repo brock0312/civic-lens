@@ -7,7 +7,7 @@ import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, K
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
-import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE } from './app.js';
+import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, NAN_SUGGESTION } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -598,10 +598,10 @@ test('county note says incumbent councillors are tagged only when the data has a
 
 test('home note lists non-Taipei counties whose incumbent councillors are tagged, from data', () => {
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
-  const nan = { iso: 'nan', name: '南投縣', councilor_roster: true };
+  const mia = { iso: 'mia', name: '苗栗縣', councilor_roster: true };
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
-  assert.match(homeNote([tpe, nan, hsq, tao]), /候選人中的現任縣市長與南投縣、桃園市的現任議員會標示，議員問政紀錄仍在建置中/);
-  assert.doesNotMatch(homeNote([tpe, nan]), /現任議員名單/);
+  assert.match(homeNote([tpe, mia, hsq, tao]), /候選人中的現任縣市長與苗栗縣、桃園市的現任議員會標示，議員問政紀錄仍在建置中/);
+  assert.doesNotMatch(homeNote([tpe, mia]), /現任議員名單/);
   assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
 });
 
@@ -797,11 +797,11 @@ test('Chiayi City councillors from the 2022 results are tagged "2022 當選", ne
 
 test('county and home notes describe Chiayi City councillors as 2022 winners', () => {
   const cyi = { iso: 'cyi', name: '嘉義市', councilor_roster: false, councilor_cec_2022: true, councilor_bulletin: true };
-  const nan = { iso: 'nan', name: '南投縣', councilor_roster: true };
+  const mia = { iso: 'mia', name: '苗栗縣', councilor_roster: true };
   const n = countyNote(cyi);
   assert.match(n, /候選人中的現任嘉義市長與 2022 年當選議員會標示，並收錄 2022 年當選議員的 2022 選舉公報政見與學經歷/);
   assert.doesNotMatch(n, /現任議員/);
-  assert.match(homeNote([nan, cyi]), /候選人中的現任縣市長與南投縣的現任議員、嘉義市的 2022 年當選議員會標示/);
+  assert.match(homeNote([mia, cyi]), /候選人中的現任縣市長與苗栗縣的現任議員、嘉義市的 2022 年當選議員會標示/);
   assert.match(homeNote([cyi]), /候選人中的現任縣市長與嘉義市的 2022 年當選議員會標示/);
 });
 
@@ -1054,4 +1054,31 @@ test('Changhua e-book rows link the page where the councillor starts speaking', 
   assert.match(html, /<time class="date" datetime="2025-10-28">/);
   assert.match(html, /index\.html#p=941/);
   assert.match(html, /電子書第 941 頁起/);
+});
+
+// ---------- 南投（V16 已定案第 6 點） ----------
+
+test('Nantou is a deep county counting council-suggestion rows under their own heading, without attendance or videos', () => {
+  assert.ok(DEEP_COUNTIES.has('nan'));
+  const r = RECORDS.nan;
+  assert.deepEqual(r.depts, []);
+  assert.equal(r.attendance, undefined);
+  const s = { date: '2026-04-29', data: { doc_type: NAN_SUGGESTION } };
+  const card = summaryCard({}, { offices: [], inters: [s, s], written: [s, s], videos: [], rec: r });
+  assert.match(card, /縣政總質詢議員建議事項 <span class="num">2<\/span> 筆/);
+  assert.match(card, /第 5 至第 7 次定期會.*第 1 至第 4 次定期會的建議事項表是圖片（本站不做文字辨識）.*如簽到簿/);
+  assert.equal(r.writtenHeading, '縣政總質詢議員建議事項');
+  assert.match(r.writtenBlurb, /議員建議事項.*官方原文全文.*多位議員時列在每位議員名下.*該會次的開會日期.*資料來源：南投縣議會/);
+  assert.doesNotMatch(r.noRecord + r.writtenBlurb + r.note, /沒有問政|無問政|未質詢/);
+});
+
+test('Nantou suggestion rows show the meeting date, category and the full official text linked to the PDF page', () => {
+  const text = '1.有關補助本縣 65 歲以上長者健保費政策，建請透過關懷據點、巷弄長照站多加宣傳、說明。2.建議針對已領取完「青年就業獎勵金」的個案進行大數據分析。';
+  const f = { date: '2026-04-29', source_url: 'https://www.ntcc.gov.tw/upload/news/202609011615240.pdf#page=129',
+    data: { session: '第20屆第7次定期會', meeting: '第2會次', doc_type: NAN_SUGGESTION, dept: '社政', title: text } };
+  const html = interpellationRows([f]);
+  assert.match(html, /<time class="date" datetime="2026-04-29">/);
+  assert.match(html, /<span class="dept">社政<\/span>/);
+  assert.match(html, /202609011615240\.pdf#page=129/);
+  assert.ok(html.includes(text));
 });
