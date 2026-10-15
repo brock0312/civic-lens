@@ -1168,3 +1168,45 @@ test('Yunlin video rows link the play page and list every start time as text, ne
   const { shown } = splitLatest([v(1, '2026-09-30', 90630, ['0']), v(2, '2026-09-30', 141323, ['0']), v(3, '2026-09-23', 91036, ['0'])]);
   assert.deepEqual(shown.map((f) => f.data.video_id), ['2', '1', '3']);
 });
+
+// ---------- 澎湖（V16 已定案第 1、8 點） ----------
+
+test('Penghu is a deep county counting general-question videos from May 2025 on, with committee sessions counted', () => {
+  assert.ok(DEEP_COUNTIES.has('pen'));
+  const r = RECORDS.pen;
+  assert.deepEqual(r.depts, []);
+  const one = { data: { video_id: 'bTpJrS3CXig', whole: true, group_size: 1, joint: false } };
+  const two = { data: { video_id: 'lz_dPp64sq8', whole: true, group_size: 2, joint: true } };
+  const slot = { data: { video_id: 'TDRwZLNMM0U', slots: ['09:20–09:40'], committee: '第一審查委員會' } };
+  const card = summaryCard({}, { offices: [], inters: [one, two, slot], written: [], videos: [one, two, slot], rec: r });
+  assert.match(card, /縣政總質詢影片 <span class="num">3<\/span> 支（含審查委員會場 <span class="num">1<\/span> 支）/);
+  assert.match(r.note, /審查委員會場依影片說明欄/);
+  assert.match(card, /2025 年 5 月.*出缺勤與書面質詢本站未收錄/);
+  assert.doesNotMatch(card, /部門分布|<span>出席|<span>缺席/);
+  assert.match(r.videoBlurb, /YouTube.*日期取自影片標題.*影片來源：澎湖縣議會/);
+  assert.doesNotMatch(r.noRecord + r.note + r.videoBlurb, /沒有問政|無問政|未質詢/);
+});
+
+test('Penghu video rows link YouTube and name both councillors on a shared half-day video', () => {
+  const v = (id, date, names, seq = 0) => ({ date, source_url: `https://www.youtube.com/watch?v=${id}`,
+    data: { title: '縣政總質詢（上午）', dept: '第8次定期會', video_id: id, whole: true, councillors: names,
+      group_size: names.length, joint: names.length > 1, seq } });
+  const html = videoRows([v('4s8hXoBxUKU', '2026-10-01', ['宋昀芝', '藍凱元'])]);
+  assert.match(html, /<time class="date" datetime="2026-10-01">/);
+  assert.match(html, /<span class="dept">第8次定期會<\/span>/);
+  assert.match(html, /href="https:\/\/www\.youtube\.com\/watch\?v=4s8hXoBxUKU"/);
+  assert.match(html, /本場質詢議員：宋昀芝、藍凱元（2 位），未細分到個人/);
+  assert.match(videoRows([v('bTpJrS3CXig', '2026-09-24', ['蘇育德'])]), /整場影片，未標示本人質詢起點/);
+  const { shown } = splitLatest([v('a', '2026-09-24', ['甲'], 0), v('b', '2026-09-24', ['甲'], 1), v('c', '2026-05-26', ['甲'])]);
+  assert.deepEqual(shown.map((f) => f.data.video_id), ['b', 'a', 'c']);
+});
+
+test('Penghu committee-session rows show the scheduled slot from the video description', () => {
+  const f = { date: '2025-05-20', source_url: 'https://www.youtube.com/watch?v=TDRwZLNMM0U',
+    data: { title: '第一審查委員會縣政總質詢（上午）', dept: '第5次定期會', video_id: 'TDRwZLNMM0U', committee: '第一審查委員會',
+      slots: ['09:20–09:40'], seq: 920 } };
+  const html = videoRows([f]);
+  assert.match(html, /第一審查委員會縣政總質詢（上午）/);
+  assert.match(html, /排定時段 09:20–09:40（說明欄排定時間，實際起點可能不同）/);
+  assert.doesNotMatch(html, /未細分到個人|整場影片/);
+});
