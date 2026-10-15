@@ -598,10 +598,10 @@ test('county note says incumbent councillors are tagged only when the data has a
 
 test('home note lists non-Taipei counties whose incumbent councillors are tagged, from data', () => {
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
-  const cha = { iso: 'cha', name: '彰化縣', councilor_roster: true };
+  const nan = { iso: 'nan', name: '南投縣', councilor_roster: true };
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
-  assert.match(homeNote([tpe, cha, hsq, tao]), /候選人中的現任縣市長與彰化縣、桃園市的現任議員會標示，議員問政紀錄仍在建置中/);
-  assert.doesNotMatch(homeNote([tpe, cha]), /現任議員名單/);
+  assert.match(homeNote([tpe, nan, hsq, tao]), /候選人中的現任縣市長與南投縣、桃園市的現任議員會標示，議員問政紀錄仍在建置中/);
+  assert.doesNotMatch(homeNote([tpe, nan]), /現任議員名單/);
   assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
 });
 
@@ -797,11 +797,11 @@ test('Chiayi City councillors from the 2022 results are tagged "2022 當選", ne
 
 test('county and home notes describe Chiayi City councillors as 2022 winners', () => {
   const cyi = { iso: 'cyi', name: '嘉義市', councilor_roster: false, councilor_cec_2022: true, councilor_bulletin: true };
-  const cha = { iso: 'cha', name: '彰化縣', councilor_roster: true };
+  const nan = { iso: 'nan', name: '南投縣', councilor_roster: true };
   const n = countyNote(cyi);
   assert.match(n, /候選人中的現任嘉義市長與 2022 年當選議員會標示，並收錄 2022 年當選議員的 2022 選舉公報政見與學經歷/);
   assert.doesNotMatch(n, /現任議員/);
-  assert.match(homeNote([cha, cyi]), /候選人中的現任縣市長與彰化縣的現任議員、嘉義市的 2022 年當選議員會標示/);
+  assert.match(homeNote([nan, cyi]), /候選人中的現任縣市長與南投縣的現任議員、嘉義市的 2022 年當選議員會標示/);
   assert.match(homeNote([cyi]), /候選人中的現任縣市長與嘉義市的 2022 年當選議員會標示/);
 });
 
@@ -1026,4 +1026,32 @@ test('Hsinchu County question rows show the session instead of a date', () => {
   const html = interpellationRows([f]);
   assert.match(html, /<span class="date">第7次定期會<\/span>/);
   assert.match(html, /聯合質詢：張珈源、何建樺、吳傳地/);
+});
+
+// ---------- 彰化（V16 已定案第 4、6 點） ----------
+
+test('Changhua is a deep county counting e-book interpellation records and same-day videos, without attendance', () => {
+  assert.ok(DEEP_COUNTIES.has('cha'));
+  const r = RECORDS.cha;
+  assert.deepEqual(r.depts, []);
+  assert.equal(r.attendance, undefined);
+  const t = { date: '2025-10-28', data: { doc_type: KIN_TRANSCRIPT } };
+  const v = { data: { video_id: 'x', whole: true, day: true, group_size: 7 } };
+  const card = summaryCard({}, { offices: [], inters: [t, v], written: [t], videos: [v], rec: r });
+  assert.match(card, /縣政質詢紀錄 <span class="num">1<\/span> 場、縣政質詢當天影片 <span class="num">1<\/span> 支/);
+  assert.match(card, /第 1、2、4、5、6 次定期會.*第 3 次定期會的議事錄是掃描影像.*如議員簽到簿/);
+  assert.equal(r.transcriptHeading, '縣政質詢紀錄');
+  assert.match(r.transcriptBlurb, /主席宣布的質詢議員名單.*電子書頁碼與印刷頁碼不同.*未摘要.*資料來源：彰化縣議會/);
+  assert.match(r.videoBlurb, /說明欄.*本人質詢時段未標示.*只提供連結，不轉錄或剪輯.*影片來源：彰化縣議會/);
+  assert.match(r.videoBlurb, /議事錄已刊出的日期.*改提書面質詢、沒有口頭質詢的議員不列入.*第 3、7、8 次定期會.*只取自影片說明欄，可能包含當天改提書面質詢的議員/);
+  assert.doesNotMatch(r.noRecord + r.transcriptBlurb + r.note + r.videoBlurb, /沒有問政|無問政|未質詢|KIN_/);
+});
+
+test('Changhua e-book rows link the page where the councillor starts speaking', () => {
+  const f = { date: '2025-10-28', source_url: 'https://ep.chcc.gov.tw/content/meetings/no20_r06_t1418/mobile/index.html#p=941',
+    data: { session: '第20屆第6次定期會', doc_type: KIN_TRANSCRIPT, title: '縣政質詢紀錄（聯合質詢：周君綾、楊妙月；議事錄電子書第 941 頁起）' } };
+  const html = interpellationRows([f]);
+  assert.match(html, /<time class="date" datetime="2025-10-28">/);
+  assert.match(html, /index\.html#p=941/);
+  assert.match(html, /電子書第 941 頁起/);
 });
