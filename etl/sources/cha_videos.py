@@ -23,8 +23,8 @@ from collections import Counter
 
 from etl.db import upsert_fact
 from etl.fetch import UA, get, now_utc
-from etl.sources.cha_book import CACHE, NAME_VARIANTS, OFFICE, TERM
-from etl.sources.nwt_book import resolve, roster_index, targets
+from etl.sources.cha_book import CACHE, NAME_VARIANTS, OFFICE, TERM, cha_roster
+from etl.sources.nwt_book import resolve, targets
 
 CHANNEL = "https://www.youtube.com/channel/UCNWh1ZPg_dkTiDSitjVLrrQ/videos"
 MIN_INTERVAL = 1.2
@@ -130,8 +130,8 @@ def book_days(conn):
 
 def build(conn, items, descs, log=print, book=None):
     ts = targets(conn, OFFICE)
-    roster = roster_index(conn, OFFICE)
-    pids = {t["person_id"] for t in ts if resolve(t["name"], roster)[0] == t["person_id"]}
+    roster = cha_roster(conn)
+    pids = {t["person_id"] for t in ts if resolve(t["name"].translate(NAME_VARIANTS), roster)[0] == t["person_id"]}
     covered, skipped = book_days(conn) if book is None else book
     vs = videos(items, descs, covered, skipped)
     return ts, vs, assign(vs, roster, pids, log)

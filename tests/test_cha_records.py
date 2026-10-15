@@ -167,6 +167,12 @@ class AttributionTest(unittest.TestCase):
         self.assertEqual([d["page"] for _, d, _, _ in by_pid["p8"]], [2])
         self.assertEqual(by_pid["p8"][0][1]["councillors"], ["陳玉姬"])
 
+    def test_roster_person_named_with_variant_glyph_matches_the_official_spelling(self):
+        # 人工確認後 person 名是中選會寫法「陳玉姫」，議事錄寫官網寫法「陳玉姬」
+        pages = PAGES[:1] + [day("114 年 11 月 3 日", "質詢議員有陳玉姬議員個人質詢。", TURN.format("陳議員玉姬") * 3)]
+        (_, _, by_pid), _ = build(pages, PEOPLE + [("p8", "陳玉姫", True)])
+        self.assertEqual([d["page"] for _, d, _, _ in by_pid["p8"]], [2])
+
 
 DESC = ("彰化縣議會第20屆第8次定期會 \n日期：115年10月06日 \n議程：\n    縣政質詢\n    莊陞漢議員\n    許雅琳議員\n    陳一惇議員\n\n"
         "本直播影音非經當事人同意不得錄製剪輯播放，如有上述情形，其責任由轉錄剪輯播放者自行負責。")

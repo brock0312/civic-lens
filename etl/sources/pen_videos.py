@@ -11,7 +11,7 @@
 會期取各「第20屆第N次定期會」播放清單的成員，不在任何定期會清單的影片會期留空（印 log）。
 標題列兩位議員時掛給兩人，標示同場質詢議員（data.joint），本人時段未標示；只放 YouTube 連結，不下載。
 姓名以 etl.match 的漢字正規化整名對全部澎湖縣議員任職 fact（不做子字串或模糊比對），同名或對不到的不收（印 log）；
-只寫給有 2026 candidacy 的人，且只收任職起日以後的影片。莊光大（遞補）沒有任職 fact，標題列到他時他那份不收。
+只寫給有 2026 candidacy 的人，且只收任職起日以後的影片。遞補者（莊光大）任職 fact 沒有起日，從任期起日算。
 快取：data/cache/pen/（yt_streams.tsv、yt_playlists.tsv、playlist_<id>.tsv、desc/<id>.txt）。run() 每次重抓清單（yt-dlp 約 1 分鐘），
 說明欄只抓還沒快取的（審查委員會場，watch 頁 shortDescription，間隔 1.2 秒）。
 自我檢查：python3 -m etl.sources.pen_videos [姓名…]（只讀快取與 data/civic.sql，不連網、不寫 DB）；加 --fetch 先更新快取

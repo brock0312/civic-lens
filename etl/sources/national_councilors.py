@@ -59,14 +59,17 @@ def _seat_key(iso, n, name):
     return iso, n, han(name.replace("@FA3E@", "慨")).translate(_VAR)
 
 
-def assign_districts(roster, won):
-    """名錄沒有選區（澎湖）：縣內 2022 當選人中同名者唯一才補上選區；其餘（遞補等）回傳到審閱清單、不寫任職。純函式。"""
+def assign_districts(roster, won, identity):
+    """名錄沒有選區（澎湖）：縣內 2022 當選人中同名者唯一才補上選區；不是 2022 當選人（遞補等）時，
+    人工確認表 identity 有唯一一列 (iso, 名錄姓名) 才用它的選區；其餘回傳到審閱清單、不寫任職。純函式。"""
     out, review = [], []
     for r in roster:
         if r["district_n"] is not None or not r["current"]:
             out.append(r)
             continue
         hits = [c["district_n"] for c in won if _seat_key(c["iso"], 0, c["name"]) == _seat_key(r["iso"], 0, r["name"])]
+        if not hits:
+            hits = [n for (iso, name, n) in identity if (iso, name) == (r["iso"], r["name"])]
         if len(hits) == 1:
             out.append({**r, "district_n": hits[0]})
         else:
@@ -163,8 +166,9 @@ def run(conn):
     cands = [{"person_id": r["person_id"], "name": r["name"], "district_id": json.loads(r["data"])["district_id"]}
              for r in conn.execute("SELECT f.person_id, p.name, f.data FROM fact f JOIN person p USING (person_id) "
                                    "WHERE f.kind = 'candidacy'")]
-    roster, unplaced = assign_districts(roster, won)
-    rows, review = plan(roster + cec_roster(won), won, cands, load_identity())
+    identity = load_identity()
+    roster, unplaced = assign_districts(roster, won, identity)
+    rows, review = plan(roster + cec_roster(won), won, cands, identity)
     review = review + unplaced
     names = {r["person_id"]: r["name"] for r in cands}
     keys = set()

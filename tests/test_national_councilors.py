@@ -113,10 +113,24 @@ class NationalCouncilorsTest(unittest.TestCase):
         w = [won("pen", 2, "許育愷", "無"), won("pen", 1, "歐中@FA3E@", "中國國民黨"),
              won("pen", 1, "同名", "無"), won("pen", 3, "同名", "無")]
         out, review = nc.assign_districts([ros("pen", None, "許育愷"), ros("pen", None, "歐中慨"),
-                                           ros("pen", None, "莊光大"), ros("pen", None, "同名"), ros("nwt", 3, "王大明")], w)
+                                           ros("pen", None, "莊光大"), ros("pen", None, "同名"), ros("nwt", 3, "王大明")], w, {})
         self.assertEqual([(r["name"], r["district_n"]) for r in out], [("許育愷", 2), ("歐中慨", 1), ("王大明", 3)])
         self.assertEqual([(x["row"]["name"], x["reason"], x["person_ids"]) for x in review],
                          [("莊光大", "no_2022_district", []), ("同名", "ambiguous_2022_district", [])])
+
+    def test_penghu_replacement_district_comes_from_unique_identity_row(self):
+        w = [won("pen", 1, "張再興", "無")]
+        identity = identity_from("pen,莊光大,1,p9,x,2026-10-15,遞補\npen,兩列,1,pa,x,2026-10-15,\npen,兩列,2,pb,x,2026-10-15,\n"
+                                 "kin,他縣,4,pc,x,2026-10-15,\n")
+        out, review = nc.assign_districts([ros("pen", None, "莊光大"), ros("pen", None, "兩列"), ros("pen", None, "他縣")],
+                                          w, identity)
+        self.assertEqual([(r["name"], r["district_n"]) for r in out], [("莊光大", 1)])
+        self.assertEqual([(x["row"]["name"], x["reason"]) for x in review],
+                         [("兩列", "ambiguous_2022_district"), ("他縣", "no_2022_district")])
+        rows, review = plan(out, w, [cand("p9", "莊光大", "pen-council-01")], identity)
+        self.assertEqual((rows[0]["person_id"], rows[0]["date"], rows[0]["data"]["district_id"]), ("p9", None, "pen-council-01"))
+        self.assertIn("人工確認", rows[0]["verified_by"])
+        self.assertNotIn("inauguration_source_url", rows[0]["data"])  # 遞補：不寫任職起日
 
     def test_chiayi_city_offices_come_from_2022_winners_without_term_start(self):
         w = {**won("cyi", 2, "王大明", "民主進步黨"), "source_url": "https://cec/x.json"}

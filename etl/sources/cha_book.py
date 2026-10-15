@@ -316,6 +316,14 @@ def collect(books, texts, roster_names, names=None, log=print):
 NAME_VARIANTS = str.maketrans({"姫": "姬"})
 
 
+def cha_roster(conn):
+    """彰化議員名錄索引，鍵也套 NAME_VARIANTS：人工確認後 person 名可能是中選會寫法（陳玉姫），文件寫官網寫法（陳玉姬）。"""
+    idx = {}
+    for k, ids in roster_index(conn, OFFICE).items():
+        idx.setdefault(k.translate(NAME_VARIANTS), []).extend(ids)
+    return idx
+
+
 def video_lists():
     """影片說明欄快取 → {日期: {姓名}}（cha_videos 的快取；不連網）。"""
     from etl.sources import cha_videos
@@ -369,11 +377,11 @@ def roster_names(conn):
 
 def build(conn, books, texts, log=print, names=None, videos=None):
     ts = targets(conn, OFFICE)
-    roster = roster_index(conn, OFFICE)
+    roster = cha_roster(conn)
     names = load_names() if names is None else names
     pids = set()
     for t in ts:
-        pid, why = resolve(t["name"], roster)
+        pid, why = resolve(t["name"].translate(NAME_VARIANTS), roster)
         if pid != t["person_id"]:
             log(f"cha_book：對象 {t['name']}（{t['person_id']}）{why or '名錄對到別人'}，不收")
             continue
