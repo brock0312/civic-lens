@@ -77,7 +77,7 @@ git push origin main
 | 3 | **選舉時程維運** | **10/16 審定後**：全國移除不合格候選人（`national_candidates`／`tpe_candidates` 改讀審定名單）；11/12、11/17 補號次；11/25 解析 2026 選舉公報（全國新人的政見、學經歷與生日，並用生日複核身分串接） | [V1](validation/V1-candidates-2026.md) |
 | 4 | ~~L3-A 小尾巴~~（10/10 完成） | 跳轉連結對只連原檔者改寫「2022 選舉公報原檔」；嘉義市任職行重複出處已修（`officeExtraRefs` 不再重印與任職同網址的出處）；`etl/bulletin_grid.py` 新增 `inked_gap` 關卡：同行字詞間的空隙有墨跡（向量圖形字或無文字對應的字形）就丟該欄，全國新增丟 14 欄、全數人工確認漏字，上線影響 2 人（黃馨慧政見、周君綾學經歷改連原檔）。盲點：行首、行尾與直書格的漏字仍抓不到 | — |
 | 5 | **確定有罪判決** | 11/25 公報後補生日核對；建 `kind=conviction` 的 ETL 與人工核可表；每筆由 Claude 初審、verifier 複核；上線前交 security-executor 法遵審查 | [V7](validation/V7-criminal-records.md) |
-| 6 | **法遵** | 黨徽使用、判決顯示上線前的審查（security-executor） | PLAN §6 第 4 點、[公開前審查](validation/pre-publication-review.md) |
+| 6 | **法遵** | 黨徽審查 10/16 完成（低風險；補 8 個內政部黨徽、候選人欄改「推薦政黨」、頁尾聲明更新，見 [party-emblems](validation/party-emblems.md) §3.4）；剩判決顯示上線前審查（security-executor）。小尾巴：2022 任職的「台灣團結聯盟」「綠黨」名稱與內政部不同只顯示文字；選區名單與人物副標的「無」沒有標籤；CI 沒跑 `node --test` | PLAN §6 第 4 點、[公開前審查](validation/pre-publication-review.md) |
 | 7 | 小事 | 14-05 dump 中有 3 筆沒參選者的摘要（不會匯出，可留）；新北 3 位原住民議員姓名在議會名單與本站格式不同（已能對上）；花蓮第 7 選區 2026 年確定為 1 席（公告） | — |
 
 已取消：報導者觀測站、桃園議會影片（第 10 條）；新北與高雄不做 AI 摘要（使用者決定）。
