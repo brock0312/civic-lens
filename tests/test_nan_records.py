@@ -194,6 +194,18 @@ class FactsTest(unittest.TestCase):
         self.assertEqual(qs, {})
         self.assertTrue(any("李州忠：名錄沒有此人" in x for x in logs))
 
+    def test_name_fix_applies_only_to_its_book_page_and_printed_name(self):
+        book = {"id": "202512051057560", "title": "第20屆第5次定期會議事錄", "kind": "定期會"}
+        rows = [row(151, 6, "環保", "李州忠", "焚化廠"), row(151, 7, "教育", "李州忠", "校長"), row(152, 0, "工務", "李州忠", "道路")]
+        logs = []
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = new_conn(tmp, [("p6", "李洲忠", True)])
+            _, qs, held, _ = nan_book.build(conn, [book], {book["id"]: rows}, {"202512051057560:151:7": "第三人"}, logs.append)
+        [(key, data, _, _)] = qs["p6"]
+        self.assertEqual((key, data["councillors"]), ("ntccq:202512051057560:151:6:p6", ["李洲忠"]))
+        self.assertEqual([h[0] for h in held], ["202512051057560:151:7"])  # withheld 照舊不收
+        self.assertTrue(any("李州忠：名錄沒有此人" in x and "第 152 頁" in x for x in logs))  # 別頁不更正
+
     def test_blank_name_continues_previous_councillor_of_same_table_only(self):
         qs, _, _, logs = self.build([row(129, 0, "社政", "陳宜君", "a"), row(129, 1, "工務", "", "b"),
                                      row(133, 0, "工務", "", "c", meeting="第3會次")])

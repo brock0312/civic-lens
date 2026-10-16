@@ -124,8 +124,30 @@ class TestYunBuild(unittest.TestCase):
             yun_videos.write_videos(conn, yun_videos.build(conn, {"江文登": [1]}, plays, lambda _: None)[1], "t")
             self.assertEqual(yun_videos.write_videos(conn, {}, "t"), (0, 1))
 
+    def test_name_fix_attaches_misprinted_speaker_only_on_listed_videos(self):
+        fix = {(8, "江文燈"): "江文登"}
+        plays = {8: p("第5次定期會-教育委員會", "2025-05-16", 140000, [("江文燈", "00:03:41"), ("黃凱", "00:05:49")]),
+                 9: p("第5次定期會-民政委員會", "2025-05-16", 150000, [("江文燈", "00:24:05")])}
+        with mock.patch.object(yun_videos, "NAME_FIX", fix):
+            by_pid, logs, facts = self.build({"江文登": [], "黃凱": [8]}, plays)  # 本人查詢撈不到誤植的影片
+        self.assertEqual([(v["id"], v["starts"]) for v in by_pid["p1"]], [(8, ["00:03:41"])])
+        self.assertEqual(set(facts), {"yunvideo:8:p1", "yunvideo:8:p3"})
+        self.assertEqual([x for x in logs if "江文燈" in x], ["yun_videos：發言議員「江文燈」名錄沒有此人，不收"])  # id=9 沒列，照舊不收
+
+    def test_load_reads_play_pages_of_name_fix_videos(self):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(yun_videos, "CACHE", Path(tmp)), \
+                mock.patch.object(yun_videos, "NAME_FIX", {(2, "江文燈"): "江文登"}):
+            (Path(tmp) / "search").mkdir()
+            (Path(tmp) / "play").mkdir()
+            (Path(tmp) / "search" / "江文登.html").write_text(search([]), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                yun_videos.load(["江文登"])
+            (Path(tmp) / "play" / "2.html").write_text(play("縣政總質詢", "2025-06-12T09:02:01+08:00", []), encoding="utf-8")
+            self.assertEqual(yun_videos.load(["江文登"])[1][2]["date"], "2025-06-12")
+
     def test_load_refuses_to_build_without_every_cached_search(self):
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(yun_videos, "CACHE", Path(tmp)):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(yun_videos, "CACHE", Path(tmp)), \
+                mock.patch.object(yun_videos, "NAME_FIX", {}):
             (Path(tmp) / "search").mkdir()
             (Path(tmp) / "play").mkdir()
             (Path(tmp) / "search" / "江文登.html").write_text(search([1]), encoding="utf-8")

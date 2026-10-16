@@ -4,7 +4,7 @@ V16 已定案第 2、8 點：ws.yunlin.gov.tw（議事錄）被 Cloudflare 擋�
 發言議員＋起點時間）。每位對象以 video_G.php?search=<姓名>&group=5（發言議員）查一次，再讀每支影片的播放頁 temp_3_G.php?id=<n>，
 播放頁「發言議員」清單列出每段發言的議員姓名與起點時間。
 歸屬一律以播放頁發言議員清單上的姓名，用 etl.match 的漢字正規化整名對雲林縣議員名錄，必須唯一且等於查詢對象；
-查詢撈到、但播放頁清單沒有點名本人的影片不收（印 log）。同一支影片本人有多段發言時合併成一筆，列出全部起點時間。
+查詢撈到、但播放頁清單沒有點名本人的影片不收（印 log）。官方誤植的姓名只照 NAME_FIX（人工審閱，影片 id＋寫法）更正。同一支影片本人有多段發言時合併成一筆，列出全部起點時間。
 播放頁不讀網址的起點參數，所以連結到播放頁，起點時間以文字顯示。日期取播放頁的錄影時間；同日多支依錄影時刻（data.seq）新到舊。
 查詢很慢（每次 40–150 秒），所以抓取與建檔分開：
   python3 -m etl.sources.yun_videos --fetch   只抓快取裡還沒有的查詢與播放頁（可續傳）；要更新查詢結果先刪 data/cache/yun/search/
@@ -37,6 +37,11 @@ TOTAL = re.compile(r"總計\((\d+)\)")
 TITLE = re.compile(r'id="video_title">\s*<font[^>]*>(.*?)</font>\s*<font[^>]*>\s*(\d{4}-\d\d-\d\d)[T ](\d\d):(\d\d):(\d\d)', re.S)
 SPEAKER = re.compile(r"class='know_title'[^>]*title='([^']*)'>[^<]*</p><p class='time'[^>]*>\s*(\d\d:\d\d:\d\d)\s*</p>")
 SESSION = re.compile(r"第20屆第([\d.]+)次(定期會|臨時會)")
+# 播放頁發言議員姓名誤植的更正（人工審閱，只對列出的影片 id＋印出的寫法）：
+# 第 5 次定期會（2025-05-14～06-12）的 4 支影片印「陳以辰」，名錄只有陳乙辰；陳乙辰本人的查詢從 2025-08-19 起才有、
+# 第 5 次定期會一支都沒有，兩種寫法的日期不重疊；6587 教育委員會由她第一個發言，和她之後的教育委員會（13454、13625、16133）相同；
+# 中選會 2022 全國縣市議員候選人與 2026 登記名單都沒有陳以辰。這幾支本人查詢撈不到，所以由更正表補進對象的影片。
+NAME_FIX = {(6564, "陳以辰"): "陳乙辰", (6587, "陳以辰"): "陳乙辰", (6588, "陳以辰"): "陳乙辰", (6825, "陳以辰"): "陳乙辰"}
 
 
 def search_url(name):
@@ -122,17 +127,18 @@ def crawl(names):
 
 def load(names):
     """→ ({姓名: [id]}, {id: 播放頁解析結果})；任何一位的查詢或任何一支播放頁沒有快取就 raise。"""
-    searches, plays = {}, {}
+    searches = {}
     for name in names:
         path = CACHE / "search" / f"{name}.html"
         if not path.exists():
             raise ValueError(f"yun_videos：沒有 {name} 的查詢快取，先跑 python3 -m etl.sources.yun_videos --fetch")
         searches[name] = parse_search(path.read_text(encoding="utf-8"))
-        for vid in searches[name]:
-            p = CACHE / "play" / f"{vid}.html"
-            if not p.exists():
-                raise ValueError(f"yun_videos：沒有播放頁 id={vid} 的快取，先跑 --fetch")
-            plays.setdefault(vid, parse_play(p.read_text(encoding="utf-8")))
+    plays = {}
+    for vid in [v for ids in searches.values() for v in ids] + [v for v, _ in NAME_FIX]:
+        p = CACHE / "play" / f"{vid}.html"
+        if not p.exists():
+            raise ValueError(f"yun_videos：沒有播放頁 id={vid} 的快取，先跑 --fetch")
+        plays.setdefault(vid, parse_play(p.read_text(encoding="utf-8")))
     return searches, plays
 
 
@@ -144,6 +150,7 @@ def build(conn, searches, plays, log=print):
     """→ (targets, {person_id: [video]})；video 是播放頁解析結果加 id 與本人的起點時間 starts。"""
     ts = targets(conn, OFFICE)
     roster = roster_index(conn, OFFICE)
+    plays = {vid: p and {**p, "speakers": [(NAME_FIX.get((vid, n), n), s) for n, s in p["speakers"]]} for vid, p in plays.items()}
     for name in sorted({n for p in plays.values() if p for n, _ in p["speakers"]}):
         _, why = resolve(name, roster)
         if why:
@@ -155,7 +162,8 @@ def build(conn, searches, plays, log=print):
             log(f"yun_videos：對象 {t['name']}（{t['person_id']}）{why or '名錄對到別人'}，不收")
             continue
         vs = []
-        for vid in searches.get(t["name"], []):
+        fixed = [v for (v, _), real in NAME_FIX.items() if real == t["name"] and v in plays]
+        for vid in dict.fromkeys(searches.get(t["name"], []) + fixed):
             p = plays[vid]
             if not p:
                 log(f"yun_videos：id={vid} 播放頁格式不明，不收")

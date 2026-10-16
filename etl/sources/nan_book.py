@@ -12,7 +12,7 @@ data/nan_withheld.csv 列出的列不收（只寫原因，不寫姓名）。
 
 不收：出缺勤（會議紀錄寫「出席：（如簽到簿）」）、影片（一場一支，標題沒有姓名）、書面質詢（沒有）。
 只寫給有南投縣議員任職 fact 且有 2026 candidacy 的人；姓名以 etl.match 的漢字正規化對全部南投縣議員名錄，
-名錄同名或對不到的不收（印 log）。
+名錄同名或對不到的不收（印 log）；官方誤植的姓名只照 NAME_FIX（人工審閱，檔名:頁＋寫法）更正。
 自我檢查：python3 -m etl.sources.nan_book [姓名…]（只讀快取與 data/civic.sql，不連網、不寫 DB）；加 --fetch 先更新快取
 """
 import csv
@@ -293,6 +293,12 @@ def load_withheld(path=WITHHELD):
         return {r["item"]: r["reason"] for r in csv.DictReader(f)}
 
 
+# 官方姓名誤植的更正（人工審閱，只對列出的「檔名:PDF 頁」＋印出的寫法）：
+# 第 5 次定期會第 12 會次（PDF 第 151 頁）表格印「李州忠」，名錄只有李洲忠；同會次會議紀錄（第 149 頁，同樣誤植）與
+# 第 13、14 會次（第 153、156 頁，寫李洲忠）列的是同一組 8 位聯合質詢議員；中選會 2022、2026 名單都沒有李州忠。
+NAME_FIX = {("202512051057560:151", "李州忠"): "李洲忠"}
+
+
 def item_id(file_id, r):
     return f"{file_id}:{r['page']}:{r['n']}"
 
@@ -357,6 +363,7 @@ def question_facts(books, texts, roster, pids, withheld, log=print):
                 continue
             ids, names = [], []
             for name in r["names"]:
+                name = NAME_FIX.get((f"{b['id']}:{r['page']}", name), name)
                 got, why = resolve_token(name, roster)
                 if got:
                     ids += got
