@@ -35,9 +35,10 @@ export function pendingRecordNotes(offices, counties) {
   return [...new Set(isos)].map((iso) => noRecordNote(counties.get(iso)));
 }
 
-// 政黨字串 → 黨徽相對路徑；只有「無」「無黨籍」用本站的「無」圖樣，查不到就回傳 null（只顯示文字）
+// 政黨字串 → 黨徽相對路徑；只有「無」「無黨籍」「無黨籍及未經政黨推薦」用本站的「無」圖樣，查不到就回傳 null（只顯示文字）
+export const NO_PARTY = new Set(['無', '無黨籍', '無黨籍及未經政黨推薦']);
 export function emblemFor(party, parties) {
-  if (party === '無' || party === '無黨籍') return 'assets/none.svg';
+  if (NO_PARTY.has(party)) return 'assets/none.svg';
   const path = parties?.[party]?.emblem;
   return /^parties\/[\w.-]+$/.test(path || '') ? path : null;
 }
@@ -1033,7 +1034,7 @@ async function renderPerson(main, ctx, id) {
   const cand = candidacy.map((f) => `<dl class="facts">
       <dt>職位</dt><dd>${esc(label(f.data.office))}${notes.ref(f.source_url, f.fetched_at, '候選人登記名冊', f.data.publisher)}</dd>
       <dt>選區</dt><dd>${districtLink(f.data.district_id)}</dd>
-      <dt>政黨</dt><dd>${party(f.data.party, ctx.parties)}</dd>
+      <dt>推薦政黨</dt><dd>${party(f.data.party, ctx.parties)}</dd>
       <dt>登記日期</dt><dd class="num">${esc(f.date || '')}</dd>
     </dl>`).join('');
 

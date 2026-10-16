@@ -138,6 +138,78 @@
    "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2016/ff808081542c937601542d4a4adf0041.jpg",
    "resized": true,
    "fetched_at": "2026-09-28"
+  },
+  "親民黨": {
+   "registry_name": "親民黨",
+   "registry_no": 90,
+   "emblem": "parties/pfp.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=149",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2021/ff80808166f6b48c0166f6d88e25000b.jpg",
+   "resized": true,
+   "fetched_at": "2026-10-16"
+  },
+  "司法改革黨": {
+   "registry_name": "司法改革黨",
+   "registry_no": 382,
+   "emblem": "parties/judicial-reform.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=526",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/444/relpic/13073/526/27436f67-7ace-4903-9fdd-e1ccfe20dbca.jpg",
+   "resized": true,
+   "fetched_at": "2026-10-16"
+  },
+  "愛民黨": {
+   "registry_name": "愛民黨",
+   "registry_no": 391,
+   "emblem": "parties/aimin.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=554",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/444/relpic/13073/554/9e74dfca-3a59-40e1-900d-e1adb3c51aa1.jpg",
+   "resized": true,
+   "fetched_at": "2026-10-16"
+  },
+  "更生黨": {
+   "registry_name": "更生黨",
+   "registry_no": 376,
+   "emblem": "parties/gengsheng.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=435",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2022/8a428aff7e6c30d2017e9a0f6a2500e0.jpg",
+   "resized": true,
+   "fetched_at": "2026-10-16"
+  },
+  "正神名黨": {
+   "registry_name": "正神名黨",
+   "registry_no": 375,
+   "emblem": "parties/zhengshen.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=434",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2021/8a428aff774c22100179ea47ee3e21b0.jpg",
+   "resized": true,
+   "fetched_at": "2026-10-16"
+  },
+  "台灣進步黨": {
+   "registry_name": "台灣進步黨",
+   "registry_no": 219,
+   "emblem": "parties/taiwan-progressive.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=278",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2021/ff8080816e68e248016e7dc102cc0079.jpg",
+   "resized": true,
+   "fetched_at": "2026-10-16"
+  },
+  "司法正義黨": {
+   "registry_name": "司法正義黨",
+   "registry_no": 240,
+   "emblem": "parties/justice-party.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=299",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2021/ff8080816ecfec30016f5a9ed2fc034e.jpg",
+   "resized": true,
+   "fetched_at": "2026-10-16"
+  },
+  "無黨團結聯盟": {
+   "registry_name": "無黨團結聯盟",
+   "registry_no": 106,
+   "emblem": "parties/npsu.jpg",
+   "source_url": "https://party.moi.gov.tw/PartyMainContent.aspx?n=16100&sms=13073&s=165",
+   "image_url": "https://ws.moi.gov.tw/001/Upload/OldFile_PARTY/2016/ff808081542c937601542d3c0e6c0031.jpg",
+   "resized": true,
+   "fetched_at": "2026-10-16"
   }
  }
 }

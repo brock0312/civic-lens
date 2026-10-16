@@ -1,8 +1,8 @@
 // 執行：node --test site/app.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
-import { fmtDate, emblemFor, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
@@ -132,9 +132,10 @@ const parties = {
   壞路徑黨: { emblem: 'javascript:alert(1)' },
 };
 
-test('emblemFor uses the none mark only for exactly 無 or 無黨籍', () => {
+test('emblemFor uses the none mark only for exactly 無, 無黨籍 or 無黨籍及未經政黨推薦', () => {
   assert.equal(emblemFor('無', parties), 'assets/none.svg');
   assert.equal(emblemFor('無黨籍', parties), 'assets/none.svg');
+  assert.equal(emblemFor('無黨籍及未經政黨推薦', parties), 'assets/none.svg');
   assert.equal(emblemFor('無黨團結聯盟', parties), 'parties/npsu.svg');
   assert.equal(emblemFor('無黨團結聯盟', {}), null);
 });
@@ -144,6 +145,27 @@ test('emblemFor returns the index path, or null when missing, unsafe or index ab
   assert.equal(emblemFor('台灣麻將最大黨', parties), null);
   assert.equal(emblemFor('壞路徑黨', parties), null);
   assert.equal(emblemFor('中國國民黨', undefined), null);
+});
+
+// 內政部名冊頁寫「未上傳黨徽」的政黨（docs/validation/party-emblems.md §3.2）：只顯示文字
+const NO_MOI_EMBLEM = new Set(['台灣工黨', '天宙和平統一家庭黨', '台灣麻將最大黨']);
+const peopleDir = new URL('./data/people/', import.meta.url);
+test('every 2026 candidacy party has an MOI emblem, is a known no-emblem party, or is a no-party value', { skip: !existsSync(peopleDir) && 'site/data 未產生' }, () => {
+  const index = JSON.parse(readFileSync(new URL('./parties/index.json', import.meta.url), 'utf8')).parties;
+  const seen = new Set();
+  for (const f of readdirSync(peopleDir)) {
+    for (const c of JSON.parse(readFileSync(new URL(f, peopleDir), 'utf8')).facts?.candidacy || []) seen.add(c.data?.party);
+  }
+  assert.ok(seen.size > 1, 'no candidacy parties found');
+  const missing = [...seen].filter((p) => !(p in index) && !NO_MOI_EMBLEM.has(p) && !NO_PARTY.has(p));
+  assert.deepEqual(missing, []);
+  for (const p of seen) if (p in index) assert.ok(existsSync(new URL(index[p].emblem, new URL('./', import.meta.url))), `${p} emblem file missing`);
+});
+
+test('candidacy party is labelled 推薦政黨 (CEC 推薦之政黨), not 政黨', () => {
+  const src = readFileSync(new URL('./app.js', import.meta.url), 'utf8');
+  assert.ok(src.includes('<dt>推薦政黨</dt>'));
+  assert.ok(!src.includes('<dt>政黨</dt>'));
 });
 
 test('splitLatest shows the newest 20 interpellations and keeps the rest hidden', () => {
