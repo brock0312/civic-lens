@@ -455,6 +455,79 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(
 const safeUrl = (u) => (/^https?:\/\//.test(u || '') ? u : '');
 const ext = (u, text) => `<a href="${esc(u)}" target="_blank" rel="noopener">${text}</a>`;
 
+// ---------- 支持作者：只在全站共用的頁首（按鈕開啟 dialog），不放在任何候選人、選區或人物頁內容裡 ----------
+
+export const KOFI_URL = 'https://ko-fi.com/brock312';
+// 地址的唯一來源；檢查碼已驗證（EIP-55、bech32、base58 32 bytes）。QR 圖 assets/qr/<key>.svg 只編碼地址字串本身。
+// 改地址時必須同時用 segno（只裝在暫存區，不進 repo）重產 assets/qr/*.svg，並在部署前把 SVG 轉 PNG、
+// 用 macOS CoreImage CIDetector（swift）解碼，確認讀回的字串與這裡完全相同
+export const CRYPTO = [
+  { key: 'evm', label: 'Ethereum 與 EVM 相容鏈', address: '0x940B94A5e53e192484E65DAC7BbFa68a0D3f7F61',
+    note: '這是 EVM 地址，只能在 Ethereum 或其他 EVM 相容網路上轉帳。' },
+  { key: 'btc', label: 'Bitcoin', address: 'bc1q65k3paynwen3emwcfmk7tlentfztzh0esf98kj' },
+  { key: 'sol', label: 'Solana', address: 'XbL4gt8owLqgtewycituYP1KALQSCdAbnxGsadRfXQj' },
+];
+export const CRYPTO_CAUTION = '鏈上交易無法退回，轉帳前請核對地址前後各 6 碼';
+const stepBtn = (step, text) => `<button type="button" class="more" data-step="${step}">${text}</button>`;
+
+// 三步：''＝說明與兩種方式、'crypto'＝選幣別、幣別 key＝那一個地址。選了幣別之前 DOM 裡沒有任何地址
+export function supportStep(step) {
+  if (step === 'crypto') {
+    return { title: '選擇加密貨幣類型',
+      html: `<ul class="support-list">${CRYPTO.map((x) => `<li>${stepBtn(x.key, esc(x.label))}</li>`).join('')}</ul>
+      <p class="support-actions">${stepBtn('', '返回')}</p>` };
+  }
+  const c = CRYPTO.find((x) => x.key === step);
+  if (!c) {
+    return { title: '小額支持作者',
+      html: `<p>本站由作者個人維護。</p>
+      <ul class="support-list"><li><a class="more" href="${KOFI_URL}" target="_blank" rel="noopener noreferrer nofollow">請作者喝杯咖啡 ☕</a></li>
+      <li>${stepBtn('crypto', '用加密貨幣支持作者')}</li></ul>
+      <p class="small muted">款項歸作者個人所有，不開立收據，也不能抵稅。本站不接受候選人、政黨及其關係人贊助。</p>` };
+  }
+  const a = c.address;
+  return { title: c.label,
+    html: `<img class="qr" src="assets/qr/${c.key}.svg" width="200" height="200" alt="${esc(c.label)}地址的 QR code">
+    <p class="addr"><code><strong>${esc(a.slice(0, 6))}</strong>${esc(a.slice(6, -6))}<strong>${esc(a.slice(-6))}</strong></code></p>
+    ${c.note ? `<p class="small">${esc(c.note)}</p>` : ''}
+    <p class="small"><strong>${CRYPTO_CAUTION}</strong></p>
+    <p class="support-actions"><button type="button" class="more" data-coin="${c.key}">複製地址</button>
+    ${stepBtn('crypto', '重新選擇')} <span class="small" role="status"></span></p>` };
+}
+
+function setupSupport() {
+  const dlg = document.getElementById('support');
+  const open = document.getElementById('support-open');
+  if (!dlg || !open) return;
+  const heading = document.getElementById('support-h');
+  const body = document.getElementById('support-body');
+  const show = (step) => {
+    const { title, html } = supportStep(step);
+    heading.textContent = title;
+    body.innerHTML = html;
+  };
+  open.addEventListener('click', () => { show(''); dlg.showModal(); });
+  dlg.addEventListener('close', () => { body.innerHTML = ''; }); // 關閉後地址不留在頁面上
+  body.addEventListener('click', async (e) => {
+    const pick = e.target.closest('[data-step]');
+    if (pick) {
+      show(pick.dataset.step);
+      body.querySelector('a, button').focus();
+      return;
+    }
+    const coin = CRYPTO.find((x) => x.key === e.target.closest('[data-coin]')?.dataset.coin);
+    if (!coin) return;
+    const out = body.querySelector('[role="status"]');
+    try {
+      await navigator.clipboard.writeText(coin.address);
+      out.textContent = '已複製';
+    } catch {
+      getSelection().selectAllChildren(body.querySelector('.addr code'));
+      out.textContent = '無法自動複製，地址已選取，請手動複製';
+    }
+  });
+}
+
 // 發布機關：資料本身有標示就用它（例：臺北市選委會的登記冊放在中選會的共用平台上），沒有才依網域推論
 export function publisherOf(url, publisher) {
   if (publisher) return publisher;
@@ -1158,4 +1231,5 @@ async function route(moveFocus) {
 if (typeof document !== 'undefined') {
   window.addEventListener('hashchange', () => route(true));
   route(false);
+  setupSupport();
 }

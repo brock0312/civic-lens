@@ -13,7 +13,13 @@
 <header class="site-header">
   <nav aria-label="網站">
     <a class="brand" href="#/">civic-lens</a><span class="brand-sub">2026 地方選舉選區查詢</span>
+    <button type="button" id="support-open" class="support-open" aria-haspopup="dialog">小額支持作者</button>
   </nav>
+  <dialog id="support" class="support" aria-labelledby="support-h">
+    <form method="dialog"><button class="more">關閉</button></form>
+    <h2 id="support-h">小額支持作者</h2>
+    <div id="support-body"></div>
+  </dialog>
 </header>
 <main id="main" tabindex="-1">
   <noscript>

@@ -7,7 +7,7 @@ import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, K
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
-import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, NAN_SUGGESTION } from './app.js';
+import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
 import { DEEP_COUNTIES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -1231,4 +1231,51 @@ test('Penghu committee-session rows show the scheduled slot from the video descr
   assert.match(html, /第一審查委員會縣政總質詢（上午）/);
   assert.match(html, /排定時段 09:20–09:40（說明欄排定時間，實際起點可能不同）/);
   assert.doesNotMatch(html, /未細分到個人|整場影片/);
+});
+
+// 支持作者：地址只放在 app.js 的 CRYPTO，選了幣別才出現
+const ADDRESSES = {
+  evm: '0x940B94A5e53e192484E65DAC7BbFa68a0D3f7F61',
+  btc: 'bc1q65k3paynwen3emwcfmk7tlentfztzh0esf98kj',
+  sol: 'XbL4gt8owLqgtewycituYP1KALQSCdAbnxGsadRfXQj',
+};
+
+test('crypto addresses match the verified addresses exactly and live only in app.js', () => {
+  assert.deepEqual(Object.fromEntries(CRYPTO.map((c) => [c.key, c.address])), ADDRESSES);
+  const src = readFileSync(new URL('./app.js', import.meta.url), 'utf8');
+  for (const a of Object.values(ADDRESSES)) assert.equal(src.split(a).length - 1, 1, `${a} defined once`);
+});
+
+test('support dialog shows no address until a coin is chosen, then only that one', () => {
+  const page = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+  for (const a of Object.values(ADDRESSES)) {
+    assert.ok(!page.includes(a.slice(6, -6)), 'index.html has no address');
+    for (const step of ['', 'crypto']) assert.ok(!supportStep(step).html.includes(a.slice(6, -6)), `step "${step}" has no address`);
+  }
+  assert.equal(supportStep('crypto').title, '選擇加密貨幣類型');
+  for (const [key, a] of Object.entries(ADDRESSES)) {
+    const { html } = supportStep(key);
+    assert.ok(html.includes(`data-coin="${key}"`) && html.includes(`assets/qr/${key}.svg`) && html.includes(CRYPTO_CAUTION));
+    assert.ok(html.includes(`<strong>${a.slice(0, 6)}</strong>${a.slice(6, -6)}<strong>${a.slice(-6)}</strong>`));
+    for (const other of Object.values(ADDRESSES)) if (other !== a) assert.ok(!html.includes(other.slice(6, -6)));
+  }
+  assert.ok(supportStep('evm').html.includes('EVM 相容網路'));
+});
+
+test('support is a header button whose first step offers Ko-fi and crypto as personal support', () => {
+  const page = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+  const header = page.slice(page.indexOf('<header'), page.indexOf('</header>'));
+  assert.ok(header.includes('id="support-open"') && header.includes('>小額支持作者</button>'));
+  assert.ok(!page.slice(page.indexOf('<footer')).includes('support'), 'nothing in the footer');
+  const { title, html } = supportStep('');
+  assert.equal(title, '小額支持作者');
+  assert.equal(KOFI_URL, 'https://ko-fi.com/brock312');
+  assert.ok(html.includes(`href="${KOFI_URL}" target="_blank" rel="noopener noreferrer nofollow">請作者喝杯咖啡 ☕</a>`));
+  assert.ok(html.includes('data-step="crypto">用加密貨幣支持作者</button>'));
+  assert.ok(html.includes('本站由作者個人維護。') && html.includes('本站不接受候選人、政黨及其關係人贊助。') && html.includes('款項歸作者個人所有，不開立收據，也不能抵稅。'));
+  const ui = [header, ...['', 'crypto', ...Object.keys(ADDRESSES)].map((s) => supportStep(s).html)].join('');
+  assert.ok(!ui.includes('捐款') && !ui.includes('公益'));
+});
+test('a QR code file exists for each coin', () => {
+  for (const { key } of CRYPTO) assert.ok(existsSync(new URL(`./assets/qr/${key}.svg`, import.meta.url)), key);
 });

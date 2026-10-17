@@ -240,6 +240,32 @@ section.inter:first-of-type h3 { margin-top: 0; }
 .site-footer h2 { font-size: 0.875rem; color: var(--ink-2); margin: 20px 0 6px; padding-top: 12px; border-top: 1px solid var(--line); }
 .ext p { max-width: 40em; }
 
+/* 支持作者：頁首右側小按鈕＋原生 dialog；QR 圖本身是白底黑碼，深色模式也能掃 */
+.support-open {
+  margin-left: auto; align-self: center; flex: none;
+  font: inherit; font-size: 0.8125rem; font-weight: 700; line-height: 1.4; color: var(--ink); background: transparent; cursor: pointer;
+  padding: 3px 8px; border: 1px solid var(--ink); border-radius: 0;
+}
+.support-open:hover { background: var(--note); }
+/* 窄螢幕（約 400px 以下）頁首放不下副標與「小額支持作者」，副標先收起，首頁標題已說明用途 */
+@media (max-width: 400px) { .brand-sub { display: none; } }
+.support {
+  width: min(28rem, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 16px 20px 20px;
+  background: var(--bg); color: var(--ink); border: 1px solid var(--ink); font-size: 0.9375rem;
+}
+.support::backdrop { background: rgb(0 0 0 / 0.5); }
+.support form { display: flex; justify-content: flex-end; }
+.support .more { margin-top: 0; }
+.support h2 { margin: 8px 0 16px; }
+.support p { margin: 0 0 12px; }
+.support-list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.support-list .more { display: block; width: 100%; text-align: left; text-decoration: none; }
+.support .qr { display: block; width: 200px; height: 200px; margin: 0 auto 12px; image-rendering: pixelated; }
+.support .addr { margin: 0 0 8px; }
+.support .addr code { font: 0.9375rem/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); word-break: break-all; user-select: all; }
+.support .addr strong { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.support-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 0; }
+
 @media (max-width: 600px) {
   main { padding-top: 28px; }
   h1 { font-size: 1.625rem; }
