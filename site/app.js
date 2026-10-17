@@ -15,10 +15,10 @@ export const countyNote = (county) => {
   const cec = county.councilor_cec_2022;
   return `目前提供 2026 候選人名單與選區，候選人中的現任${county.councilor_roster ? '議員與' : ''}${county.name}長${cec ? '與 2022 年當選議員' : ''}會標示${county.councilor_bulletin ? `，並收錄${cec ? ' 2022 年當選議員' : '現任議員'}的 2022 選舉公報政見與學經歷` : ''}；${NO_RECORD_REASONS[county.iso]?.note ?? `${county.name}議會的問政紀錄仍在建置中。`}`;
 };
-// 首頁縣市清單的標籤：深度縣市「含問政紀錄」；其他縣市有現任議員公報時「含 2022 公報」，再加上不收錄問政紀錄的原因
+// 首頁縣市清單的標籤：深度縣市「含問政紀錄」；其他縣市有現任議員公報時「含 2022 公報」
 export const BULLETIN_TAG = '含 2022 公報';
 export const countyTags = (c) => (DEEP_COUNTIES.has(c.iso) ? ['含問政紀錄']
-  : [c.councilor_bulletin && BULLETIN_TAG, NO_RECORD_REASONS[c.iso]?.tag].filter(Boolean));
+  : [c.councilor_bulletin && BULLETIN_TAG].filter(Boolean));
 // 首頁縣市清單下的說明（counties 已依顯示順序排好）
 export function homeNote(counties) {
   const roster = counties.filter((c) => c.councilor_roster && !DEEP_COUNTIES.has(c.iso)).map((c) => c.name);
@@ -29,7 +29,7 @@ export function homeNote(counties) {
   const pending = counties.filter((c) => !DEEP_COUNTIES.has(c.iso) && !NO_RECORD_REASONS[c.iso]).map((c) => c.name);
   const reasons = counties.some((c) => !DEEP_COUNTIES.has(c.iso) && NO_RECORD_REASONS[c.iso]);
   const tail = [pending.length && `${pending.join('、')}議會的問政紀錄仍在建置中`,
-    reasons && `${pending.length ? '其他' : ''}未收錄問政紀錄的縣市，原因標示於縣市清單`].filter(Boolean).join('；');
+    reasons && `${pending.length ? '其他' : ''}未收錄問政紀錄的縣市，原因說明於各縣市頁面`].filter(Boolean).join('；');
   return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；${bulletin ? `標示「${BULLETIN_TAG}」的縣市另收錄候選人中${cec.length ? '現任（或 2022 年當選）' : '現任'}議員的 2022 選舉公報政見與學經歷；` : ''}其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${tagged.length ? `與${tagged.join('、')}` : ''}會標示${tail ? `，${tail}` : ''}。`;
 }
 // 非深度縣市：說明不收錄的原因（或仍在建置），措辭不能讓人以為此人沒有問政
