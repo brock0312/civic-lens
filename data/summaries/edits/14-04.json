@@ -1,0 +1,1575 @@
+[
+  {
+    "person_id": "pcb793ad399",
+    "name": "何孟樺",
+    "issue_topic": "臺北大眾捷運公司成立遊憩子公司案",
+    "action": "drop_response_sentence",
+    "text": "，萬人以上演唱會移至大巨蛋不影響小巨蛋萬人以下場館之營運",
+    "reason": "原文第6010頁總經理只說「小巨蛋大概就是容納一萬出頭的人，所以超過 1 萬 5,000 人以上，也不是小巨蛋能夠接的案件」，沒有說「萬人以上」移出「不影響營運」，數字與結論均非原話",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pcb793ad399",
+    "name": "何孟樺",
+    "issue_topic": "臺北大眾捷運公司成立遊憩子公司案",
+    "action": "drop_citation",
+    "page": 6004,
+    "reason": "第6004頁「再麻煩局長了。局長，請回座。」是送交通局局長回座的程序語，與捷運子公司議題無關",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pcb793ad399",
+    "name": "何孟樺",
+    "issue_topic": "臺北大巨蛋漏水修繕與缺失單展延爭議",
+    "action": "drop_citation",
+    "page": 163,
+    "reason": "第163頁是文化局局長答覆潮臺北活動，與大巨蛋漏水議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pcb793ad399",
+    "name": "何孟樺",
+    "issue_topic": "機車交通安全改善與事故數據分析",
+    "action": "drop_citation",
+    "page": 474,
+    "reason": "第474頁「目前沒有相關的規劃？」是市政總質詢問基隆河藍色水路疏濬，與機車交通安全議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pcb793ad399",
+    "name": "何孟樺",
+    "issue_topic": "公託監視器雲端備援系統採購與台智光合約疑慮",
+    "action": "drop_issue",
+    "reason": "議題點名民間公司「台智光」，並述及未簽約即預先施作、追徵占用使用費，以及要求政風處調查「是否涉及什麼不法或失職」（原文第7085–7086頁議員另稱「互相利益輸送」「私相授受」），屬非公職第三人（法人）＋違法指控，依第三人規則（10/15 含法人）整題刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pcb793ad399",
+    "name": "何孟樺",
+    "issue_topic": "北士科運動場館規劃與項目變更疑慮",
+    "action": "drop_point_text",
+    "text": "，且政策性說帖預算中未包含國際羽球館",
+    "reason": "原文第442頁議員說的是政策性預算說帖列有「臺北躍動館跟國際羽球館」委託設計監造案，但「實際在預算書裡面」沒有包含國際羽球場；摘要寫成說帖未包含，與原話相反",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pcb793ad399",
+    "name": "何孟樺",
+    "issue_topic": "北士科運動場館規劃與項目變更疑慮",
+    "action": "drop_citation",
+    "page": 439,
+    "reason": "第439頁「昨天就是有一場比賽，你們在比賽前標線都沒有劃上去」是田徑場標線問題，與北士科場館規劃議題無關",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pccc2308c1b",
+    "name": "侯漢廷",
+    "issue_topic": "交通工程施工品質與南北區工期落差檢討",
+    "action": "drop_response_sentence",
+    "text": "認同施工品質應更加精進，並表示",
+    "reason": "「施工品質必須要更加的精進」是議員所說（原文第6046頁），交通局局長沒有就此表示認同（其「非常認同」是針對第6047頁長期以停車場配合拓寬人行道），屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pccc2308c1b",
+    "name": "侯漢廷",
+    "issue_topic": "臺北觀光海外宣傳數位化與成效數據掌握",
+    "action": "drop_citation",
+    "page": 310,
+    "reason": "第310頁議員談熊讚代言與授權金，與海外宣傳數位化議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pccc2308c1b",
+    "name": "侯漢廷",
+    "issue_topic": "台北好購推廣平台效益評估與業務調整",
+    "action": "drop_citation",
+    "page": 7518,
+    "reason": "第7518頁產業發展局局長答覆外國人才獎勵加碼補助，與台北好購推廣平台議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pa0224cb763",
+    "name": "劉耀仁",
+    "issue_topic": "中國師生訪問團參訪與學生權益保障",
+    "action": "drop_citation",
+    "page": 970,
+    "cited_prefix": "〔公報第970頁〕蔣市長萬安：這都要陸委會",
+    "reason": "第970頁市長「這都要陸委會審核通過，中央、民進黨政府也樂見雙城論壇的舉行」是回應雙城論壇，不支持所附的議員要求道歉或校長答覆，引文與敘述錯配",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pa0224cb763",
+    "name": "劉耀仁",
+    "issue_topic": "公共藝術網資料登錄與維護管理",
+    "action": "drop_response_sentence",
+    "text": "或當年度特定意象",
+    "reason": "「列入當年度的特定意象」是文化局局長所說（原文第121頁），科長只說「不是常設型的」（第120頁），以科長名義敘述屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p4b727b88dc",
+    "name": "吳世正",
+    "issue_topic": "市府歲入歲出預算與社宅工程追加預算管控",
+    "action": "drop_citation",
+    "page": 7392,
+    "cited_prefix": "〔公報第7392頁〕胡局長曉嵐：謝謝議員的意見",
+    "reason": "第7392頁財政局局長「謝謝議員的意見……我一定會向市長報告」是回應娛樂稅減免建議，與歲入歲出及社宅追加預算議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p4b727b88dc",
+    "name": "吳世正",
+    "issue_topic": "社會局對財團法人基金會監督與資訊公開",
+    "action": "drop_issue",
+    "reason": "議題點名民間團體「眾望關懷基金會」，並述及其未依財團法人法報送與公開財報、應依第25條處罰鍰（原文第7241–7243頁，議員另稱「帳目不清」「人家已經違法了」），屬非公職第三人（法人）＋違法指控，依第三人規則（10/15 含民間團體）整題刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p4b727b88dc",
+    "name": "吳世正",
+    "issue_topic": "公園處災後搶災人力不足與業務委外檢討",
+    "action": "drop_citation",
+    "page": 584,
+    "reason": "第584頁「先請處長簡單回應」是程序語，不支持所附的市長或處長回應內容",
+    "reviewer": "verifier",
+    "date": "2026-10-16",
+    "cited_prefix": "〔公報第584頁〕蔣市長"
+  },
+  {
+    "person_id": "pefa8e31df3",
+    "name": "吳志剛",
+    "issue_topic": "公車駕駛員缺額與行車安全改善",
+    "action": "drop_response_sentence",
+    "text": "，努力提供留住人才的環境",
+    "reason": "「具有留住人才的環境」是公共運輸處處長所說（原文第5971頁），交通局局長在第5976頁只說會加強站站停實驗計畫與服務品質計畫，屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pefa8e31df3",
+    "name": "吳志剛",
+    "issue_topic": "公車駕駛員缺額與行車安全改善",
+    "action": "drop_citation",
+    "page": 376,
+    "reason": "第376頁「好，謝謝。局長請回座。」是市政總質詢棒球議題的程序語，與公車駕駛員議題無關",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pefa8e31df3",
+    "name": "吳志剛",
+    "issue_topic": "棒球選手三級培訓與人才留留機制",
+    "action": "drop_response_sentence",
+    "text": "；另已將「輔導學生留在臺北市學校」列入教練考績評量項目，並修訂考績規則拉開差距",
+    "reason": "引號內「輔導學生留在臺北市學校」不是原話：原文第375頁局長說的是評量項目「他教授的學生，是不是有在臺北市學校……」，摘要自行改寫後加引號，屬不實引文",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pefa8e31df3",
+    "name": "吳志剛",
+    "issue_topic": "棒球選手三級培訓與人才留留機制",
+    "action": "drop_response_sentence",
+    "text": "、「已經列入」、「稍微改變評量考績的設計規則，希望能把考績差距稍微再拉開一點」",
+    "reason": "配合上一筆刪除；所附引文對應的敘述已刪除，避免殘留無所屬的引文",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pefa8e31df3",
+    "name": "吳志剛",
+    "issue_topic": "青年公共參與及辯論競賽推動",
+    "action": "drop_citation",
+    "page": 369,
+    "reason": "第369頁市長「針對這些公共場所，都有依照規定進行檢測」是回應反偷拍檢測，與青年公共參與議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16",
+    "cited_prefix": "〔公報第369頁〕蔣市長"
+  },
+  {
+    "person_id": "p155e15fe02",
+    "name": "張志豪",
+    "issue_topic": "市府職場霸凌防制與公務人員權益保障",
+    "action": "drop_citation",
+    "page": 895,
+    "reason": "第895頁議員「健檢表下面有個總結……亟需治療」是總質詢開場的市政健檢表結語，與職場霸凌及商調議題無關",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p155e15fe02",
+    "name": "張志豪",
+    "issue_topic": "安東市場火災善後與公有市場安全管理",
+    "action": "drop_response_sentence",
+    "text": "、「承諾可以更換全部的空調系統」",
+    "reason": "「承諾可以更換全部的空調系統」是議員的話（原文第7546頁），市場處處長只答「可以」，放在處長名下屬歸屬錯誤；同意更換的敘述屬實，保留敘述、刪除此引文",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p155e15fe02",
+    "name": "張志豪",
+    "issue_topic": "公車安全管理與行人安全政策",
+    "action": "drop_response_sentence",
+    "text": "、「列為以後北市公車的標配……會」",
+    "reason": "引文混雜議員與市長發言：「列為以後北市公車的標配」是議員所說（原文第942頁），市長只答「會」；敘述屬實，保留敘述、刪除此段引文",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p155e15fe02",
+    "name": "張志豪",
+    "issue_topic": "道路挖掘會勘制度與管線圖資同步",
+    "action": "drop_citation",
+    "page": 6402,
+    "reason": "第6402頁是消防局局長答覆鋰電池火災救災，與道路挖掘會勘議題無關，屬跨場次錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p155e15fe02",
+    "name": "張志豪",
+    "issue_topic": "捷運環狀線南環段工程與交通維持",
+    "action": "drop_response_sentence",
+    "text": "、「會成立應急小組」",
+    "reason": "「成立一個應急小組」是議員所說（原文第5943頁），捷運工程局局長只答「一定會」，引號內文字非局長原話；承諾屬實，保留敘述、刪除此引文",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p499663cb96",
+    "name": "張文潔",
+    "issue_topic": "颱風假勞工出勤通報機制與職場安全保障",
+    "action": "drop_citation",
+    "page": 7073,
+    "reason": "第7073頁社會局局長答覆保母表揚，與颱風假勞工出勤議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16",
+    "cited_prefix": "〔公報第7073頁〕姚局"
+  },
+  {
+    "person_id": "p499663cb96",
+    "name": "張文潔",
+    "issue_topic": "颱風假勞工出勤通報機制與職場安全保障",
+    "action": "drop_citation",
+    "page": 7076,
+    "cited_prefix": "〔公報第7076頁〕高局長寶華：這個部分我知道數據",
+    "reason": "第7076頁勞動局局長「這個部分我知道數據，但家戶的部分就不清楚了」是回答人口減少問題，與颱風假議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "棋牌與麻將館涉賭稽查與納管自治條例",
+    "action": "drop_response_sentence",
+    "text": "自109年11月16日起",
+    "reason": "「109 年 11 月 16 日開始」不得以棋牌社名稱登記是產業發展局局長所說（原文第7436頁），商業處處長（第7433頁）只說後來不允許以這些名義登記、未提日期，以處長名義敘述日期屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "棋牌與麻將館涉賭稽查與納管自治條例",
+    "action": "drop_response_sentence",
+    "text": "，若經查獲違規將提報正俗專案從嚴處分",
+    "reason": "「提報到正俗專案……從嚴處分」是商業處處長所說（原文第7435頁），不是警察局專員，屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "棋牌與麻將館涉賭稽查與納管自治條例",
+    "action": "drop_response_sentence",
+    "text": "違規遭查獲第二次將提高罰款金額甚至執行斷水電，並",
+    "reason": "「查獲到第 2 次……罰到更高的金額，甚至會斷水電」是商業處處長所說（原文第7436頁），不是產業發展局局長，屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "外聘教練性騷案跨局處通報與不適任列管",
+    "action": "drop_point_text",
+    "text": "擊劍",
+    "reason": "涉性騷擾刑案的非公職第三人（外聘教練），「國小外聘擊劍教練」加上工作室等細節易於辨識（原文第82頁並有姓氏），依第三人規則避免職稱以外可識別細節，刪除運動項目",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "外聘教練性騷案跨局處通報與不適任列管",
+    "action": "drop_response_sentence",
+    "text": "，承諾於12月31日前完善通報機制",
+    "reason": "議員問能否於 12 月 31 日前完成通報機制，答「可以」的是教育局局長（原文第83頁），不是體育局局長，屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "外聘教練性騷案跨局處通報與不適任列管",
+    "action": "drop_citation",
+    "page": 78,
+    "reason": "第78頁教育局局長「這個行為非常不好」是評論民眾擅闖動物園鬣狗展區，與教練性騷通報議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "外聘教練性騷案跨局處通報與不適任列管",
+    "action": "drop_citation",
+    "page": 86,
+    "reason": "第86頁議員談國防部管理羅友倫故居，與教練性騷通報議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "北士科園區用地開發與招商策略",
+    "action": "drop_citation",
+    "page": 7437,
+    "reason": "第7437頁議員「去研議看看……因為這類的地方越來越多」是棋牌社管理議題，與北士科用地開發無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p7dbdadb454",
+    "name": "徐弘庭",
+    "issue_topic": "颱風假決策機制去政治化與中央地方分工建議",
+    "action": "drop_response_sentence",
+    "text": "，並於行政院會具體提出",
+    "reason": "議員要求在行政院會具體提出，秘書長只答「好，我們回去會做討論」（原文第7059頁），沒有承諾於行政院會提出，屬捏造承諾",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p7dbdadb454",
+    "name": "徐弘庭",
+    "issue_topic": "臺北大巨蛋地下停車場出入口租約與產權爭議",
+    "action": "drop_citation",
+    "page": 6824,
+    "reason": "第6824頁工務局局長「議員說的沒錯，我們會再與資訊單位討論」是回應廠商驗收照片雷同議題，與大巨蛋停車場出入口租約無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p7dbdadb454",
+    "name": "徐弘庭",
+    "issue_topic": "國軍支援臺北市救災人力與協調機制",
+    "action": "drop_citation",
+    "page": 7059,
+    "reason": "第7059頁秘書長「好，我們回去會做討論」是回應颱風假決策議題，與國軍支援救災議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16",
+    "cited_prefix": "〔公報第7059頁〕李秘"
+  },
+  {
+    "person_id": "p62ab44979e",
+    "name": "徐立信",
+    "issue_topic": "平抑物價與經濟振興措施",
+    "action": "drop_citation",
+    "page": 684,
+    "reason": "第684頁勞動局局長「扣薪水這是不可以的」是回應受補助機構遲發、扣減薪資，與平抑物價議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p741562d334",
+    "name": "曾獻瑩",
+    "issue_topic": "警用監視器頻寬備援系統招標與採購規格",
+    "action": "drop_point_text",
+    "text": "，以及與台智光解約後之備援處理情形",
+    "reason": "點名民間公司台智光；原文第6484頁警察局長說明解約依據為「認定台智光涉及賄賂或其他不正當利益」且地檢署偵辦中，屬非公職第三人（法人）＋刑案，依第三人規則（10/15 含法人）刪除點名部分；其餘頻寬規格內容不涉第三人，保留",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p741562d334",
+    "name": "曾獻瑩",
+    "issue_topic": "警用監視器頻寬備援系統招標與採購規格",
+    "action": "drop_citation",
+    "page": 6177,
+    "reason": "第6177頁是捷運公司總經理答覆遊憩子公司 ERP 軟體費用，與警用監視器頻寬議題無關，屬跨場次錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p47f1fe2e84",
+    "name": "李明賢",
+    "issue_topic": "臺北大巨蛋公共安全申報與營運績效督導",
+    "action": "drop_issue",
+    "reason": "議題點名民間公司遠雄，核心為其「未依規定公安申報」遭張貼建築物公共安全檢查不合格告示並依建築法裁罰12萬元（原文第6860頁，議員另稱「惡劣」「故意應申報而未申報」），屬非公職第三人（法人）＋違法（行政違規）指控，依第三人規則（10/15 含法人）整題刪除；議員段落無法只刪一句。若法遵認為官員公開證實之行政裁罰可保留，則本題其餘內容經核對大致相符",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p47f1fe2e84",
+    "name": "李明賢",
+    "issue_topic": "內湖瓦斯儲氣槽逐步停用與瓦斯漏氣檢討",
+    "action": "drop_response_sentence",
+    "text": "（2顆停用、1顆歲修）",
+    "reason": "「2顆停用、1顆歲修」是議員所說（原文第772–773頁），市長只說「目前有 3 顆停用」，以括號細節放在市長名下屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p47f1fe2e84",
+    "name": "李明賢",
+    "issue_topic": "內湖瓦斯儲氣槽逐步停用與瓦斯漏氣檢討",
+    "action": "drop_citation",
+    "page": 772,
+    "cited_prefix": "〔公報第772頁〕黃局長一平",
+    "reason": "第772頁工務局局長「挖掘目的的標示應該更清楚」是道路挖掘路證議題，與瓦斯儲氣槽議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pc524c2d6ef",
+    "name": "李柏毅",
+    "issue_topic": "路樹健檢與樹穴設計改善",
+    "action": "drop_response_sentence",
+    "text": "忠孝東路樹穴係因施工截斷部分樹根且底下有捷運結構限制，",
+    "reason": "原文第6879頁新工處處長說「可能將原本往外擴的樹根截斷」、工務局局長說「我們再去了解……是不是因為受到捷運頂板的限制條件」，皆為推測待查，摘要寫成已確定的原因，屬誇大",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p772a0a5bf9",
+    "name": "林世宗",
+    "issue_topic": "公辦民營托嬰中心監視器設置與台智光備援系統疑雲",
+    "action": "drop_issue",
+    "reason": "議題點名民間公司台智光，並述及「圖利台智光的種種行為」、要求政風調查「社會局還有議會、台智光是否有相關人等，涉及私相授受或不法圖利」（原文第7038–7039頁），屬非公職第三人（法人）＋違法指控，依第三人規則（10/15 含法人）整題刪除；且自動檢查已移除跨場次的市府回應",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p772a0a5bf9",
+    "name": "林世宗",
+    "issue_topic": "捷運線形公園廊道活化與匹克球場設置",
+    "action": "drop_citation",
+    "page": 6223,
+    "reason": "第6223頁捷運工程局局長「我對議員感到很抱歉，因為廠商崇偉營造……」是回應浩然敬老院拆除工程擾民，與線形公園匹克球場議題無關，且點名民間廠商，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16",
+    "cited_prefix": "〔公報第6223頁〕鄭局長德發：是，謝謝"
+  },
+  {
+    "person_id": "p772a0a5bf9",
+    "name": "林世宗",
+    "issue_topic": "臺北市立聯合醫院原廠藥採購與採購主管爭議",
+    "action": "drop_issue",
+    "reason": "議題（含議題名稱「採購主管爭議」）指向聯合醫院「這位採購部的部長」，議員以影片、報章及前任院長手稿指其「發生了很多的爭議」「有瑕疵」、要求「除弊興利」（原文第6352頁），院長只答加速遴選，未證實任何事實；屬以唯一職稱可識別之非民選公務員＋未經證實之不當行為指控，依第三人規則整題刪除（議題名稱無法以刪字修訂）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p772a0a5bf9",
+    "name": "林世宗",
+    "issue_topic": "臺北表演藝術中心經營績效與預算撙節檢討",
+    "action": "drop_citation",
+    "page": 43,
+    "reason": "第43頁議員詢問台北躍動館七虎館，與北藝中心預算議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16",
+    "cited_prefix": "〔公報第43頁〕林議員世"
+  },
+  {
+    "person_id": "p772a0a5bf9",
+    "name": "林世宗",
+    "issue_topic": "臺北表演藝術中心經營績效與預算撙節檢討",
+    "action": "drop_citation",
+    "page": 608,
+    "reason": "第608頁市長「確保程序是公開、公正」是回應北農冷鏈系統標案（議員並點名廠商指綁標），與北藝中心議題無關，屬跨場次錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pcc848fb570",
+    "name": "林亮君",
+    "issue_topic": "共享機車格位占用與權利金調整",
+    "action": "drop_citation",
+    "page": 866,
+    "reason": "第866頁市長「我請體育局即刻與教育局協調」是回應11人制足球場，與共享機車權利金議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "市府員工職場霸凌防制與人事機制",
+    "action": "drop_point_text",
+    "text": "心理衛生科",
+    "reason": "議員指控「該科的科長一再地利用言語霸凌」（原文第760頁），衛生局未證實（局長稱已結案）；寫出科室名稱即可辨識該科科長（非民選公務員）＋不當行為指控，依第三人規則刪除可識別細節（第1處）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "市府員工職場霸凌防制與人事機制",
+    "action": "drop_point_text",
+    "text": "，且衛生局心理衛生科112年與113年在職人員離職率分別達28.7%與31.4%",
+    "reason": "同上；此子句的離職率數字屬該科（原文第763頁），只刪科室名會誤成全局數字，故整段刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "醫療院所消防安全與電路設備檢修",
+    "action": "drop_point_text",
+    "text": "，另消防安檢亦發現聯醫有38個防火區劃缺失",
+    "reason": "原文第6532頁議員問是自己查到或消防安檢查出，聯醫院長答「我們自己去查的」，摘要寫成消防安檢發現，與原文相反",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "醫療院所消防安全與電路設備檢修",
+    "action": "drop_citation",
+    "page": 6061,
+    "reason": "第6061頁停車管理工程處處長「3 個月內給議員評估報告」是共用臨停區議題，與醫療院所消防安全無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "臺北捷運火災警報器誤響與設備重置",
+    "action": "drop_citation",
+    "page": 767,
+    "reason": "第767頁市長「我們來規劃設計……貼紙或標示」是回應博愛座議題，與捷運火警警報器無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "共用臨停區設置被占用與地點檢討",
+    "action": "drop_citation",
+    "page": 6058,
+    "reason": "第6058頁捷運公司總經理「同仁第一時間會到現場確認」是回應火警誤響議題，與共用臨停區無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p5fb3d560bb",
+    "name": "林延鳳",
+    "issue_topic": "士林夜市友善廁所設置與富邦獨董酬金捐款查核",
+    "action": "drop_issue",
+    "reason": "議題名稱與議員段落指向「前富邦獨立董事」（原文第7419–7421頁議員點名一位非公職會計師），指其酬金回捐可能與自身或前市長有「對價關係」、財政局稱已接司法單位調取資料，屬非公職第三人＋違法／刑案；議題名稱含「富邦獨董」無法以刪字修訂，依第三人規則整題刪除（同題的士林夜市廁所內容一併刪除）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p5fb3d560bb",
+    "name": "林延鳳",
+    "issue_topic": "捷運信義線東延段工程展延與預算控管",
+    "action": "drop_citation",
+    "page": 6126,
+    "reason": "第6126頁政風處副處長「可以，我們會去了解」是回應環狀線保固議題，與信義線東延段展延議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p5fb3d560bb",
+    "name": "林延鳳",
+    "issue_topic": "淨零排放自治條例宣傳商品漂綠規範與減碳存摺檢討",
+    "action": "drop_response_sentence",
+    "text": "，並於 1 個月內向議員報告",
+    "reason": "「一個月以內給我報告」是議員要求（原文第6462頁），環保局局長只答「我們會把標準讓各個單位都一致」，未承諾期限，屬捏造承諾",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p5fb3d560bb",
+    "name": "林延鳳",
+    "issue_topic": "北市府職場霸凌申訴調查與處理機制",
+    "action": "drop_issue",
+    "reason": "議題核心為主計處處長（非民選公務員，以唯一職稱可辨識，速記錄並有姓名）遭匿名檢舉之管理、請假授課、業務費購買禮券等指控（原文第678–680頁），當事人否認、調查未有結論，屬非民選公務員＋未經證實之不當行為指控；其餘可保留的環保局、消防局申訴內容無引文佐證，所附第677頁引文為遊戲行銷議題錯置，故整題刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "paf86790352",
+    "name": "楊植斗",
+    "issue_topic": "臺北市自行車路網建置進度與騎乘規範",
+    "action": "drop_response_sentence",
+    "text": "今年新增路段包含北士科 3 公里及捷運北投會館 2.3 公里，",
+    "reason": "「北士科多做了 3 公里，捷運北投會館多了 2.3 公里」是議員所說（原文第6206頁），交通局局長只答「2.4 公里，好像是在北投」，屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "paf86790352",
+    "name": "楊植斗",
+    "issue_topic": "臺北市自行車路網建置進度與騎乘規範",
+    "action": "drop_citation",
+    "page": 6208,
+    "reason": "第6208頁交通局局長「繳了。隔天市長發現之後……」是回答市長罰單，與自行車路網與坐墊材質無關",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "paf86790352",
+    "name": "楊植斗",
+    "issue_topic": "捷運信義東延段工程延宕與道路復舊期程",
+    "action": "drop_citation",
+    "page": 562,
+    "reason": "第562頁市長「我會請都發局朝向放寬的方向研議」是回應工業區設置長照設施，與信義東延段道路復舊議題無關，屬跨場次錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p9ff03a516c",
+    "name": "林珍羽",
+    "issue_topic": "長照政策與長照三箭推動檢討",
+    "action": "drop_response_sentence",
+    "text": "，並表示會配合市府實質簡化繁瑣流程",
+    "reason": "答應「我們來簡化」的是市長（原文第922頁），衛生局局長只說「目前市府都加速在申請，不過中央的法規……」（第923頁），屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p9ff03a516c",
+    "name": "林珍羽",
+    "issue_topic": "長照政策與長照三箭推動檢討",
+    "action": "drop_citation",
+    "page": 953,
+    "reason": "第953頁議員「局長，我剛剛已經說沒有你的事，你有民意基礎嗎？」是受保護樹木移植爭議，與長照政策議題無關，屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6ad3a2608b",
+    "name": "汪志冰",
+    "issue_topic": "鋰電池火災搶救裝備與停車場滅火設施",
+    "action": "drop_citation",
+    "page": 6171,
+    "reason": "公報第6171頁是交通部門質詢交通局局長回答公車駕駛勞動條件（「我們會一併做檢討」），與鋰電池火災無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6ad3a2608b",
+    "name": "汪志冰",
+    "issue_topic": "腸病毒流行與托育照顧配套",
+    "action": "drop_point_text",
+    "text": "具體",
+    "reason": "引號內「具體改善計劃」不是原話，原文第820頁議員說「制定改善計劃」；刪「具體」二字使引文回到原話（輕微）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6ad3a2608b",
+    "name": "汪志冰",
+    "issue_topic": "腸病毒流行與托育照顧配套",
+    "action": "drop_response_sentence",
+    "text": "大約有 ",
+    "reason": "引號內「大約有 1,000 名」不是原話，原文第818頁社會局局長說「其中約 4 成有 1,000 名保母」；刪「大約有 」使引文回到原話（輕微）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "演唱會門票黃牛與詐騙防制",
+    "action": "drop_point_text",
+    "text": "洪健益議員指出周杰倫演唱會15萬張門票中，據檢舉陳述在臺灣開放民眾搶購僅8,000張，質疑其餘14萬2,000張流向中國大陸黃牛，並出現二手平台高價轉售與以手錶換票等現象。",
+    "reason": "議員轉述檢舉人未經證實的說法，點名非公職第三人（周杰倫演唱會）並指其門票14萬2,000張流向中國大陸黃牛（違法轉售），議員自稱「不敢確認」；依第三人規則刪除該句",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "演唱會門票黃牛與詐騙防制",
+    "action": "drop_citation",
+    "page": 960,
+    "cited_prefix": "〔公報第960頁〕蔣市長萬安",
+    "reason": "公報第960頁市長「勞動局會就這件事情進行瞭解而且查明」是針對單親媽媽錄取通知被撤回的勞資個案，與演唱會無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "國慶升旗活動預算與台北通系統運用",
+    "action": "drop_point_text",
+    "text": "11萬3,000元",
+    "reason": "「11萬3,000元」是民政局局長答詢的數字（原文第7155頁「十一萬三千多元」），議員只說「十幾萬元」，寫在議員段落屬歸屬錯誤；刪數字",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "國慶升旗活動預算與台北通系統運用",
+    "action": "drop_response_sentence",
+    "text": "表示因當時溝通與委外開發狀況而採用外部網站，",
+    "reason": "資訊局代理副局長沒有說明「因當時溝通與委外開發狀況而採用外部網站」，她只說同仁文字表達不精準、需要確認（原文第7154–7157頁），屬捏造",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "國慶升旗活動預算與台北通系統運用",
+    "action": "drop_citation",
+    "page": 6859,
+    "reason": "公報第6859頁是工務部門質詢公園處田園城市議題，與國慶升旗無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "U-Sport計畫執行成效與經費運用",
+    "action": "drop_citation",
+    "page": 113,
+    "reason": "公報第113頁是議員質詢文化局白晝之夜，與U-Sport無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p6da9705b68",
+    "name": "洪健益",
+    "issue_topic": "第二殯儀館周邊交通與科技執法",
+    "action": "drop_response_sentence",
+    "text": "與交通局局長",
+    "reason": "科技執法3分鐘臨停舉發限制與請現場同仁引導都是交通警察大隊大隊長所說（原文第6044頁），交通局局長只說「應該可以有一些斟酌的地方」，聯名歸屬錯誤；刪「與交通局局長」",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p22b242559b",
+    "name": "洪婉臻",
+    "issue_topic": "市府職場霸凌事件調查與申訴機制改善",
+    "action": "drop_point_text",
+    "text": "，並指出社會局曾發生同仁跳樓輕生案，以及陽明教養院主管對同仁暴怒嘶吼等霸凌情事",
+    "reason": "議員點名特定同仁墜樓輕生（死亡、遺書等健康隱私）及陽明教養院秘書室主任（非民選公務員，原文第452頁點名姓氏）的霸凌指控，官員未證實霸凌；依第三人規則刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p22b242559b",
+    "name": "洪婉臻",
+    "issue_topic": "市府職場霸凌事件調查與申訴機制改善",
+    "action": "drop_response_sentence",
+    "text": "社會局局長表示跳樓輕生事件發生時有全程陪同家屬，經瞭解與工作無關，陽明教養院該主管已經轉職離開社會局。",
+    "reason": "涉及已故同仁輕生事件（「經瞭解與工作無關」）與被指霸凌之非民選公務員的轉職去向（局長本人稱屬私人事情），屬可識別的健康隱私與第三人不當行為；整句刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p22b242559b",
+    "name": "洪婉臻",
+    "issue_topic": "市府職場霸凌事件調查與申訴機制改善",
+    "action": "drop_response_sentence",
+    "text": "，並表示已於11月21日要求市府各局處與事業單位依職業安全衛生法第6條推動，承諾1個月內提出檢討報告與精進計畫",
+    "reason": "勞動局局長說的是「今年11月21日勞動部北分署發生事情之後」才宣布依職安法第6條推動（原文第457頁），不是「於11月21日要求」；「1個月內提出檢討報告與精進計畫」是市長答應（第458頁），不是勞動局局長，屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p22b242559b",
+    "name": "洪婉臻",
+    "issue_topic": "市府職場霸凌事件調查與申訴機制改善",
+    "action": "drop_citation",
+    "page": 451,
+    "reason": "公報第451頁市長談東園少棒隊，與霸凌無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p22b242559b",
+    "name": "洪婉臻",
+    "issue_topic": "市府職場霸凌事件調查與申訴機制改善",
+    "action": "drop_citation",
+    "page": 452,
+    "reason": "公報第452頁引文是議員描述同仁墜樓、遺書，所支持的句子已刪除，且涉健康隱私",
+    "reviewer": "verifier",
+    "date": "2026-10-16",
+    "cited_prefix": "〔公報第452頁〕洪議員"
+  },
+  {
+    "person_id": "p22b242559b",
+    "name": "洪婉臻",
+    "issue_topic": "市府職場霸凌事件調查與申訴機制改善",
+    "action": "drop_citation",
+    "page": 454,
+    "reason": "公報第454頁引文是社會局局長談被指霸凌主管的去向，所支持的句子已刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p22b242559b",
+    "name": "洪婉臻",
+    "issue_topic": "市府職場霸凌事件調查與申訴機制改善",
+    "action": "drop_citation",
+    "page": 455,
+    "reason": "公報第455頁引文是議員談被指霸凌的主管仍在公部門，所支持的句子已刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p22b242559b",
+    "name": "洪婉臻",
+    "issue_topic": "YouBike違規記點新制與宣導稽查",
+    "action": "drop_response_sentence",
+    "text": "當晚已去開單，",
+    "reason": "原文第5995頁交通局局長說「隔天交通大隊就已經去市長室開單」，不是「當晚」",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p28d7d936d9",
+    "name": "游淑慧",
+    "issue_topic": "警察局監視器傳輸費與台智光合約解約案",
+    "action": "drop_point_text",
+    "text": "除涉嫌不法外，亦",
+    "reason": "議員段落將台智光（非公職法人）與「涉嫌不法」並列，依10/15擴大的第三人規則刪除「涉嫌不法」部分；其餘為契約爭議",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p28d7d936d9",
+    "name": "游淑慧",
+    "issue_topic": "京華城都市計畫變更申請資格與信託爭議",
+    "action": "drop_issue",
+    "reason": "議題點名鼎越開發、凱基銀行、京華城股份有限公司等非公職法人，並指其「無權授權」申請都市計畫變更（議員原文第6884、6887頁另稱「詐騙臺北市政府」「共犯」「共謀」），屬第三人＋違法指控；議員段落與回應都以這些公司為主體，無法只刪一句",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p28d7d936d9",
+    "name": "游淑慧",
+    "issue_topic": "老舊校舍改建預算與特別基金設置",
+    "action": "drop_response_sentence",
+    "text": "由過往每年不到10億元",
+    "reason": "原文第262頁教育局局長說「從過去 1 年不到 8、9 億元提高到 1 年 40 億元」，摘要寫「不到10億元」數字不符",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p32da79905a",
+    "name": "王孝維",
+    "issue_topic": "台北花卉公司營運管理與稅務疑義",
+    "action": "drop_issue",
+    "reason": "議題點名台北花卉公司董事長（非公職第三人）與美恩花卉公司，指其違反農產品市場交易法、「逃漏稅」並要求政風徹查，屬第三人＋違法指控；市府回應已被自動檢查移除，議員段落無法只刪一句",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p32da79905a",
+    "name": "王孝維",
+    "issue_topic": "學校免費營養午餐與食安機制",
+    "action": "drop_point_text",
+    "text": "至23億",
+    "reason": "「23億元」是教育局局長答詢的數字（原文第139頁「補助到 65 元的話，就要 23 億元」），議員主張的是20億元，寫在議員建議裡屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p32da79905a",
+    "name": "王孝維",
+    "issue_topic": "青年局業務規劃與預算配置",
+    "action": "drop_point_text",
+    "text": "國際認定青年標準為15歲至24歲或29歲，表示",
+    "reason": "「15歲至24歲」是青年局局長所說（原文第7092頁「聯合國的規定，是 15 歲到 24 歲」），議員只說「到 29 歲」，寫成議員指出屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p32da79905a",
+    "name": "王孝維",
+    "issue_topic": "青年局業務規劃與預算配置",
+    "action": "drop_citation",
+    "page": 7090,
+    "cited_prefix": "〔公報第7090頁〕姚局長淑文",
+    "reason": "公報第7090頁社會局局長談里幹事發放敬老金，與青年局無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p32da79905a",
+    "name": "王孝維",
+    "issue_topic": "交通違規開單與科技執法管理",
+    "action": "drop_point_text",
+    "text": "（「申訴過的是 620 件……這樣有百分之十幾，我們的科技執法還有AI，加下去申訴通過率還是一樣，每 10 件有 1 件有落差」）",
+    "reason": "引文混雜議員與官員發言：「620 件」是交通警察大隊大隊長的答覆（原文第6447頁「申訴通過的是 620 件」），議員問的是「申訴過的是幾件？」；整段引文刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p32da79905a",
+    "name": "王孝維",
+    "issue_topic": "交通違規開單與科技執法管理",
+    "action": "drop_response_sentence",
+    "text": "（「今年因為民眾檢舉 1,200 元違規停車的部分不予檢舉，我預計可能會下降 20 萬張跑不掉。」）",
+    "reason": "引號內文字不是原話，原文第6446頁警察局局長說「因為今年民眾檢舉 1,200 元違規停車的部分不予檢舉」（輕微，敘述保留）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pea1a4317b4",
+    "name": "王欣儀",
+    "issue_topic": "學校社團外聘教師安全管理",
+    "action": "drop_citation",
+    "page": 7365,
+    "reason": "公報第7365頁是產業發展局局長答應檢討東區商圈抵用券，與外聘教師無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pea1a4317b4",
+    "name": "王欣儀",
+    "issue_topic": "失智照護據點布建與補助檢討",
+    "action": "drop_point_text",
+    "text": "（中度以下約3.3萬人）",
+    "reason": "原文第6554頁議員說「輕度、極輕度的大概占74%，也就是有3.3萬人」，不是「中度以下」",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p70a5d9018c",
+    "name": "王閔生",
+    "issue_topic": "公車駕駛人力缺口與待遇改善",
+    "action": "drop_response_sentence",
+    "text": "，承諾於總質詢前提出方案",
+    "reason": "議員要求在總質詢前提出方案後，交通局局長只答「我們再來看看如何加強這個影像」（原文第6101頁）；「好，我們把作法再提供給議員」是針對下一個YouBike議題（第6102頁），屬跨議題錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p70a5d9018c",
+    "name": "王閔生",
+    "issue_topic": "食安衛生稽查人力短缺與制度改善",
+    "action": "drop_point_text",
+    "text": "寶林茶室事件後民眾重視食安，",
+    "reason": "點名非公職第三人「寶林茶室」（議員原文第6589頁：中毒案造成6人死亡，屬刑案），依10/15擴大的第三人規則刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p70a5d9018c",
+    "name": "王閔生",
+    "issue_topic": "公館圓環高肇事率改善與廢除評估",
+    "action": "drop_citation",
+    "page": 628,
+    "reason": "公報第628頁市長「請俞副秘書長及捷運公司一起參與討論」是針對大巨蛋演唱會仿效高雄宣傳，與公館圓環無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pf84e91ca73",
+    "name": "簡舒培",
+    "issue_topic": "第一果菜及萬大魚類批發市場營運設備出資與招標爭議",
+    "action": "drop_response_sentence",
+    "text": "預算未通過前不會決標，",
+    "reason": "「預算沒有通過不會決標」是臺北農產運銷公司董事長所說（原文第7624頁），不是產業發展局局長或市場處處長，屬歸屬錯誤（董事長句已另有此敘述）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pf84e91ca73",
+    "name": "簡舒培",
+    "issue_topic": "第一果菜及萬大魚類批發市場營運設備出資與招標爭議",
+    "action": "drop_citation",
+    "page": 7274,
+    "reason": "公報第7274頁是政風處處長談京華城案會與檢察官溝通，與批發市場設備無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pf84e91ca73",
+    "name": "簡舒培",
+    "issue_topic": "「潮台北」活動預算效益與辦理模式檢討",
+    "action": "drop_citation",
+    "page": 249,
+    "reason": "公報第249頁是教育局局長談預算整編，與潮台北無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pf84e91ca73",
+    "name": "簡舒培",
+    "issue_topic": "京華城案相關索資與政風檢舉機制",
+    "action": "drop_issue",
+    "reason": "議題名稱與內容以「京華城案」（非公職法人）與「違法爭取20%容積獎勵」、前市長「涉嫌...收受賄款」並列，屬第三人＋刑案；議題名稱無法以刪除修訂",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pf84e91ca73",
+    "name": "簡舒培",
+    "issue_topic": "捷運信義線東延段施工隧道偏移與工期展延究責",
+    "action": "drop_response_sentence",
+    "text": "於1個月內",
+    "reason": "原文第6523頁捷運工程局局長明說「能否在 1 個月時間內完成，這部分無法給您答案」，只說「儘可能」，摘要寫成「同意於1個月內」",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pf84e91ca73",
+    "name": "簡舒培",
+    "issue_topic": "捷運信義線東延段施工隧道偏移與工期展延究責",
+    "action": "drop_citation",
+    "page": 498,
+    "reason": "公報第498頁是議員談中職大巨蛋檔期，與信義線東延段無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pb8d278f1da",
+    "name": "耿葳",
+    "issue_topic": "校園性侵案處置瑕疵與性平機制改善",
+    "action": "drop_issue",
+    "reason": "未成年學生性侵案：議員段落描述特定國中女學生遭男同學多次性侵、受害學生轉學與就醫，回應含家防中心陪同個案出庭等訴訟細節（原文第24–32頁），並指校方輔導老師（非民選）立場偏頗等不當行為，屬未成年＋刑案＋健康隱私＋非民選公務員不當行為指控；議員與回應段落均以個案為主體，無法只刪一句。交法遵審查是否改為部分保留",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pb8d278f1da",
+    "name": "耿葳",
+    "issue_topic": "懷愛館設施管理與告別式二手花回收販售爭議",
+    "action": "drop_citation",
+    "page": 885,
+    "reason": "公報第885頁引文「市長，有任何缺失嗎？」是議員轉問校園性侵案（市長接著答教育局調查），與懷愛館無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pb8d278f1da",
+    "name": "耿葳",
+    "issue_topic": "食品安全稽查成效與惡意重複檢舉因應",
+    "action": "drop_response_sentence",
+    "text": "，會再針對醬料保存重新做檢討",
+    "reason": "食品藥物管理科科長沒有說會針對醬料保存重新檢討（原文第6337–6338頁只說列入稽查重點）；「會再來審視」是衛生局局長所說，已見下一句",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p8ff8ce5488",
+    "name": "苗博雅",
+    "issue_topic": "幼兒園及教保中心不當對待案調查處理",
+    "action": "drop_issue",
+    "reason": "議題點名經國三民非營利幼兒園、平安新村教保中心（非公職法人）與涉性侵幼童之教保員（原文稱「陳姓狼師」，第826–833頁），屬第三人＋刑案＋未成年；議員段落以兩機構名稱為主體，無法只刪一句。另引文第828頁含市長談德育護理健康學院「包庇」。交法遵審查是否改為部分保留",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p8ff8ce5488",
+    "name": "苗博雅",
+    "issue_topic": "大巨蛋體育賽事場次比率與漏水改善管理",
+    "action": "drop_response_sentence",
+    "text": "建築管理工程處處長補充說明，大巨蛋過往遭到停工係因遠雄不按圖施工。",
+    "reason": "點名遠雄（非公職法人）＋「不按圖施工」（違反建築法）；雖為建管處處長在會中證實（原文第839頁），依10/15擴大的第三人規則刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p8ff8ce5488",
+    "name": "苗博雅",
+    "issue_topic": "大巨蛋體育賽事場次比率與漏水改善管理",
+    "action": "drop_citation",
+    "page": 836,
+    "reason": "公報第836頁引文「沒有錄影帶是經國三民非營利幼兒園案最大致命傷」屬幼兒園案，與大巨蛋無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16",
+    "cited_prefix": "〔公報第836頁〕苗議員"
+  },
+  {
+    "person_id": "p369c0f3b74",
+    "name": "許淑華",
+    "issue_topic": "第一果菜及魚類市場改建案減項發包與後續擴充",
+    "action": "drop_point_text",
+    "text": "與指出「10月22日拍板定案，6樓以上納後續擴充，每坪造價12.5萬元調整至14萬元」",
+    "reason": "引號內不是原話：原文第7632頁是分段敘述（「10 月 22 日真的在 1 週內……拍板定案，6 樓以上納後續擴充，每坪造價 12.5 萬元調整至 14 萬元」），摘要拼接成一句引文",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p369c0f3b74",
+    "name": "許淑華",
+    "issue_topic": "第一果菜及魚類市場改建案減項發包與後續擴充",
+    "action": "drop_point_text",
+    "text": "要求「針對減項發包這4個字，把所有和魚果市場有關的公文，包括內簽公文、亞新設計監造商所提意見，全部資料都要提供給檢調單位」，並",
+    "reason": "引文點名非公職法人「亞新設計監造商」並要求資料提供給檢調（議員原文第7633頁稱減項發包由亞新提議，脈絡為貪瀆偵辦），屬第三人＋刑案；且引號內非原話（原文為「本席要求把所有……」）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p369c0f3b74",
+    "name": "許淑華",
+    "issue_topic": "世界棒球12強賽慶祝活動名稱與獎勵金發放",
+    "action": "drop_point_text",
+    "text": "，並表示「不對你在過程中所做的這些讓球迷、球員傻眼的事情道歉」",
+    "reason": "原文第503頁是反問句「不對你在過程中所做的這些讓球迷、球員傻眼的事情道歉？」，摘要截去問號寫成議員「表示」，意思失真",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p369c0f3b74",
+    "name": "許淑華",
+    "issue_topic": "臺北市立交響樂團附設管樂團考核評鑑與整併爭議",
+    "action": "drop_citation",
+    "page": 241,
+    "reason": "公報第241頁是體育局局長談開第2張罰單（大巨蛋），與交響樂團無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p369c0f3b74",
+    "name": "許淑華",
+    "issue_topic": "未成年無照駕駛防制與跨局處輔導機制",
+    "action": "drop_point_text",
+    "text": "指出學校記大過案件中無照駕駛「初犯是 232 人次，累犯有 138 人次」，",
+    "reason": "「初犯是 232 人次，累犯有 138 人次」是教育局學務校安室主任所說（原文第6322頁），寫成議員指出屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p369c0f3b74",
+    "name": "許淑華",
+    "issue_topic": "未成年無照駕駛防制與跨局處輔導機制",
+    "action": "drop_point_text",
+    "text": "跨局處",
+    "reason": "引號內「跨局處」不是原話，原文第6323頁為「希望2個局共同研議」；刪「跨局處」三字使引文回到原話（輕微）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p369c0f3b74",
+    "name": "許淑華",
+    "issue_topic": "臺北捷運票價與電價調漲因應",
+    "action": "drop_citation",
+    "page": 5922,
+    "cited_prefix": "〔公報第5922頁〕鄭局長德發",
+    "reason": "公報第5922頁捷運工程局局長「4 月 9 日送到交通部進行綜合規劃審查」是另一路線規劃，與票價電價無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p06dbec1b42",
+    "name": "郭昭巖",
+    "issue_topic": "臺北夜市打牙祭效益與廣州街夜市整體改造",
+    "action": "drop_citation",
+    "page": 7233,
+    "reason": "公報第7233頁是議員要求青年局留住藝青會，與夜市無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p06dbec1b42",
+    "name": "郭昭巖",
+    "issue_topic": "東園派出所中繼站與義警民防斜形空間補照",
+    "action": "drop_citation",
+    "page": 6563,
+    "reason": "公報第6563頁是衛生局局長答應1個月內就醫療暴力白色小組提報告，與派出所無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p3d9ce55419",
+    "name": "鍾佩玲",
+    "issue_topic": "人車分流標線試辦計畫",
+    "action": "drop_citation",
+    "page": 6140,
+    "reason": "公報第6140頁是捷運工程局局長答應改善施工擾民，與人車分流標線無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p3d9ce55419",
+    "name": "鍾佩玲",
+    "issue_topic": "市府職場霸凌與同仁輕生案件調查",
+    "action": "drop_response_sentence",
+    "text": "社會局局長表示經關心與瞭解訪談，初步評估該輕生案應與霸凌無關；",
+    "reason": "社會局局長就特定已故同仁輕生案稱「初步來看整體狀況上應該跟霸凌無關，但我不便說明事情的細節」（原文第844頁），涉可識別的死亡與健康隱私，局長本人亦稱對家屬是「攪動」；與洪婉臻同一案件的處理一致，刪除此句",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p3d9ce55419",
+    "name": "鍾佩玲",
+    "issue_topic": "市府員工心理健康與員工協助方案改善",
+    "action": "drop_response_sentence",
+    "text": "表示服務單位及職稱可調整為非必填，",
+    "reason": "「服務單位、職稱都不需要成為必填的項目」是市長所說（原文第846頁），不是人事處處長，屬歸屬錯誤（市長句另有承諾）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pd697b2a2b5",
+    "name": "鍾小平",
+    "issue_topic": "臺北市少子化與人口政策因應",
+    "action": "drop_citation",
+    "page": 704,
+    "reason": "公報第704頁是新建工程處處長談AC刨除料去化，與人口政策無關，錯置（該議題已被自動檢查移除）",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pd697b2a2b5",
+    "name": "鍾小平",
+    "issue_topic": "交通違規檢舉制度與警察派案研處",
+    "action": "drop_response_sentence",
+    "text": "違規停車罰款為 600 元，",
+    "reason": "「違規停車罰款是 600 元」是警察局局長所說（原文第6479頁），不是交通警察大隊大隊長，屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pd697b2a2b5",
+    "name": "鍾小平",
+    "issue_topic": "交通違規檢舉制度與警察派案研處",
+    "action": "drop_response_sentence",
+    "text": "（引文：「違規停車罰款是 600 元……去年我們開了 265 萬張……收了大概十八億多元」）",
+    "reason": "引文混雜局長（「違規停車罰款是 600 元」）與大隊長發言，全放在大隊長名下；整段引文刪除，敘述保留",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pd697b2a2b5",
+    "name": "鍾小平",
+    "issue_topic": "交通違規檢舉制度與警察派案研處",
+    "action": "drop_response_sentence",
+    "text": "（引文：「今年 6 月 30 日有修法限縮民眾檢舉違規停車……開放 5 項可以檢舉……紅線停車不在這裡面……民眾打 110 檢舉的時候，我們去開單」）",
+    "reason": "引文混入議員發言：「紅線停車不在這裡面？」是議員問句（原文第6480頁），大隊長答「對，不在檢舉的項目裡面」；整段引文刪除，敘述保留",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pd697b2a2b5",
+    "name": "鍾小平",
+    "issue_topic": "交通違規檢舉制度與警察派案研處",
+    "action": "drop_response_sentence",
+    "text": "（引文：「110 派遣勤務百分之七十都是交通的問題……我們也不得不處理……我認同……你們研究有沒有修法的空間……是，謝謝議員」）",
+    "reason": "引文混入議員發言：「你們研究有沒有修法的空間」是議員所說（原文第6481頁），局長只答「是，謝謝議員」；整段引文刪除，敘述保留",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pd697b2a2b5",
+    "name": "鍾小平",
+    "issue_topic": "交通違規檢舉制度與警察派案研處",
+    "action": "drop_citation",
+    "page": 6479,
+    "cited_prefix": "〔公報第6479頁〕鍾議員小平",
+    "reason": "公報第6479頁議員談陳菊、陳水扁市長與中央對抗，與違停檢舉無關",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pd697b2a2b5",
+    "name": "鍾小平",
+    "issue_topic": "市立聯合醫院護理人力留任與津貼改善",
+    "action": "drop_citation",
+    "page": 6113,
+    "reason": "公報第6113頁是議員問捷運自償方案，與護理人力無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p67335d29b9",
+    "name": "鍾沛君",
+    "issue_topic": "市府反霸凌與反性騷課程宣導及檢討",
+    "action": "drop_citation",
+    "page": 777,
+    "reason": "公報第777頁市長「警察局 1 週內就會做更正」是員警霸凌新聞更正議題，與反霸凌課程無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p67335d29b9",
+    "name": "鍾沛君",
+    "issue_topic": "機車駕訓與道路安駕訓練補助推廣",
+    "action": "drop_response_sentence",
+    "text": "於1個月內",
+    "reason": "交通局局長說的是「在年底前找業者、公路總局，我們再來徹底檢討」（原文第6080頁），不是1個月內；「1 個月內」是針對邀集勞動局（第6082頁）。刪第一個「於1個月內」",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p67335d29b9",
+    "name": "鍾沛君",
+    "issue_topic": "警察局處理員警涉霸凌新聞更正與內部訊息管理",
+    "action": "drop_point_text",
+    "text": "中正第二分局",
+    "reason": "「中正第二分局偵查隊長」可識別特定非民選公務員，並與霸凌指控並列（雖議員主張新聞不實、案件已撤回）；刪除單位名稱，僅留職稱",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p67335d29b9",
+    "name": "鍾沛君",
+    "issue_topic": "警察局處理員警涉霸凌新聞更正與內部訊息管理",
+    "action": "drop_citation",
+    "page": 741,
+    "reason": "公報第741頁市長談外僑學校橫向通報，與員警霸凌新聞無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pa2aee439f8",
+    "name": "陳宥丞",
+    "issue_topic": "青年局業務規劃與資源配置檢討",
+    "action": "drop_citation",
+    "page": 7203,
+    "reason": "公報第7203頁是社會局局長答詢（初步規劃再回報），與青年局無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pa2aee439f8",
+    "name": "陳宥丞",
+    "issue_topic": "四分溪水質污染與土資場裁罰管控",
+    "action": "drop_point_text",
+    "text": "磊駿",
+    "reason": "點名非公職法人「磊駿土資場」＋違法排放廢水遭裁罰（水污染違規），依10/15擴大的第三人規則刪除業者名稱",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pa2aee439f8",
+    "name": "陳宥丞",
+    "issue_topic": "四分溪水質污染與土資場裁罰管控",
+    "action": "drop_response_sentence",
+    "text": "磊駿",
+    "reason": "同上，刪除回應中的業者名稱",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pa2aee439f8",
+    "name": "陳宥丞",
+    "issue_topic": "U Sport 運動政策執行成效與專用 APP 檢討",
+    "action": "drop_citation",
+    "page": 903,
+    "reason": "公報第903頁是議員要求半個月內提出打擊演唱會黃牛方案，與U Sport無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pc164e1064f",
+    "name": "陳怡君",
+    "issue_topic": "市府公務人員職場霸凌與性騷擾申訴機制",
+    "action": "drop_point_text",
+    "text": "教育局同仁遭前圖書館館長性騷擾及",
+    "reason": "點名可識別的非民選公務員「前圖書館館長」（教育局局長於原文第596頁證實其曾任教育局副局長）＋未經調查證實的性騷擾指控，依第三人規則刪除",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pc164e1064f",
+    "name": "陳怡君",
+    "issue_topic": "市府公務人員職場霸凌與性騷擾申訴機制",
+    "action": "drop_citation",
+    "page": 594,
+    "cited_prefix": "，他很餓",
+    "reason": "公報第594頁此段引文是議員唸前圖書館館長對離職女性官員的留言，所支持的句子已刪除，且涉性騷擾指控細節",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pc164e1064f",
+    "name": "陳怡君",
+    "issue_topic": "視障者通行安全與 YouBike 騎乘規範",
+    "action": "drop_citation",
+    "page": 605,
+    "reason": "公報第605頁市長「我們會啟動聯合稽查」是花博園區議題，與視障者通行無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pc164e1064f",
+    "name": "陳怡君",
+    "issue_topic": "市區即時交通影像品質與監視器維護管理",
+    "action": "drop_point_text",
+    "text": "、「畫面被樹葉遮住了，看不到車流」",
+    "reason": "引文「畫面被樹葉遮住了，看不到車流」是交通局局長所說（原文第6233頁），放在議員引文中屬歸屬錯誤",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "padc186f41c",
+    "name": "陳慈慧",
+    "issue_topic": "市府公務人員高離職率與職場環境改善",
+    "action": "drop_citation",
+    "page": 635,
+    "reason": "公報第635頁市長談觀傳局稽查旅宿業者房價，與公務人員離職無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p3371a36c1c",
+    "name": "陳賢蔚",
+    "issue_topic": "專任運動教練績效評量與考評制度改善",
+    "action": "drop_citation",
+    "page": 7639,
+    "reason": "公報第7639頁是議員要求資訊局1個月內提出資安課程改進報告，與運動教練無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p3371a36c1c",
+    "name": "陳賢蔚",
+    "issue_topic": "農友使用驅猴炮受傷事件與猴害防護措施",
+    "action": "drop_citation",
+    "page": 7289,
+    "reason": "公報第7289頁「達成職災零死亡」是勞動議題，與驅猴炮無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p3371a36c1c",
+    "name": "陳賢蔚",
+    "issue_topic": "剴剴案後續檢討與兒童福利機構委辦評選",
+    "action": "drop_issue",
+    "reason": "議題點名兒福聯盟（非公職法人）並指其社工「遭起訴」、承認「行政疏失」（原文第7281頁），屬第三人＋刑案（兒虐致死案）；議員段落與回應均以兒福聯盟為主體，無法只刪一句。與14-03耿葳剴剴案議題處理一致",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p3371a36c1c",
+    "name": "陳賢蔚",
+    "issue_topic": "芝山岩考古遺址博物館籌設與設施維護",
+    "action": "drop_citation",
+    "page": 519,
+    "reason": "公報第519頁市長談友善生產，與芝山岩無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p2cdc00a729",
+    "name": "陳重文",
+    "issue_topic": "市政統計數據精準度與研考會運作管理",
+    "action": "drop_response_sentence",
+    "text": "陳情案件有一定作業規範「優先、急迫性需要派工的在 4 小時內處理」，",
+    "reason": "「優先、急迫性需要派工的在 4 小時內處理」與「一定的程序規範」是市長所說（原文第714頁），不是研考會代理主任委員，屬歸屬錯誤；代理主委講的是分文爭議的協調（第713頁），保留",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p2cdc00a729",
+    "name": "陳重文",
+    "issue_topic": "U-Sport 運動政策推動與系統優化",
+    "action": "drop_citation",
+    "page": 7377,
+    "reason": "公報第7377頁是商業處處長答應檢核公平貿易友善店家資料，與U-Sport無關，錯置",
+    "reviewer": "verifier",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pe9aa863557",
+    "name": "張斯綱",
+    "issue_topic": "外聘教練性騷案跨局處通報與不適任列管",
+    "action": "drop_response_sentence",
+    "text": "已廢止該教練工作室之申請與商業登記，並",
+    "reason": "第三人規則（避免職稱以外可識別細節）：涉性騷刑案（已起訴）的非公職第三人，「工作室」「商業登記撤銷」指向其可查詢的營業登記，加上原文第80頁所述 2024-09-18 媒體報導，可對應到特定個人；比照本審刪「擊劍」，刪除營業登記細節，保留通報流程與列為不適任的政策內容",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "市府員工職場霸凌防制與人事機制",
+    "action": "drop_point_text",
+    "text": "欲輕生",
+    "reason": "第三人健康／心理狀態細節（自殺意念），原文第760頁為議員轉述陳情、官員未證實；對政策訴求非必要，且自殺防治報導原則避免無必要的自殺細節；刪後仍保留「遭言語霸凌」",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "市府員工職場霸凌防制與人事機制",
+    "action": "drop_point_text",
+    "text": "未調查即粗暴將技正連人帶缺調離科室、",
+    "reason": "第三人規則（避免職稱以外可識別細節）：該科唯一技正缺的人事調動（原文第761–762頁）可辨識特定公務員，並可回推被指控霸凌的科別與科長，使 verifier 刪除「心理衛生科」失效",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p41a7902cc9",
+    "name": "柳采葳",
+    "issue_topic": "市府員工職場霸凌防制與人事機制",
+    "action": "drop_response_sentence",
+    "text": "，技正調任則係因醫事管理科支援世界壯年運動會缺人",
+    "reason": "配合上一筆：回應寫出技正調往「醫事管理科」，可辨識該名技正並回推原科室（心理衛生科）與被指控之科長；議員段落已刪該指控，回應一併刪除以免單方殘留",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p67335d29b9",
+    "name": "鍾沛君",
+    "issue_topic": "外僑學校校園暴力事件處置與通報機制",
+    "action": "drop_issue",
+    "reason": "少年（高中生）親密關係暴力，加害人與被害人皆為兒少且屬刑事／少年保護事件；議題名稱本身含「外僑學校」（臺北僅數所），加上高中、11月28日校安通報、保護令等細節與既有新聞，足以讓校內社群識別當事人（兒少福權法第69條第1項、家暴法第50條之1）；議題名稱不能只刪字，故整題刪除",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p3d9ce55419",
+    "name": "鍾佩玲",
+    "issue_topic": "市府職場霸凌與同仁輕生案件調查",
+    "action": "drop_point_text",
+    "text": "去年底社會局員工輕生案，指出霸凌申訴與輕生案件不同，要求市府重啟調查並重新統檢",
+    "reason": "「去年底＋社會局＋員工輕生」三項合在一起就指向單一死者；與洪婉臻同一案件已刪到不留時間與單位，這裡也照同一標準處理（降低可識別性、自殺防治法第16條的報導原則）；刪完議員訴求仍保留「內部員工輕生是否與霸凌有關」，市長回應「重新調查」也保留",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p28d7d936d9",
+    "name": "游淑慧",
+    "issue_topic": "警察局監視器傳輸費與台智光合約解約案",
+    "action": "drop_response_sentence",
+    "text": "依子約第15條規定",
+    "reason": "公報第6542–6543頁局長說明子約第15條是「賄賂或不正利益」解約條款，且業者表示尚未被起訴；寫出條號等於間接把點名的公司連到賄賂刑案（第三人規則）。刪條號後「已向台智光主張解約」仍是事實",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "pb8d278f1da",
+    "name": "耿葳",
+    "issue_topic": "懷愛館設施管理與告別式二手花回收販售爭議",
+    "action": "drop_point_text",
+    "text": "，涉嫌未明確告知並欺騙消費者",
+    "reason": "懷愛館的花材委外廠商雖未點名，但可以識別；「欺騙消費者」是議員的詐欺指稱，官員在會中只證實違反消保法告知義務（法務局局長那句保留）。比照游淑慧刪「涉嫌不法」的處理",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  },
+  {
+    "person_id": "p369c0f3b74",
+    "name": "許淑華",
+    "issue_topic": "未成年無照駕駛防制與跨局處輔導機制",
+    "action": "drop_point_text",
+    "text": "內湖區",
+    "reason": "未成年人無照駕駛造成3死，屬刑事／少年保護事件；行政區加傷亡數就能鎖定單一事故，進而指向該少年（兒少福權法第69條第1項第5款）。刪去行政區，不影響政策重點",
+    "reviewer": "security-executor",
+    "date": "2026-10-16"
+  }
+]
