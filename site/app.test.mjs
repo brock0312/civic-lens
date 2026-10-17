@@ -628,9 +628,9 @@ test('home note lists non-Taipei counties whose incumbent councillors are tagged
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
   const mia = { iso: 'mia', name: '苗栗縣', councilor_roster: true };
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
-  assert.match(homeNote([tpe, mia, hsq, tao]), /候選人中的現任縣市長與苗栗縣、桃園市的現任議員會標示，苗栗縣議會的問政紀錄仍在建置中；其他未收錄問政紀錄的縣市，原因標示於縣市清單。$/);
+  assert.match(homeNote([tpe, mia, hsq, tao]), /候選人中的現任縣市長與苗栗縣、桃園市的現任議員會標示，苗栗縣議會的問政紀錄仍在建置中；其他未收錄問政紀錄的縣市，原因說明於各縣市頁面。$/);
   assert.match(homeNote([tpe, mia, { iso: 'xxx', name: '新縣' }]), /會標示，苗栗縣、新縣議會的問政紀錄仍在建置中。$/);
-  assert.match(homeNote([tpe, tao]), /會標示，未收錄問政紀錄的縣市，原因標示於縣市清單。$/);
+  assert.match(homeNote([tpe, tao]), /會標示，未收錄問政紀錄的縣市，原因說明於各縣市頁面。$/);
   assert.match(homeNote([tpe]), /會標示。$/);
   assert.doesNotMatch(homeNote([tpe, tao]), /建置中/);
   assert.doesNotMatch(homeNote([tpe, mia]), /現任議員名單/);
@@ -727,8 +727,8 @@ test('county note and tag mention 2022 bulletins only when the data flags them',
   assert.match(countyNote(tao), /並收錄現任議員的 2022 選舉公報政見與學經歷；桃園市議會聲明議事影音不得用於政治目的或選舉/);
   assert.doesNotMatch(countyNote(pif), /公報/);
   assert.deepEqual(countyTags(tpe), ['含問政紀錄']);
-  assert.deepEqual(countyTags(tao), [BULLETIN_TAG, '議會影音限制選舉使用']);
-  assert.deepEqual(countyTags(pif), ['議會未公開問政紀錄']);
+  assert.deepEqual(countyTags(tao), [BULLETIN_TAG]);
+  assert.deepEqual(countyTags(pif), []);
   assert.deepEqual(countyTags({ iso: 'xxx', councilor_bulletin: true }), [BULLETIN_TAG]);
   assert.deepEqual(countyTags({ iso: 'xxx' }), []);
   assert.match(homeNote([tpe, tao, pif]), /標示「含 2022 公報」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷/);
@@ -1291,11 +1291,9 @@ test('a QR code file exists for each coin', () => {
 test('the counties without council records explain why, factually and without implying councillors did nothing', () => {
   assert.deepEqual(Object.keys(NO_RECORD_REASONS).sort(), ['cyi', 'cyq', 'pif', 'tao']);
   for (const iso of Object.keys(NO_RECORD_REASONS)) assert.equal(DEEP_COUNTIES.has(iso), false);
-  for (const { tag, note } of Object.values(NO_RECORD_REASONS)) {
-    assert.ok(tag);
+  for (const { note } of Object.values(NO_RECORD_REASONS)) {
     assert.doesNotMatch(note, /拒絕存取|地方政府|建置中|沒有問政|無問政/);
   }
-  assert.equal(NO_RECORD_REASONS.cyq.tag, '議會官網禁止程式擷取');
   assert.equal(noRecordNote({ iso: 'cyq', name: '嘉義縣' }), '嘉義縣議會官網的 robots.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。');
   assert.equal(noRecordNote({ iso: 'mia', name: '苗栗縣' }), '苗栗縣議會的問政紀錄仍在建置中，本站目前尚未收錄。');
   assert.match(countyNote({ iso: 'pif', name: '屏東縣' }), /；屏東縣議會官網沒有議事錄專區與議事影音，也未查得逐人的質詢紀錄，本站目前未收錄問政紀錄。$/);
