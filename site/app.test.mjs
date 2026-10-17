@@ -2,13 +2,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTag, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
+import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTags, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
 import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
-import { DEEP_COUNTIES } from './geo.js';
+import { DEEP_COUNTIES, NO_RECORD_REASONS } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -96,6 +96,7 @@ test('county list puts municipalities first and Kinmen and Lienchiang last', () 
 });
 
 test('non-deep counties get a neutral note, never implying the person did nothing', () => {
+  // hsq 不在 NO_RECORD_REASONS：走「建置中」退路
   const note = noRecordNote(hsq);
   assert.match(note, /新竹縣議會的問政紀錄仍在建置中/);
   assert.doesNotMatch(note, /沒有問政|無問政/);
@@ -627,7 +628,11 @@ test('home note lists non-Taipei counties whose incumbent councillors are tagged
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
   const mia = { iso: 'mia', name: '苗栗縣', councilor_roster: true };
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
-  assert.match(homeNote([tpe, mia, hsq, tao]), /候選人中的現任縣市長與苗栗縣、桃園市的現任議員會標示，議員問政紀錄仍在建置中/);
+  assert.match(homeNote([tpe, mia, hsq, tao]), /候選人中的現任縣市長與苗栗縣、桃園市的現任議員會標示，苗栗縣議會的問政紀錄仍在建置中；其他未收錄問政紀錄的縣市，原因標示於縣市清單。$/);
+  assert.match(homeNote([tpe, mia, { iso: 'xxx', name: '新縣' }]), /會標示，苗栗縣、新縣議會的問政紀錄仍在建置中。$/);
+  assert.match(homeNote([tpe, tao]), /會標示，未收錄問政紀錄的縣市，原因標示於縣市清單。$/);
+  assert.match(homeNote([tpe]), /會標示。$/);
+  assert.doesNotMatch(homeNote([tpe, tao]), /建置中/);
   assert.doesNotMatch(homeNote([tpe, mia]), /現任議員名單/);
   assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
 });
@@ -719,11 +724,13 @@ test('county note and tag mention 2022 bulletins only when the data flags them',
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true, councilor_bulletin: true };
   const pif = { iso: 'pif', name: '屏東縣', councilor_roster: false, councilor_bulletin: false };
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true, councilor_bulletin: true };
-  assert.match(countyNote(tao), /並收錄現任議員的 2022 選舉公報政見與學經歷；桃園市議會的問政紀錄仍在建置中/);
+  assert.match(countyNote(tao), /並收錄現任議員的 2022 選舉公報政見與學經歷；桃園市議會聲明議事影音不得用於政治目的或選舉/);
   assert.doesNotMatch(countyNote(pif), /公報/);
-  assert.equal(countyTag(tpe), '含問政紀錄');
-  assert.equal(countyTag(tao), BULLETIN_TAG);
-  assert.equal(countyTag(pif), '');
+  assert.deepEqual(countyTags(tpe), ['含問政紀錄']);
+  assert.deepEqual(countyTags(tao), [BULLETIN_TAG, '議會影音限制選舉使用']);
+  assert.deepEqual(countyTags(pif), ['議會未公開問政紀錄']);
+  assert.deepEqual(countyTags({ iso: 'xxx', councilor_bulletin: true }), [BULLETIN_TAG]);
+  assert.deepEqual(countyTags({ iso: 'xxx' }), []);
   assert.match(homeNote([tpe, tao, pif]), /標示「含 2022 公報」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷/);
   assert.doesNotMatch(homeNote([tpe, pif]), /2022 公報/);
 });
@@ -732,7 +739,7 @@ test('incumbent councillors outside deep counties get the records-pending note, 
   const counties = new Map([['tao', { iso: 'tao', name: '桃園市' }], ['tpe', { iso: 'tpe', name: '臺北市' }], ['ila', { iso: 'ila', name: '宜蘭縣' }]]);
   const office = (o, d) => ({ data: { office: o, district_id: d } });
   assert.deepEqual(pendingRecordNotes([office('tao_councilor', 'tao-council-04'), office('tao_councilor', 'tao-council-04')], counties),
-    ['桃園市議會的問政紀錄仍在建置中，本站目前尚未收錄。']);
+    ['桃園市議會聲明議事影音不得用於政治目的或選舉，官網也未查得逐人的書面質詢與出缺勤，本站不收錄問政紀錄。']);
   assert.deepEqual(pendingRecordNotes([office('tpe_councilor', 'tpe-council-01')], counties), []);
   assert.deepEqual(pendingRecordNotes([office('ila_mayor', 'ila-mayor')], counties), []);
 });
@@ -828,6 +835,7 @@ test('county and home notes describe Chiayi City councillors as 2022 winners', (
   const n = countyNote(cyi);
   assert.match(n, /候選人中的現任嘉義市長與 2022 年當選議員會標示，並收錄 2022 年當選議員的 2022 選舉公報政見與學經歷/);
   assert.doesNotMatch(n, /現任議員/);
+  assert.match(n, /；嘉義市議會官網的 robots\.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。$/);
   assert.match(homeNote([mia, cyi]), /候選人中的現任縣市長與苗栗縣的現任議員、嘉義市的 2022 年當選議員會標示/);
   assert.match(homeNote([cyi]), /候選人中的現任縣市長與嘉義市的 2022 年當選議員會標示/);
 });
@@ -1278,4 +1286,18 @@ test('support is a header button whose first step offers Ko-fi and crypto as per
 });
 test('a QR code file exists for each coin', () => {
   for (const { key } of CRYPTO) assert.ok(existsSync(new URL(`./assets/qr/${key}.svg`, import.meta.url)), key);
+});
+
+test('the counties without council records explain why, factually and without implying councillors did nothing', () => {
+  assert.deepEqual(Object.keys(NO_RECORD_REASONS).sort(), ['cyi', 'cyq', 'pif', 'tao']);
+  for (const iso of Object.keys(NO_RECORD_REASONS)) assert.equal(DEEP_COUNTIES.has(iso), false);
+  for (const { tag, note } of Object.values(NO_RECORD_REASONS)) {
+    assert.ok(tag);
+    assert.doesNotMatch(note, /拒絕存取|地方政府|建置中|沒有問政|無問政/);
+  }
+  assert.equal(NO_RECORD_REASONS.cyq.tag, '議會官網禁止程式擷取');
+  assert.equal(noRecordNote({ iso: 'cyq', name: '嘉義縣' }), '嘉義縣議會官網的 robots.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。');
+  assert.equal(noRecordNote({ iso: 'mia', name: '苗栗縣' }), '苗栗縣議會的問政紀錄仍在建置中，本站目前尚未收錄。');
+  assert.match(countyNote({ iso: 'pif', name: '屏東縣' }), /；屏東縣議會官網沒有議事錄專區與議事影音，也未查得逐人的質詢紀錄，本站目前未收錄問政紀錄。$/);
+  assert.doesNotMatch(countyNote({ iso: 'pif', name: '屏東縣' }), /建置中/);
 });

@@ -1,6 +1,6 @@
 // civic-lens 靜態前端：hash routing，資料全部從相對路徑 data/ 讀取。
 import {
-  DEEP_COUNTIES, COUNCIL_SITES, COUNCIL_PUBLISHERS, KIND_LABEL, isoOf, townWord, countyOrder, townsOf, needsVillage,
+  DEEP_COUNTIES, NO_RECORD_REASONS, COUNCIL_SITES, COUNCIL_PUBLISHERS, KIND_LABEL, isoOf, townWord, countyOrder, townsOf, needsVillage,
   councilDistrictFor, officeLabel, districtTitle, candidateOrder, districtSub,
 } from './geo.js';
 
@@ -13,21 +13,27 @@ const NO_RECORD ='本站目前沒有此人的任內問政紀錄（收錄範圍�
 // councilor_cec_2022：沒有名錄（嘉義市），議員依中選會 2022 當選名單標示，不稱「現任」
 export const countyNote = (county) => {
   const cec = county.councilor_cec_2022;
-  return `目前提供 2026 候選人名單與選區，候選人中的現任${county.councilor_roster ? '議員與' : ''}${county.name}長${cec ? '與 2022 年當選議員' : ''}會標示${county.councilor_bulletin ? `，並收錄${cec ? ' 2022 年當選議員' : '現任議員'}的 2022 選舉公報政見與學經歷` : ''}；${county.name}議會的問政紀錄仍在建置中。`;
+  return `目前提供 2026 候選人名單與選區，候選人中的現任${county.councilor_roster ? '議員與' : ''}${county.name}長${cec ? '與 2022 年當選議員' : ''}會標示${county.councilor_bulletin ? `，並收錄${cec ? ' 2022 年當選議員' : '現任議員'}的 2022 選舉公報政見與學經歷` : ''}；${NO_RECORD_REASONS[county.iso]?.note ?? `${county.name}議會的問政紀錄仍在建置中。`}`;
 };
-// 首頁縣市清單的標籤：深度縣市「含問政紀錄」；其他縣市有現任議員公報時「含 2022 公報」
+// 首頁縣市清單的標籤：深度縣市「含問政紀錄」；其他縣市有現任議員公報時「含 2022 公報」，再加上不收錄問政紀錄的原因
 export const BULLETIN_TAG = '含 2022 公報';
-export const countyTag = (c) => (DEEP_COUNTIES.has(c.iso) ? '含問政紀錄' : c.councilor_bulletin ? BULLETIN_TAG : '');
+export const countyTags = (c) => (DEEP_COUNTIES.has(c.iso) ? ['含問政紀錄']
+  : [c.councilor_bulletin && BULLETIN_TAG, NO_RECORD_REASONS[c.iso]?.tag].filter(Boolean));
 // 首頁縣市清單下的說明（counties 已依顯示順序排好）
 export function homeNote(counties) {
   const roster = counties.filter((c) => c.councilor_roster && !DEEP_COUNTIES.has(c.iso)).map((c) => c.name);
   const cec = counties.filter((c) => c.councilor_cec_2022).map((c) => c.name);
   const tagged = [roster.length && `${roster.join('、')}的現任議員`, cec.length && `${cec.join('、')}的 2022 年當選議員`].filter(Boolean);
-  const bulletin = counties.some((c) => countyTag(c) === BULLETIN_TAG);
-  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；${bulletin ? `標示「${BULLETIN_TAG}」的縣市另收錄候選人中${cec.length ? '現任（或 2022 年當選）' : '現任'}議員的 2022 選舉公報政見與學經歷；` : ''}其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${tagged.length ? `與${tagged.join('、')}` : ''}會標示，議員問政紀錄仍在建置中。`;
+  const bulletin = counties.some((c) => countyTags(c).includes(BULLETIN_TAG));
+  // 既非深度也沒有原因的縣市（苗栗、未來新增）點名「建置中」，其餘指向縣市清單的原因標籤
+  const pending = counties.filter((c) => !DEEP_COUNTIES.has(c.iso) && !NO_RECORD_REASONS[c.iso]).map((c) => c.name);
+  const reasons = counties.some((c) => !DEEP_COUNTIES.has(c.iso) && NO_RECORD_REASONS[c.iso]);
+  const tail = [pending.length && `${pending.join('、')}議會的問政紀錄仍在建置中`,
+    reasons && `${pending.length ? '其他' : ''}未收錄問政紀錄的縣市，原因標示於縣市清單`].filter(Boolean).join('；');
+  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；${bulletin ? `標示「${BULLETIN_TAG}」的縣市另收錄候選人中${cec.length ? '現任（或 2022 年當選）' : '現任'}議員的 2022 選舉公報政見與學經歷；` : ''}其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${tagged.length ? `與${tagged.join('、')}` : ''}會標示${tail ? `，${tail}` : ''}。`;
 }
-// 非深度縣市：問政紀錄還沒建置，措辭不能讓人以為此人沒有問政
-export const noRecordNote = (county) => `${county.name}議會的問政紀錄仍在建置中，本站目前尚未收錄。`;
+// 非深度縣市：說明不收錄的原因（或仍在建置），措辭不能讓人以為此人沒有問政
+export const noRecordNote = (county) => NO_RECORD_REASONS[county.iso]?.note ?? `${county.name}議會的問政紀錄仍在建置中，本站目前尚未收錄。`;
 // 現任議員但所在縣市還沒有問政紀錄：「做了什麼」只有任職期間，要註明紀錄未收錄，不能讓人以為沒有問政
 export function pendingRecordNotes(offices, counties) {
   const isos = offices.filter((f) => String(f.data?.office).endsWith('_councilor') && f.data?.district_id)
@@ -654,7 +660,7 @@ async function renderHome(main, ctx) {
       <div class="map" aria-hidden="true"></div>
       <nav aria-labelledby="county-h">
         <h2 id="county-h">縣市</h2>
-        <ul class="counties">${counties.map((c) => `<li><a href="#/c/${esc(c.iso)}" data-iso="${esc(c.iso)}">${esc(c.name)}</a>${countyTag(c) ? `<span class="tag">${esc(countyTag(c))}</span>` : ''}</li>`).join('')}</ul>
+        <ul class="counties">${counties.map((c) => `<li><a href="#/c/${esc(c.iso)}" data-iso="${esc(c.iso)}">${esc(c.name)}</a>${countyTags(c).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</li>`).join('')}</ul>
         <p class="small muted">${esc(homeNote(counties))}</p>
       </nav>
     </div>`;
@@ -669,7 +675,7 @@ async function renderHome(main, ctx) {
   if (!map) return; // 已換頁
   map.innerHTML = svg.replace(/^<\?xml[^>]*>\s*/, '');
   for (const iso of DEEP_COUNTIES) map.querySelector(`#county-${iso}`)?.classList.add('deep');
-  for (const c of counties) if (countyTag(c) === BULLETIN_TAG) map.querySelector(`#county-${c.iso}`)?.classList.add('part');
+  for (const c of counties) if (countyTags(c).includes(BULLETIN_TAG)) map.querySelector(`#county-${c.iso}`)?.classList.add('part');
   map.addEventListener('click', (e) => {
     const iso = e.target.closest('path[id^="county-"]')?.id.slice(7);
     if (iso && ctx.counties.has(iso)) location.hash = `#/c/${iso}`;
@@ -693,7 +699,7 @@ async function renderCounty(main, ctx, iso) {
     ${crumbs(['#/', '全國'], ['', county.name])}
     <h1 tabindex="-1">${esc(county.name)}</h1>
     <p class="lede">選擇戶籍所在的${word}，查看 2026 年${esc(officeLabel(`${iso}_councilor`, county))}與${esc(officeLabel(`${iso}_mayor`, county))}的候選人。</p>
-    ${DEEP_COUNTIES.has(iso) ? '' : `<p class="status" role="note">${esc(countyNote(county))}${site ? `議會資訊可先查閱${ext(site, `${esc(county.name)}議會官網`)}。` : ''}</p>`}
+    ${DEEP_COUNTIES.has(iso) ? '' : `<p class="status" role="note">${esc(countyNote(county))}${site ? `${NO_RECORD_REASONS[iso] ? '前往' : '議會資訊可先查閱'}${ext(site, `${esc(county.name)}議會官網`)}。` : ''}</p>`}
     <form class="lookup" onsubmit="return false">
       <div class="field">
         <label for="town">${word}</label>
