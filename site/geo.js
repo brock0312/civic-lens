@@ -1,7 +1,7 @@
 // 全國縣市、選區與村里的純函式：不碰 DOM，app.js 與測試共用。
 
 // 有深度問政資料（議會質詢、出缺勤等）的縣市；其他縣市只有 2026 候選人名單與選區
-export const DEEP_COUNTIES = new Set(['tpe', 'nwt', 'khh', 'txg', 'tnn', 'hua', 'hsz', 'ttt', 'kin', 'kee', 'hsq', 'cha', 'nan', 'lie', 'ila', 'yun', 'pen']);  // 與 app.js 的 RECORDS 一致
+export const DEEP_COUNTIES = new Set(['tpe', 'nwt', 'khh', 'txg', 'tnn', 'hua', 'hsz', 'ttt', 'kin', 'kee', 'hsq', 'cha', 'nan', 'lie', 'ila', 'yun', 'pen', 'mia']);  // 與 app.js 的 RECORDS 一致
 
 // 各縣市議會官網：2026-10-02 逐一 curl 確認 HTTP 200 且頁面標題為該議會
 export const COUNCIL_SITES = {
@@ -25,7 +25,6 @@ export const COUNTY_NAMES = {
 // 不收錄問政紀錄的縣市與原因（V15、V16 開頭）：首頁標籤與縣市頁、人物頁的說明；只陳述事實，不能讓人以為議員沒有問政
 const robots = (iso) => ({ tag: '議會官網禁止程式擷取', note: `${COUNTY_NAMES[iso]}議會官網的 robots.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。` });
 export const NO_RECORD_REASONS = {
-  // 苗栗：2026-10-17 使用者放寬 /admin/ 附件，問政紀錄建置中（V16 已定案第 10 條），不列原因
   cyi: robots('cyi'), cyq: robots('cyq'),
   tao: { tag: '議會影音限制選舉使用', note: '桃園市議會聲明議事影音不得用於政治目的或選舉，官網也未查得逐人的書面質詢與出缺勤，本站不收錄問政紀錄。' },
   pif: { tag: '議會未公開問政紀錄', note: '屏東縣議會官網沒有議事錄專區與議事影音，也未查得逐人的質詢紀錄，本站目前未收錄問政紀錄。' },

@@ -7,7 +7,7 @@ import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, K
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
-import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
+import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, MIA_ATTENDANCE_NOTE, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
 import { DEEP_COUNTIES, NO_RECORD_REASONS } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -627,9 +627,12 @@ test('county note says incumbent councillors are tagged only when the data has a
 test('home note lists non-Taipei counties whose incumbent councillors are tagged, from data', () => {
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
   const mia = { iso: 'mia', name: '苗栗縣', councilor_roster: true };
+  const xxx = { iso: 'xxx', name: '新縣', councilor_roster: true };
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
-  assert.match(homeNote([tpe, mia, hsq, tao]), /候選人中的現任縣市長與苗栗縣、桃園市的現任議員會標示，苗栗縣議會的問政紀錄仍在建置中；其他未收錄問政紀錄的縣市，原因標示於縣市清單。$/);
-  assert.match(homeNote([tpe, mia, { iso: 'xxx', name: '新縣' }]), /會標示，苗栗縣、新縣議會的問政紀錄仍在建置中。$/);
+  assert.match(homeNote([tpe, xxx, hsq, tao]), /候選人中的現任縣市長與新縣、桃園市的現任議員會標示，新縣議會的問政紀錄仍在建置中；其他未收錄問政紀錄的縣市，原因標示於縣市清單。$/);
+  assert.match(homeNote([tpe, xxx, { iso: 'yyy', name: '舊縣' }]), /會標示，新縣、舊縣議會的問政紀錄仍在建置中。$/);
+  // 苗栗 2026-10-17 起是深度縣市：不再列為「建置中」或「現任議員會標示」
+  assert.doesNotMatch(homeNote([tpe, mia, tao]), /建置中|苗栗/);
   assert.match(homeNote([tpe, tao]), /會標示，未收錄問政紀錄的縣市，原因標示於縣市清單。$/);
   assert.match(homeNote([tpe]), /會標示。$/);
   assert.doesNotMatch(homeNote([tpe, tao]), /建置中/);
@@ -831,12 +834,12 @@ test('Chiayi City councillors from the 2022 results are tagged "2022 當選", ne
 
 test('county and home notes describe Chiayi City councillors as 2022 winners', () => {
   const cyi = { iso: 'cyi', name: '嘉義市', councilor_roster: false, councilor_cec_2022: true, councilor_bulletin: true };
-  const mia = { iso: 'mia', name: '苗栗縣', councilor_roster: true };
+  const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
   const n = countyNote(cyi);
   assert.match(n, /候選人中的現任嘉義市長與 2022 年當選議員會標示，並收錄 2022 年當選議員的 2022 選舉公報政見與學經歷/);
   assert.doesNotMatch(n, /現任議員/);
   assert.match(n, /；嘉義市議會官網的 robots\.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。$/);
-  assert.match(homeNote([mia, cyi]), /候選人中的現任縣市長與苗栗縣的現任議員、嘉義市的 2022 年當選議員會標示/);
+  assert.match(homeNote([tao, cyi]), /候選人中的現任縣市長與桃園市的現任議員、嘉義市的 2022 年當選議員會標示/);
   assert.match(homeNote([cyi]), /候選人中的現任縣市長與嘉義市的 2022 年當選議員會標示/);
 });
 
@@ -1091,6 +1094,39 @@ test('Changhua e-book rows link the page where the councillor starts speaking', 
   assert.match(html, /電子書第 941 頁起/);
 });
 
+// ---------- 苗栗（V16 已定案第 5、6、10 點） ----------
+
+test('Miaoli is a deep county counting general-question records with present-only attendance and no videos', () => {
+  assert.ok(DEEP_COUNTIES.has('mia'));
+  assert.equal(NO_RECORD_REASONS.mia, undefined);
+  const r = RECORDS.mia;
+  assert.deepEqual(r.depts, []);
+  const t = { date: '2026-06-03', data: { doc_type: KIN_TRANSCRIPT } };
+  const card = summaryCard({}, { offices: [], inters: [t], written: [t], videos: [], rec: r });
+  assert.match(card, /縣政總質詢紀錄 <span class="num">1<\/span> 場/);
+  assert.match(card, /第 1 至第 7 次定期會.*第 8 次定期會的縣政總質詢尚未舉行或會議紀錄尚未刊出.*部門工作報告日.*沒有主席點名.*第 13、14 次臨時會至第 8 次定期會/);
+  assert.equal(r.transcriptHeading, '縣政總質詢紀錄');
+  assert.match(r.transcriptBlurb, /主席點名與本人的質詢發言.*聯合質詢列在每位質詢議員名下.*開始發言的那一頁.*未摘要.*資料來源：苗栗縣議會/);
+  assert.equal(r.videoBlurb, undefined);
+  assert.doesNotMatch(r.noRecord + r.transcriptBlurb + r.note, /沒有問政|無問政|未質詢|KIN_/);
+  assert.match(MIA_ATTENDANCE_NOTE, /只列出席議員，請假只記人數、沒有名單.*只計出席次數.*第 13、14 次臨時會（2025 年 3 月）起.*之前只記人數.*記載人數不符.*整次不收錄.*遞補.*第一次列入/);
+});
+
+test('Miaoli attendance shows present only, and record rows link the PDF page', () => {
+  const att = [{ ...nwtAtt('第20屆第7次定期會', 26, 26, 0, 0, 'https://www.mcc.gov.tw/admin/upload/a.pdf'), data: { ...nwtAtt('第20屆第7次定期會', 26, 26).data, leave: null, duty: null } }];
+  const html = nwtAttendanceBlock(att, RECORDS.mia.attendance);
+  assert.match(html, /出席 <span class="num">26<\/span>／<span class="num">26<\/span> 次/);
+  assert.doesNotMatch(html, /<span>請假|請假 <span|公差|<span>缺席/);
+  assert.ok(html.includes(MIA_ATTENDANCE_NOTE));
+  assert.equal(publisherOf('https://www.mcc.gov.tw/admin/upload/a.pdf'), '苗栗縣議會');
+  const f = { date: '2026-06-03', source_url: 'https://www.mcc.gov.tw/admin/upload/twgov_file_202606110852541.pdf#page=63',
+    data: { session: '第20屆第7次定期會', doc_type: KIN_TRANSCRIPT, title: '縣政總質詢紀錄（會議紀錄第 63 頁起）' } };
+  const rows = interpellationRows([f]);
+  assert.match(rows, /<time class="date" datetime="2026-06-03">/);
+  assert.match(rows, /\.pdf#page=63/);
+  assert.match(rows, /會議紀錄第 63 頁起/);
+});
+
 // ---------- 南投（V16 已定案第 6 點） ----------
 
 test('Nantou is a deep county counting council-suggestion rows under their own heading, without attendance or videos', () => {
@@ -1297,7 +1333,7 @@ test('the counties without council records explain why, factually and without im
   }
   assert.equal(NO_RECORD_REASONS.cyq.tag, '議會官網禁止程式擷取');
   assert.equal(noRecordNote({ iso: 'cyq', name: '嘉義縣' }), '嘉義縣議會官網的 robots.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。');
-  assert.equal(noRecordNote({ iso: 'mia', name: '苗栗縣' }), '苗栗縣議會的問政紀錄仍在建置中，本站目前尚未收錄。');
+  assert.equal(noRecordNote({ iso: 'xxx', name: '新縣' }), '新縣議會的問政紀錄仍在建置中，本站目前尚未收錄。');
   assert.match(countyNote({ iso: 'pif', name: '屏東縣' }), /；屏東縣議會官網沒有議事錄專區與議事影音，也未查得逐人的質詢紀錄，本站目前未收錄問政紀錄。$/);
   assert.doesNotMatch(countyNote({ iso: 'pif', name: '屏東縣' }), /建置中/);
 });
