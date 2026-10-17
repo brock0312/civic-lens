@@ -7,7 +7,7 @@ import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, K
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
-import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, MIA_ATTENDANCE_NOTE, CYI_ATTENDANCE_NOTE, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
+import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, MIA_ATTENDANCE_NOTE, CYI_ATTENDANCE_NOTE, PIF_LISTED, PIF_LINK, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
 import { DEEP_COUNTIES, NO_RECORD_REASONS } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -631,8 +631,8 @@ test('home note counts counties and names those without council records, from da
   const pif = { iso: 'pif', name: '屏東縣', councilor_roster: true };
   const n = homeNote([tpe, mia, tao, pif]);
   assert.match(n, /^全部 4 縣市都提供 2026 候選人名單與選區，候選人中的現任縣市長與議員會標示。/);
-  assert.match(n, /標示「含問政紀錄」的 2 個縣市另收錄現任議員的問政紀錄/);
-  assert.match(n, /桃園市、屏東縣目前未收錄問政紀錄，原因說明於各縣市頁面。$/);
+  assert.match(n, /標示「含問政紀錄」的 3 個縣市另收錄現任議員的問政紀錄/);
+  assert.match(n, /。桃園市目前未收錄問政紀錄，原因說明於各縣市頁面。$/);
   assert.doesNotMatch(n, /苗栗|建置中/);
   assert.match(homeNote([tpe, mia]), /各縣市不同。$/);
 });
@@ -722,7 +722,7 @@ test('publisherOf names county councils and the interior ministry from their dom
 
 test('county note and tag mention 2022 bulletins only when the data flags them', () => {
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true, councilor_bulletin: true };
-  const pif = { iso: 'pif', name: '屏東縣', councilor_roster: false, councilor_bulletin: false };
+  const pif = { iso: 'xxx', name: '新縣', councilor_roster: false, councilor_bulletin: false };  // 非深度、沒有公報的縣市
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true, councilor_bulletin: true };
   assert.match(countyNote(tao), /並收錄現任議員的 2022 選舉公報政見與學經歷；桃園市議會聲明議事影音不得用於政治目的或選舉/);
   assert.doesNotMatch(countyNote(pif), /公報/);
@@ -1125,6 +1125,54 @@ test('Miaoli attendance shows present only, and record rows link the PDF page', 
   assert.match(rows, /會議紀錄第 63 頁起/);
 });
 
+// ---------- 嘉義縣（V16 已定案第 6、12 點） ----------
+
+test('Chiayi County is a deep county counting summary-transcript records with no attendance and no videos', () => {
+  assert.ok(DEEP_COUNTIES.has('cyq'));
+  assert.equal(NO_RECORD_REASONS.cyq, undefined);
+  const r = RECORDS.cyq;
+  assert.deepEqual(r.depts, []);
+  const t = { date: '2026-05-26', data: { doc_type: KIN_TRANSCRIPT } };
+  const card = summaryCard({}, { offices: [], inters: [t], written: [t], videos: [], rec: r });
+  assert.match(card, /縣政總質詢紀錄 <span class="num">1<\/span> 場/);
+  assert.match(card, /第 2 至第 7 次定期會.*第 1 次定期會的質詢與答覆是掃描影像.*只記出席人數、沒有出席名單，出缺勤本站未收錄/);
+  assert.equal(r.attendance, undefined);
+  assert.equal(r.transcriptHeading, '縣政總質詢紀錄');
+  assert.match(r.transcriptBlurb, /第一個發言標籤所在的那一頁.*依錄音整理的摘要，不是逐字稿.*資料來源：嘉義縣議會。$/);
+  assert.equal(r.videoBlurb, undefined);
+  assert.doesNotMatch(r.noRecord + r.transcriptBlurb + r.note, /沒有問政|無問政|未質詢|KIN_/);
+  assert.equal(publisherOf('https://ws.cyscc.gov.tw/001/Upload/1/relfile/62/17608/a.pdf'), '嘉義縣議會');
+  const f = { date: '2026-05-26', source_url: 'https://ws.cyscc.gov.tw/001/Upload/1/relfile/62/17608/a.pdf#page=846',
+    data: { session: '第20屆第7次定期會', doc_type: KIN_TRANSCRIPT, title: '質詢與答覆紀錄（議事錄第 1744 頁起；依錄音摘要整理）' } };
+  const rows = interpellationRows([f]);
+  assert.match(rows, /\.pdf#page=846/);
+  assert.match(rows, /議事錄第 1744 頁起/);
+});
+
+// ---------- 屏東（V16 已定案第 12 點） ----------
+
+test('Pingtung lists only the minutes naming the councillor, linking the minutes PDF, without calling it a joint question', () => {
+  assert.ok(DEEP_COUNTIES.has('pif'));
+  assert.equal(NO_RECORD_REASONS.pif, undefined);
+  const r = RECORDS.pif;
+  assert.ok(TRANSCRIPTS.includes(PIF_LISTED));
+  const t = { date: '2026-07-02', data: { doc_type: PIF_LISTED } };
+  const card = summaryCard({}, { offices: [], inters: [t], written: [t], videos: [], rec: r });
+  assert.match(card, /施政總質詢會議紀錄列名 <span class="num">1<\/span> 天/);
+  assert.equal(r.transcriptHeading, PIF_LISTED);
+  assert.equal(r.transcriptBlurb, '屏東縣議會只公開每日會議紀錄摘要；施政總質詢內容官方記為「另錄」未公開，這裡只列會議紀錄寫明的質詢議員。每筆附該日會議紀錄連結（1–2 頁 PDF）。收錄第 20 屆第 1–7 次定期會。');
+  assert.equal(r.attendance, undefined);
+  assert.match(r.note, /詳如簽到簿.*出缺勤本站未收錄/);
+  assert.doesNotMatch(r.noRecord + r.transcriptBlurb + r.note, /聯合質詢|沒有問政|無問政|未質詢/);
+  const u = 'https://www.ptcc.gov.tw/lib/GetFile.php?fil_guid=d0d637bf-0000-0000-0000-000000000000';
+  assert.equal(publisherOf(u), '屏東縣議會');
+  const f = { date: '2026-07-02', source_url: u,
+    data: { session: '第20屆第7次定期會', doc_type: PIF_LISTED, title: '施政總質詢（會議紀錄列為質詢議員）；同場列名：蔣月惠、潘翠雲、盧玟欣' } };
+  const rows = interpellationRows([f]);
+  assert.ok(rows.includes(`>${PIF_LINK}</a>`));
+  assert.match(rows, /同場列名：蔣月惠、潘翠雲、盧玟欣<span class="video">/);  // 標題本身不是連結
+});
+
 // ---------- 嘉義市（V16 已定案第 6、12 點） ----------
 
 test('Chiayi City is a deep county counting general-question records with present and leave totals and no videos', () => {
@@ -1356,13 +1404,12 @@ test('a QR code file exists for each coin', () => {
 });
 
 test('the counties without council records explain why, factually and without implying councillors did nothing', () => {
-  assert.deepEqual(Object.keys(NO_RECORD_REASONS).sort(), ['cyq', 'pif', 'tao']);
+  assert.deepEqual(Object.keys(NO_RECORD_REASONS), ['tao']);
   for (const iso of Object.keys(NO_RECORD_REASONS)) assert.equal(DEEP_COUNTIES.has(iso), false);
   for (const { note } of Object.values(NO_RECORD_REASONS)) {
     assert.doesNotMatch(note, /拒絕存取|地方政府|建置中|沒有問政|無問政/);
   }
-  assert.equal(noRecordNote({ iso: 'cyq', name: '嘉義縣' }), '嘉義縣議會官網的 robots.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。');
   assert.equal(noRecordNote({ iso: 'xxx', name: '新縣' }), '新縣議會的問政紀錄仍在建置中，本站目前尚未收錄。');
-  assert.match(countyNote({ iso: 'pif', name: '屏東縣' }), /；屏東縣議會官網沒有議事錄專區與議事影音，也未查得逐人的質詢紀錄，本站目前未收錄問政紀錄。$/);
-  assert.doesNotMatch(countyNote({ iso: 'pif', name: '屏東縣' }), /建置中/);
+  assert.match(countyNote({ iso: 'tao', name: '桃園市' }), /；桃園市議會聲明議事影音不得用於政治目的或選舉，官網也未查得逐人的書面質詢與出缺勤，本站不收錄問政紀錄。$/);
+  assert.doesNotMatch(countyNote({ iso: 'tao', name: '桃園市' }), /建置中/);
 });

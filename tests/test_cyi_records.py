@@ -62,6 +62,14 @@ class TestCyiOral(unittest.TestCase):
             self.assertIn("鄭光宏", cyi_book.parse_oral(3462, text, log=lambda s: None)[0]["askers"])
             self.assertEqual(cyi_book.parse_oral(3463, text, log=lambda s: None)[0]["askers"], {})
 
+    def test_renamed_labels_merge_into_one_run_only_for_their_keys(self):
+        p10 = P10.replace("議員黃盈智質詢：", "議員舊名甲質詢：", 1).replace("議員黃盈智質詢：", "議員舊名乙質詢：")
+        text = oral_book([(1107, P9), (1108, p10)])
+        with mock.patch.dict(cyi_book.LABEL_ALIAS, {(3462, "舊名甲"): "黃盈智", (3462, "舊名乙"): "黃盈智"}):
+            askers = cyi_book.parse_oral(3462, text, log=lambda s: None)[1]["askers"]
+            self.assertEqual((set(askers), askers["黃盈智"][2]), ({"黃盈智"}, 2 * len(LONG)))  # 兩種寫法接成同一段
+            self.assertEqual(set(cyi_book.parse_oral(3463, text, log=lambda s: None)[1]["askers"]), {"舊名甲", "舊名乙"})
+
 
 class TestCyiAttendance(unittest.TestCase):
     def test_vertical_names_are_assembled_by_column_and_totals_matched_by_x(self):
@@ -110,7 +118,7 @@ class TestCyiBuild(unittest.TestCase):
         att_page = "  議員出、缺席一覽表   1619\n   嘉義市議會第11屆第7次定期會議員出席表\n"
         bad_page = "  議員出、缺席一覽表   1617\n   嘉義市議會第11屆114年第3次臨時會議員出席表\n"
         text = oral_book([(1107, P9), (1108, P10)]) + "\f" + att_page + "\f" + bad_page
-        words = {5: att_words(["黃盈智", "王浩", "顏翎熹"], [30, 29, 30], [0, 1, 0]),
+        words = {5: att_words(["黃盈智", "王浩", "鄭光宏"], [30, 29, 30], [0, 1, 0]),
                  6: att_words(["黃盈智", "王小明"], [5, 5], [0, 0], title="嘉義市議會第11屆114年第3次臨時會議員出席表", first="6月20日")}
         (ts, meetings, tables, gov, att), logs = build([(3462, "_admin/_upload/Announce/3462/file/下冊.pdf", "下冊.pdf", text)], words)
         k, d, url, date = gov["p1"][0]
@@ -118,7 +126,7 @@ class TestCyiBuild(unittest.TestCase):
         self.assertEqual(d["title"], "市政總質詢紀錄（第 10 次會議，本人發言自議事錄第 1108 頁起）")
         self.assertTrue(url.startswith("https://www.cycc.gov.tw/_admin/_upload/Announce/3462/file/%E4%B8%8B%E5%86%8A.pdf#page=4"))
         self.assertNotIn("p3", gov)  # 鄭光宏沒有參選
-        self.assertEqual([t["session"] for t in tables], ["第11屆第7次定期會"])  # 顏翎熹在 OTHER_COLUMNS，王小明對不到
+        self.assertEqual([t["session"] for t in tables], ["第11屆第7次定期會"])  # 鄭光宏在名錄（沒參選，不寫），王小明對不到
         self.assertTrue(any("對不到名錄的欄 王小明" in x for x in logs))
         k, d, url, date = att["p2"][0]
         self.assertEqual((k, d["meetings"], d["present"], d["leave"], date), ("cyiattend:7r:p2", 30, 29, 1, "2026-04-20"))

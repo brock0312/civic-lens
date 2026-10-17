@@ -11,11 +11,11 @@ V16 已定案第 12 點：2026-10-17 使用者放寬 `www.cycc.gov.tw/_admin/` �
   該段不到 MIN_CHARS 字的（共用時間只說一句、插話）不收。只放標題與 PDF 頁連結，不擷取內文（V16 已定案第 6 點）。
 - 出缺席：附錄「議員出、缺席一覽表」每個會期一張「嘉義市議會第11屆第7次定期會議員出席表」：姓名直排、每人一欄。只用最下面
   「合計 出席／請假」兩列（逐日的列和合計對不上，不用）。用 pdftotext -bbox 依 x 座標把直排的字組成姓名、把合計數字對到欄；
-  欄數、數字個數不符、各欄「出席＋請假」不相同（合計列有誤），或任何一欄姓名對不到名錄（OTHER_COLUMNS 除外），
+  欄數、數字個數不符、各欄「出席＋請假」不相同（合計列有誤），或任何一欄姓名對不到名錄，
   整張表不收（印 log）；早期的表請假 0 次留白，當作 0（之後仍要通過前一項檢查）。每人每會期一筆：
   出席 N、請假 M（meetings＝N＋M），日期取表上第一個日期（只作排序）。
 - 姓名以 etl.match 的漢字正規化對全部嘉義市議員任職（中選會 2022 當選人，basis=cec_2022）；同名或對不到的不收。
-  官方錯字只照 NAME_FIX（逐鍵、附證據）更正。只寫給有嘉義市議員任職 fact 且有 2026 candidacy 的人。
+  官方錯字只照 NAME_FIX、改名只照 LABEL_ALIAS（逐鍵、附證據）更正。只寫給有嘉義市議員任職 fact 且有 2026 candidacy 的人。
 
 UA civic-lens-etl/0.1、同主機間隔 ≥ 1.1 秒、循序。PDF 共約 2.6 GB，抓取與建檔分開：
   python3 -m etl.sources.cyi_book --fetch   更新清單與詳細頁，下載快取裡還沒有的 PDF（data/cache/cyi/pdf/<p0>/<檔名>）
@@ -178,6 +178,15 @@ NAME_FIX = {
     # 「議員黃敏修質詢：」與交通處長許啟明答覆（鐵路高架化配合款 47.23 億），此段接續追問同一題，之後仍由交通處長答覆
     (3366, 458, "議黃敏修質詢："): "黃敏修",
 }
+# 改名（人工確認，逐鍵）：(p0, 標籤裡的姓名) → 現名。顏翎熹 2022 當選時登記名「顏色不分藍綠支持性專區顏色田慎節」
+# （data/identity_national.csv 2026-10-17，Claude 初審；verifier 複核）；議事錄 2023 的標籤用舊名，第 4 次定期會（2024）起同一人標籤寫顏翎熹。
+# 第 1 次定期會同一場內「顏／顔」混用（第 18 次會議 PDF 第 1556、1558 頁，第 19 次會議第 1629、1635 頁），都是同一段質詢的接續。
+LABEL_ALIAS = {
+    (3221, "顏色不分藍綠支持性專區顏色田慎節"): "顏翎熹",  # 第 1 次定期會第 18 次會議（112.05.18）PDF 第 1556 頁
+    (3221, "顔色不分藍綠支持性專區顔色田慎節"): "顏翎熹",  # 同上第 1558 頁起；第 19 次會議（112.05.19）第 1629 頁起
+    (3221, "顏色不分藍綠支持性專區顔色田慎節"): "顏翎熹",  # 第 19 次會議第 1635 頁起
+    (3222, "顏色不分藍綠支持性專區顏色田慎節"): "顏翎熹",  # 第 2 次定期會第 14 次會議（112.11.20）PDF 第 1534 頁起
+}
 
 
 def roc_iso(y, m, d):
@@ -227,7 +236,7 @@ def parse_oral(p0, text, log=print):
             a = ASK.match(l)
             fix = NAME_FIX.get((p0, i + 1, l))
             if a or fix:
-                name = fix or a[1]
+                name = fix or LABEL_ALIAS.get((p0, a[1]), a[1])
                 if block is None or block["name"] != name:
                     block = {"name": name, "page": i + 1, "printed": printed, "chars": 0}
                     cur["blocks"].append(block)
@@ -264,11 +273,6 @@ def parse_oral(p0, text, log=print):
 ATT_TITLE = re.compile(rf"嘉義市議會第\s*{TERM}\s*屆\s*(?:第\s*(\d+)\s*次定期會|(\d+)\s*年\s*第\s*(\d+)\s*次臨時會)\s*議員出(?:缺)?席(?:表|一覽表)")
 ROW_DATE = re.compile(r"(\d{3})\.(\d\d)\.(\d\d)|(\d{1,2})月(\d{1,2})日")  # 臨時會的表只寫「6月20日」，年份取表名
 COL_TOL = 6.0  # pt；姓名字與合計數字的 x 中心距離上限（欄距約 17 pt）
-# 不在本站名錄、但確定是出席表上議員欄的姓名：接受這一欄（不掛人），其他欄照收。
-# 顏翎熹：2026 候選人（中選會 2026 登記，cyi-council-01，p3bb7fa5584）；本站嘉義市名錄是中選會 2022 當選人，沒有這個名字。
-# 與 2022 當選人「顏色不分藍綠支持性專區顏色田慎節」（p2df1987b39，cyi-council-01）是否同一人尚未經 HANDOFF §3 第 11 條確認，
-# 所以這一欄不掛給任何人。
-OTHER_COLUMNS = {"顏翎熹"}
 
 
 def attendance_pages(text):
@@ -355,7 +359,7 @@ def load_tables(p0, name, text, roster, log=print):
             pid, why = resolve(n, roster)
             if pid:
                 people[pid] = v
-            elif n not in OTHER_COLUMNS:
+            else:
                 unknown.append(f"{n}（{why}）")
         if unknown:
             log(f"cyi_book：出席表 {session}（{label}）有對不到名錄的欄 {'、'.join(unknown)}，整張不收")
