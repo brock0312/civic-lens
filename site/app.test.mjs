@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTags, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
+import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, BULLETIN_DATED, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTags, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
@@ -1331,4 +1331,12 @@ test('the counties without council records explain why, factually and without im
   assert.equal(noRecordNote({ iso: 'xxx', name: '新縣' }), '新縣議會的問政紀錄仍在建置中，本站目前尚未收錄。');
   assert.match(countyNote({ iso: 'pif', name: '屏東縣' }), /；屏東縣議會官網沒有議事錄專區與議事影音，也未查得逐人的質詢紀錄，本站目前未收錄問政紀錄。$/);
   assert.doesNotMatch(countyNote({ iso: 'pif', name: '屏東縣' }), /建置中/);
+});
+
+test('bulletin experience marks "現任" lines as of November 2022 without changing the original text', () => {
+  const profile = { ...linkFact(), data: { experience: ['• 台北市議會第七屆至十三屆議員', '• 現任台北市議會議長'] } };
+  const html = bulletinSection({ profile: [profile], bulletin: [linkFact(5)] }, noNotes);
+  assert.ok(html.includes(BULLETIN_DATED));
+  assert.ok(html.includes('<li>現任台北市議會議長<span class="muted small">（2022 年 11 月時）</span></li>'));
+  assert.ok(html.includes('<li>台北市議會第七屆至十三屆議員</li>'));
 });
