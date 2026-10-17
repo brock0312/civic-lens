@@ -1333,10 +1333,13 @@ test('the counties without council records explain why, factually and without im
   assert.doesNotMatch(countyNote({ iso: 'pif', name: '屏東縣' }), /建置中/);
 });
 
-test('bulletin experience marks "現任" lines as of November 2022 without changing the original text', () => {
-  const profile = { ...linkFact(), data: { experience: ['• 台北市議會第七屆至十三屆議員', '• 現任台北市議會議長'] } };
-  const html = bulletinSection({ profile: [profile], bulletin: [linkFact(5)] }, noNotes);
+test('bulletin shows the original "現任" as "時任" in education, experience and platform', () => {
+  const profile = { ...linkFact(), data: { education: ['現任某校家長會長'], experience: ['• 台北市議會第七屆至十三屆議員', '• 現任台北市議會議長'] } };
+  const platform = { ...linkFact(), data: { text: '本人現任議員，政見如下' } };
+  const html = bulletinSection({ profile: [profile], platform: [platform], bulletin: [linkFact(5)] }, noNotes);
   assert.ok(html.includes(BULLETIN_DATED));
-  assert.ok(html.includes('<li>現任台北市議會議長<span class="muted small">（2022 年 11 月時）</span></li>'));
-  assert.ok(html.includes('<li>台北市議會第七屆至十三屆議員</li>'));
+  assert.ok(html.includes('<li>時任台北市議會議長</li>'));
+  assert.ok(html.includes('<li>時任某校家長會長</li>'));
+  assert.ok(html.includes('本人時任議員，政見如下'));
+  assert.ok(!html.replace(BULLETIN_DATED, '').includes('現任'));
 });
