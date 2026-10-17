@@ -7,7 +7,7 @@ import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, K
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
-import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, MIA_ATTENDANCE_NOTE, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
+import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, MIA_ATTENDANCE_NOTE, CYI_ATTENDANCE_NOTE, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
 import { DEEP_COUNTIES, NO_RECORD_REASONS } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
@@ -835,7 +835,8 @@ test('county and home notes describe Chiayi City councillors as 2022 winners', (
   const n = countyNote(cyi);
   assert.match(n, /候選人中的現任嘉義市長與 2022 年當選議員會標示，並收錄 2022 年當選議員的 2022 選舉公報政見與學經歷/);
   assert.doesNotMatch(n, /現任議員/);
-  assert.match(n, /；嘉義市議會官網的 robots\.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。$/);
+  // 嘉義市 2026-10-17 起是深度縣市（V16 已定案第 12 點）：不再說 robots 禁止
+  assert.doesNotMatch(n, /robots/);
   assert.match(homeNote([tao, cyi]), /候選人中的現任縣市長與議員會標示（嘉義市議員依 2022 年當選名單標示）。/);
   assert.doesNotMatch(homeNote([tao]), /2022 年當選/);
 });
@@ -1124,6 +1125,39 @@ test('Miaoli attendance shows present only, and record rows link the PDF page', 
   assert.match(rows, /會議紀錄第 63 頁起/);
 });
 
+// ---------- 嘉義市（V16 已定案第 6、12 點） ----------
+
+test('Chiayi City is a deep county counting general-question records with present and leave totals and no videos', () => {
+  assert.ok(DEEP_COUNTIES.has('cyi'));
+  assert.equal(NO_RECORD_REASONS.cyi, undefined);
+  const r = RECORDS.cyi;
+  assert.deepEqual(r.depts, []);
+  const t = { date: '2026-05-08', data: { doc_type: KIN_TRANSCRIPT } };
+  const card = summaryCard({}, { offices: [], inters: [t], written: [t], videos: [], rec: r });
+  assert.match(card, /市政總質詢紀錄 <span class="num">1<\/span> 場/);
+  assert.match(card, /第 1、2、4、5、6、7 次定期會.*第 3 次定期會的議事錄議會網站未刊出/);
+  assert.equal(r.transcriptHeading, '市政總質詢紀錄');
+  assert.match(r.transcriptBlurb, /議員○○○質詢.*最長一段發言開始的那一頁.*印刷頁.*未摘要.*資料來源：嘉義市議會/);
+  assert.equal(r.videoBlurb, undefined);
+  assert.doesNotMatch(r.noRecord + r.transcriptBlurb + r.note, /沒有問政|無問政|未質詢|KIN_/);
+  assert.match(CYI_ATTENDANCE_NOTE, /出、缺席一覽表.*「合計」列.*不採用逐日標記.*不另列缺席.*整張不收錄/);
+});
+
+test('Chiayi City attendance shows present and leave from the totals row, and record rows link the PDF page', () => {
+  const url = 'https://www.cycc.gov.tw/_admin/_upload/Announce/3462/file/a.pdf#page=832';
+  const html = nwtAttendanceBlock([nwtAtt('第11屆第7次定期會', 30, 30, 0, 0, url)], RECORDS.cyi.attendance);
+  assert.match(html, /出席 <span class="num">30<\/span>／<span class="num">30<\/span> 次、請假 <span class="num">0<\/span> 次（/);
+  assert.doesNotMatch(html, /公差|<span>缺席/);
+  assert.ok(html.includes(CYI_ATTENDANCE_NOTE));
+  assert.equal(publisherOf(url), '嘉義市議會');
+  const f = { date: '2026-05-08', source_url: 'https://www.cycc.gov.tw/_admin/_upload/Announce/3462/file/a.pdf#page=577',
+    data: { session: '第11屆第7次定期會', doc_type: KIN_TRANSCRIPT, title: '市政總質詢紀錄（第 14 次會議，本人發言自議事錄第 1368 頁起）' } };
+  const rows = interpellationRows([f]);
+  assert.match(rows, /<time class="date" datetime="2026-05-08">/);
+  assert.match(rows, /\.pdf#page=577/);
+  assert.match(rows, /議事錄第 1368 頁起/);
+});
+
 // ---------- 南投（V16 已定案第 6 點） ----------
 
 test('Nantou is a deep county counting council-suggestion rows under their own heading, without attendance or videos', () => {
@@ -1322,7 +1356,7 @@ test('a QR code file exists for each coin', () => {
 });
 
 test('the counties without council records explain why, factually and without implying councillors did nothing', () => {
-  assert.deepEqual(Object.keys(NO_RECORD_REASONS).sort(), ['cyi', 'cyq', 'pif', 'tao']);
+  assert.deepEqual(Object.keys(NO_RECORD_REASONS).sort(), ['cyq', 'pif', 'tao']);
   for (const iso of Object.keys(NO_RECORD_REASONS)) assert.equal(DEEP_COUNTIES.has(iso), false);
   for (const { note } of Object.values(NO_RECORD_REASONS)) {
     assert.doesNotMatch(note, /拒絕存取|地方政府|建置中|沒有問政|無問政/);
