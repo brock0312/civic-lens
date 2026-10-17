@@ -19,18 +19,16 @@ export const countyNote = (county) => {
 export const BULLETIN_TAG = '含 2022 公報';
 export const countyTags = (c) => (DEEP_COUNTIES.has(c.iso) ? ['含問政紀錄']
   : [c.councilor_bulletin && BULLETIN_TAG].filter(Boolean));
-// 首頁縣市清單下的說明（counties 已依顯示順序排好）
+// 首頁縣市清單下的說明（counties 已依顯示順序排好）：縣市數與未收錄縣市都由資料算出
 export function homeNote(counties) {
-  const roster = counties.filter((c) => c.councilor_roster && !DEEP_COUNTIES.has(c.iso)).map((c) => c.name);
+  const deep = counties.filter((c) => DEEP_COUNTIES.has(c.iso)).length;
   const cec = counties.filter((c) => c.councilor_cec_2022).map((c) => c.name);
-  const tagged = [roster.length && `${roster.join('、')}的現任議員`, cec.length && `${cec.join('、')}的 2022 年當選議員`].filter(Boolean);
   const bulletin = counties.some((c) => countyTags(c).includes(BULLETIN_TAG));
-  // 既非深度也沒有原因的縣市（未來新增）點名「建置中」，其餘指向縣市清單的原因標籤
-  const pending = counties.filter((c) => !DEEP_COUNTIES.has(c.iso) && !NO_RECORD_REASONS[c.iso]).map((c) => c.name);
-  const reasons = counties.some((c) => !DEEP_COUNTIES.has(c.iso) && NO_RECORD_REASONS[c.iso]);
-  const tail = [pending.length && `${pending.join('、')}議會的問政紀錄仍在建置中`,
-    reasons && `${pending.length ? '其他' : ''}未收錄問政紀錄的縣市，原因說明於各縣市頁面`].filter(Boolean).join('；');
-  return `標示「含問政紀錄」的縣市另收錄議員的問政紀錄；${bulletin ? `標示「${BULLETIN_TAG}」的縣市另收錄候選人中${cec.length ? '現任（或 2022 年當選）' : '現任'}議員的 2022 選舉公報政見與學經歷；` : ''}其他縣市目前提供 2026 候選人名單與選區，候選人中的現任縣市長${tagged.length ? `與${tagged.join('、')}` : ''}會標示${tail ? `，${tail}` : ''}。`;
+  const missing = counties.filter((c) => !DEEP_COUNTIES.has(c.iso)).map((c) => c.name);
+  return `全部 ${counties.length} 縣市都提供 2026 候選人名單與選區，候選人中的現任縣市長與議員會標示${cec.length ? `（${cec.join('、')}議員依 2022 年當選名單標示）` : ''}。`
+    + `標示「含問政紀錄」的 ${deep} 個縣市另收錄現任議員的問政紀錄，收錄項目（質詢、出缺勤、影片等）各縣市不同`
+    + `${bulletin ? `；標示「${BULLETIN_TAG}」的縣市另收錄現任議員的 2022 選舉公報政見與學經歷` : ''}。`
+    + `${missing.length ? `${missing.join('、')}目前未收錄問政紀錄，原因說明於各縣市頁面。` : ''}`;
 }
 // 非深度縣市：說明不收錄的原因（或仍在建置），措辭不能讓人以為此人沒有問政
 export const noRecordNote = (county) => NO_RECORD_REASONS[county.iso]?.note ?? `${county.name}議會的問政紀錄仍在建置中，本站目前尚未收錄。`;
@@ -122,7 +120,7 @@ export const RECORDS = {
   tpe: { depts: DEPTS, written: true, noRecord: NO_RECORD },
   khh: {
     depts: KHH_DEPTS, written: false,
-    noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆高雄市議員口頭質詢影片）；高雄市議會的書面質詢紀錄仍在建置中。',
+    noRecord: '本站目前沒有此人的口頭質詢影片紀錄（收錄範圍：第4屆高雄市議員口頭質詢影片）；高雄市議會的書面質詢本站尚未收錄。',
   },
   // 臺中、臺南：只有口頭質詢影片（V15）；書面質詢與出缺勤沒有找到逐人的官方紀錄，只說「尚未收錄」
   txg: {

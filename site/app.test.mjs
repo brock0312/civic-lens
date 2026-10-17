@@ -277,7 +277,7 @@ test('Kaohsiung departments use the council committees in a fixed order', () => 
 test('Kaohsiung empty note states the collected scope neutrally', () => {
   const n = RECORDS.khh.noRecord;
   assert.match(n, /第4屆高雄市議員口頭質詢影片/);
-  assert.match(n, /書面質詢紀錄仍在建置中/);
+  assert.match(n, /書面質詢本站尚未收錄/);
   assert.doesNotMatch(n, /出缺勤/);
   assert.doesNotMatch(n, /沒有問政|無問政|未質詢|缺席/);
   assert.equal(RECORDS.khh.written, false);
@@ -624,20 +624,17 @@ test('county note says incumbent councillors are tagged only when the data has a
   assert.doesNotMatch(countyNote(hsq), /現任議員/);
 });
 
-test('home note lists non-Taipei counties whose incumbent councillors are tagged, from data', () => {
+test('home note counts counties and names those without council records, from data', () => {
   const tpe = { iso: 'tpe', name: '臺北市', councilor_roster: true };
   const mia = { iso: 'mia', name: '苗栗縣', councilor_roster: true };
-  const xxx = { iso: 'xxx', name: '新縣', councilor_roster: true };
   const tao = { iso: 'tao', name: '桃園市', councilor_roster: true };
-  assert.match(homeNote([tpe, xxx, hsq, tao]), /候選人中的現任縣市長與新縣、桃園市的現任議員會標示，新縣議會的問政紀錄仍在建置中；其他未收錄問政紀錄的縣市，原因說明於各縣市頁面。$/);
-  assert.match(homeNote([tpe, xxx, { iso: 'yyy', name: '舊縣' }]), /會標示，新縣、舊縣議會的問政紀錄仍在建置中。$/);
-  // 苗栗 2026-10-17 起是深度縣市：不再列為「建置中」或「現任議員會標示」
-  assert.doesNotMatch(homeNote([tpe, mia, tao]), /建置中|苗栗/);
-  assert.match(homeNote([tpe, tao]), /會標示，未收錄問政紀錄的縣市，原因說明於各縣市頁面。$/);
-  assert.match(homeNote([tpe]), /會標示。$/);
-  assert.doesNotMatch(homeNote([tpe, tao]), /建置中/);
-  assert.doesNotMatch(homeNote([tpe, mia]), /現任議員名單/);
-  assert.doesNotMatch(homeNote([tpe, hsq]), /現任議員/);
+  const pif = { iso: 'pif', name: '屏東縣', councilor_roster: true };
+  const n = homeNote([tpe, mia, tao, pif]);
+  assert.match(n, /^全部 4 縣市都提供 2026 候選人名單與選區，候選人中的現任縣市長與議員會標示。/);
+  assert.match(n, /標示「含問政紀錄」的 2 個縣市另收錄現任議員的問政紀錄/);
+  assert.match(n, /桃園市、屏東縣目前未收錄問政紀錄，原因說明於各縣市頁面。$/);
+  assert.doesNotMatch(n, /苗栗|建置中/);
+  assert.match(homeNote([tpe, mia]), /各縣市不同。$/);
 });
 
 test('a party taken from the 2022 results is labelled with the year', () => {
@@ -734,7 +731,7 @@ test('county note and tag mention 2022 bulletins only when the data flags them',
   assert.deepEqual(countyTags(pif), []);
   assert.deepEqual(countyTags({ iso: 'xxx', councilor_bulletin: true }), [BULLETIN_TAG]);
   assert.deepEqual(countyTags({ iso: 'xxx' }), []);
-  assert.match(homeNote([tpe, tao, pif]), /標示「含 2022 公報」的縣市另收錄候選人中現任議員的 2022 選舉公報政見與學經歷/);
+  assert.match(homeNote([tpe, tao, pif]), /；標示「含 2022 公報」的縣市另收錄現任議員的 2022 選舉公報政見與學經歷。/);
   assert.doesNotMatch(homeNote([tpe, pif]), /2022 公報/);
 });
 
@@ -839,8 +836,8 @@ test('county and home notes describe Chiayi City councillors as 2022 winners', (
   assert.match(n, /候選人中的現任嘉義市長與 2022 年當選議員會標示，並收錄 2022 年當選議員的 2022 選舉公報政見與學經歷/);
   assert.doesNotMatch(n, /現任議員/);
   assert.match(n, /；嘉義市議會官網的 robots\.txt 禁止程式自動擷取，本站依規定不收錄問政紀錄，可至議會官網查閱。$/);
-  assert.match(homeNote([tao, cyi]), /候選人中的現任縣市長與桃園市的現任議員、嘉義市的 2022 年當選議員會標示/);
-  assert.match(homeNote([cyi]), /候選人中的現任縣市長與嘉義市的 2022 年當選議員會標示/);
+  assert.match(homeNote([tao, cyi]), /候選人中的現任縣市長與議員會標示（嘉義市議員依 2022 年當選名單標示）。/);
+  assert.doesNotMatch(homeNote([tao]), /2022 年當選/);
 });
 
 // ---------- 花蓮（V16 已定案第 6 點） ----------
