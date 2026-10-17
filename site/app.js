@@ -972,7 +972,10 @@ export function summarySection(summaries, videos = []) {
 const pct = (r) => `${(r * 100).toFixed(1)}%`;
 const bar = (ratio) => `<span class="bar" aria-hidden="true"><span style="width:${(ratio * 100).toFixed(1)}%"></span></span>`;
 // 公報學經歷每項前有「•」，改用清單呈現時拿掉，其餘文字不動
-const listItems = (items) => items.map((s) => `<li>${esc(String(s).replace(/^[•・\s]+/, ''))}</li>`).join('');
+// 公報原文的「現任」是 2022 年 11 月當時的職務（例：陳錦祥「現任台北市議會議長」，2022-12 起議長已改選），一律改以「時任」顯示並在區塊開頭說明（2026-10-17 使用者決定）
+export const BULLETIN_DATED = '以下為 2022 年 11 月選舉公報內容；原文寫「現任」之處一律改以「時任」顯示，指當時的職務，不代表目前職務。';
+export const asOf2022 = (t) => String(t).replaceAll('現任', '時任');
+const datedItems = (items) => items.map((s) => `<li>${esc(asOf2022(String(s).replace(/^[•・\s]+/, '')))}</li>`).join('');
 
 function srcLine(f, label, notes) {
   const u = safeUrl(f.source_url);
@@ -995,12 +998,12 @@ export function bulletinSection(facts, notes) {
     const gapNote = (what, url) => (link
       ? `<p class="status" role="note">${BULLETIN_MISSING(what)}${ext(link, '公報原檔')}${pageNote(facts)}。</p>`
       : `<p class="status" role="note">2022 公報${what}未能以文字擷取，請見${safeUrl(url) ? ext(safeUrl(url), '公報原文') : '公報原文'}。</p>`);
-    body = `${pd.education?.length ? `<h3>學歷</h3><ul class="plain">${listItems(pd.education)}</ul>` : ''}
-      ${pd.experience?.length ? `<h3>經歷</h3><ul class="plain">${listItems(pd.experience)}</ul>` : ''}
+    body = `<p class="status" role="note">${BULLETIN_DATED}</p>${pd.education?.length ? `<h3>學歷</h3><ul class="plain">${datedItems(pd.education)}</ul>` : ''}
+      ${pd.experience?.length ? `<h3>經歷</h3><ul class="plain">${datedItems(pd.experience)}</ul>` : ''}
       ${profile ? srcLine(profile, '2022 選舉公報學經歷', notes) : ''}
       ${gap.profile !== null ? `<h3>學經歷</h3>${gapNote('學經歷', gap.profile)}` : ''}
       <h3 id="k-platform" tabindex="-1">政見</h3>
-      ${platform ? `<div class="platform">${esc(platform.data?.text || '')}</div>${srcLine(platform, '2022 選舉公報政見', notes)}` : gapNote('政見', gap.platform)}`;
+      ${platform ? `<div class="platform">${esc(asOf2022(platform.data?.text || ''))}</div>${srcLine(platform, '2022 選舉公報政見', notes)}` : gapNote('政見', gap.platform)}`;
   } else if (link) {
     body = `<p class="status" role="note">${BULLETIN_MISSING('政見與學經歷')}${ext(link, '公報原檔')}${pageNote(facts)}。</p>`;
   } else if (needsDistrict01Note(facts)) {

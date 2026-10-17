@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTags, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
+import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, BULLETIN_DATED, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTags, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
@@ -1412,4 +1412,15 @@ test('the counties without council records explain why, factually and without im
   assert.equal(noRecordNote({ iso: 'xxx', name: '新縣' }), '新縣議會的問政紀錄仍在建置中，本站目前尚未收錄。');
   assert.match(countyNote({ iso: 'tao', name: '桃園市' }), /；桃園市議會聲明議事影音不得用於政治目的或選舉，官網也未查得逐人的書面質詢與出缺勤，本站不收錄問政紀錄。$/);
   assert.doesNotMatch(countyNote({ iso: 'tao', name: '桃園市' }), /建置中/);
+});
+
+test('bulletin shows the original "現任" as "時任" in education, experience and platform', () => {
+  const profile = { ...linkFact(), data: { education: ['現任某校家長會長'], experience: ['• 台北市議會第七屆至十三屆議員', '• 現任台北市議會議長'] } };
+  const platform = { ...linkFact(), data: { text: '本人現任議員，政見如下' } };
+  const html = bulletinSection({ profile: [profile], platform: [platform], bulletin: [linkFact(5)] }, noNotes);
+  assert.ok(html.includes(BULLETIN_DATED));
+  assert.ok(html.includes('<li>時任台北市議會議長</li>'));
+  assert.ok(html.includes('<li>時任某校家長會長</li>'));
+  assert.ok(html.includes('本人時任議員，政見如下'));
+  assert.ok(!html.replace(BULLETIN_DATED, '').includes('現任'));
 });
