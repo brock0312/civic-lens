@@ -15,14 +15,18 @@ const PAD = 64;
 export const pctText = (r) => `${(r * 100).toFixed(1)}%`;
 
 // 依寬度斷行：中文逐字、英數連續字元不拆
+const CLOSING = /^[）」』〉》，、。；：！？)\]]$/u;
+
 export function wrapText(text, width, measure) {
   const tokens = String(text).match(/[A-Za-z0-9.,'’\-‧]+|\s+|./gu) || [];
   const lines = [];
   let cur = '';
   for (const t of tokens) {
     if (cur && measure(cur + t) > width) {
-      lines.push(cur.trimEnd());
-      cur = t.trimStart();
+      // 避頭：右括號與標點不放行首，連同前一個字一起換行（「縣政總質詢紀錄（份」＋「）」）
+      const tail = CLOSING.test(t) && [...cur.trimEnd()].length > 1 ? [...cur.trimEnd()].pop() : '';
+      lines.push(cur.trimEnd().slice(0, cur.trimEnd().length - tail.length));
+      cur = tail + t.trimStart();
     } else cur += t;
   }
   if (cur.trim()) lines.push(cur.trimEnd());

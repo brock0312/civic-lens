@@ -1,4 +1,5 @@
 import tempfile
+import unicodedata
 import unittest
 from pathlib import Path
 
@@ -36,11 +37,11 @@ def new_conn(tmp):
     return conn
 
 
-def build(texts=TEXTS):
+def build(texts=TEXTS, written=False):
     with tempfile.TemporaryDirectory() as tmp:
         logs = []
         out = pif_book.build(new_conn(tmp), FILES, texts, logs.append)
-    return out, logs
+    return (out[-1] if written else out[:-1]), logs  # written：只回「改採書面質詢」facts
 
 
 class TestPifMinutes(unittest.TestCase):
@@ -116,3 +117,52 @@ class TestPifMinutes(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+WRITTEN_TEXTS = {
+    "1150624": minutes((115, 6, 24), "  原排定施政總質詢之蔣月惠議員、潘翠雲議員皆採書面質詢"),
+    "1150629": minutes((115, 6, 29), "  （一）原排定質詢議員：曾義雄、蔣月惠、潘翠雲\n  質詢議員：曾義雄\n （二）蔣月惠、潘翠雲2位議員皆採書面質詢"),
+    "1150617": minutes((115, 6, 17), "  原排定質詢議員：張平原、陳志成、周議長、盧副議長張平原議員、陳志成議員皆採書面質詢"),
+    "1121117": minutes((112, 11, 17), "  本（17）日原排定施政總質詢之曾義雄議員採書面質詢；張平原議員不質詢，停會"),
+}
+WRITTEN_FILES = {roc: f"{i:08x}-1111-0000-0000-000000000000" for i, roc in enumerate(WRITTEN_TEXTS)}
+
+
+class TestPifWrittenSwitch(unittest.TestCase):
+    def build_written(self, texts=WRITTEN_TEXTS):
+        with tempfile.TemporaryDirectory() as tmp:
+            logs = []
+            *_, wr = pif_book.build(new_conn(tmp), {**FILES, **WRITTEN_FILES}, texts, logs.append)
+        return wr, logs
+
+    def test_each_named_member_gets_one_written_record_per_day_linked_to_the_minutes(self):
+        wr, logs = self.build_written()
+        k, d, url, date = next(x for x in wr["p1"] if x[3] == "2026-06-24")
+        self.assertEqual(k, "pifwr:2026-06-24:p1")
+        self.assertEqual(url, "https://www.ptcc.gov.tw/lib/GetFile.php?fil_guid=" + WRITTEN_FILES["1150624"])
+        self.assertEqual(d["doc_type"], pif_book.WRITTEN_DOC)
+        self.assertEqual((d["councillors"], d["link_label"]), (["蔣月惠"], "會議紀錄（PDF）"))
+        self.assertIn("書面內容議會未公開", d["title"])
+        self.assertEqual(sorted(x[3] for x in wr["p2"]), ["2026-06-24", "2026-06-29"])  # 「2位議員皆採書面質詢」也切得開
+
+    def test_glued_list_is_not_split_and_is_logged(self):
+        wr, logs = self.build_written()
+        self.assertNotIn("p4", wr)  # 1150617 名單黏在原排定名單後面
+        self.assertTrue(any("1150617" in x and "整句不收" in x for x in logs))
+
+    def test_not_questioning_is_not_written(self):
+        wr, logs = self.build_written()
+        self.assertEqual([x[3] for x in wr["p3"]], ["2023-11-17"])  # 曾義雄採書面；同句的張平原「不質詢」不算
+        self.assertNotIn("p4", wr)
+
+    def test_listed_asker_is_not_also_written(self):
+        wr, logs = self.build_written(TEXTS)
+        self.assertNotIn("p2", wr)  # 1140625 潘翠雲同時列為質詢議員
+        self.assertEqual([x[0] for x in wr["p4"]], ["pifwr:2024-11-26:p4"])  # 張平原；陳志成不是候選人
+        self.assertNotIn("p5", wr)
+
+    def test_switched_names_requires_every_part_to_be_a_name(self):
+        f = pif_book.flat(unicodedata.normalize("NFKC", "（二）李紀財 Mulaneng Paliuliu議員及劉孟君議員採書面質詢（三）周議長、林明順議員採書面質詢"))
+        logs = []
+        self.assertEqual(pif_book.switched_names("1150101", f, logs.append), ["李紀財MulanengPaliuliu", "劉孟君"])
+        self.assertTrue(any("周議長、林明順議員採書面質詢" in x for x in logs))

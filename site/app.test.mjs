@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, BULLETIN_DATED, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTags, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
-import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
+import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows, WRITTEN_SWITCH } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
 import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, MIA_ATTENDANCE_NOTE, CYI_ATTENDANCE_NOTE, PIF_LISTED, PIF_LINK, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
 import { DEEP_COUNTIES, NO_RECORD_REASONS, COUNTY_NAMES } from './geo.js';
@@ -1086,7 +1086,7 @@ test('Changhua is a deep county counting e-book interpellation records and same-
   const t = { date: '2025-10-28', data: { doc_type: KIN_TRANSCRIPT } };
   const v = { data: { video_id: 'x', whole: true, day: true, group_size: 7 } };
   const card = summaryCard({}, { offices: [], inters: [t, v], written: [t], videos: [v], rec: r });
-  assert.match(card, /縣政質詢紀錄 <span class="num">1<\/span> 場、縣政質詢當天影片 <span class="num">1<\/span> 支/);
+  assert.match(card, /縣政質詢紀錄 <span class="num">1<\/span> 場、改採書面質詢（內容未公開）<span class="num">0<\/span> 次、縣政質詢當天影片 <span class="num">1<\/span> 支/);
   assert.match(card, /第 1、2、4、5、6 次定期會.*第 3 次定期會的議事錄是掃描影像.*如議員簽到簿/);
   assert.equal(r.transcriptHeading, '縣政質詢紀錄');
   assert.match(r.transcriptBlurb, /主席宣布的質詢議員名單.*電子書頁碼與印刷頁碼不同.*未摘要.*資料來源：彰化縣議會/);
@@ -1699,4 +1699,60 @@ test('Taitung card counts oral general interpellations and written-instead-of-or
   const t = cardText(layoutCard(cardContent(m), 'story', fakeMeasure));
   assert.ok(t.includes('縣政總質詢紀錄（場）') && t.includes('改以書面提出的總質詢（筆）') && t.includes('缺第2次定期會'));
   assert.ok(!t.includes('口頭質詢本站未收錄'));
+});
+
+// 屏東、新竹縣、嘉義縣、彰化：官方紀錄記載「改採書面質詢」的另列一項，不再顯示為 0 筆（2026-10-18 使用者決定）
+const SWITCH_CASES = [
+  ['pif', '屏東縣', PIF_LISTED, '2023/05–2026/07', '內容未公開；依會議紀錄記載', '會議紀錄（PDF）'],
+  ['hsq', '新竹縣', KIN_TRANSCRIPT, '2023/05–2026/05', '內容未公開；依會議紀要記載', '會議紀要（PDF）'],
+  ['cyq', '嘉義縣', KIN_TRANSCRIPT, '2023/06–2026/05', '內容未公開；依議事錄記載', '議事錄 PDF 第 205 頁'],
+  ['cha', '彰化縣', KIN_TRANSCRIPT, '2023/05–2025/11（缺第3次定期會）', '內容未公開；依議事錄主席宣布', '議事錄電子書第 1012 頁'],
+];
+const switched = (date, link_label) => ({ date, source_url: 'https://example.gov.tw/x.pdf',
+  data: { doc_type: WRITTEN_SWITCH, session: '第20屆第7次定期會', title: '縣政總質詢：記載改採書面質詢（書面內容議會未公開）', link_label } });
+
+test('written-instead-of-oral records are a separate card item, not 0 written questions', () => {
+  for (const [iso, name, transcript, period, note, label] of SWITCH_CASES) {
+    const counties = new Map([[iso, { iso, name, districts: [{ district_id: `${iso}-council-01`, name: `${name}第1選舉區`, office: `${iso}_councilor` }] }]]);
+    const p = { person_id: 'p9', name: '己', facts: {
+      candidacy: [candidacy(`${iso}-council-01`)], office: [officeOf(`${iso}-council-01`)],
+      interpellation: [switched('2025-06-10', label), switched('2025-11-13', label)],
+    } };
+    const m = cardModel(p, { counties, base: BASE });
+    assert.deepEqual(m.dims.find((d) => d.id === 'switched'),
+      { id: 'switched', label: '改採書面質詢', unit: '次', period, n: 2, note }, iso);
+    assert.equal(m.dims.find((d) => d.label === transcript || d.label === '縣政質詢紀錄').n, 0, iso);  // 不算進口頭質詢
+    if (iso === 'hsq') assert.equal(m.dims.find((d) => d.id === 'written').n, 0);  // 也不算進掃描檔
+    const t = cardText(layoutCard(cardContent(m), 'story', fakeMeasure)).replace(/\n/g, '');  // 三欄時加註會折行
+    assert.ok(t.includes('改採書面質詢（次）') && t.includes(note), iso);
+    assert.ok(RECORDS[iso].switchBlurb.includes('不代表沒有質詢'), iso);
+    assert.ok(RECORDS[iso].countLine([switched('2025-06-10', label)], []).includes('改採書面質詢（內容未公開）<span class="num">1</span> 次'), iso);
+  }
+});
+
+test('written-instead-of-oral rows show the note as text and link to the official record by name', () => {
+  const html = interpellationRows([switched('2025-06-10', '議事錄 PDF 第 205 頁')]);
+  assert.ok(html.includes('書面內容議會未公開'));
+  assert.ok(html.includes('>議事錄 PDF 第 205 頁<'));
+  assert.ok(!TRANSCRIPTS.includes(WRITTEN_SWITCH));
+});
+
+test('exported written-instead-of-oral records only appear for the four counties (exported data)', { skip: !existsSync(sharePeople) && 'site/data 未產生' }, () => {
+  let n = 0;
+  for (const f of readdirSync(sharePeople)) {
+    const p = JSON.parse(readFileSync(new URL(f, sharePeople), 'utf8'));
+    for (const x of (p.facts?.interpellation || []).filter((i) => i.data?.doc_type === WRITTEN_SWITCH)) {
+      n += 1;
+      const iso = isoOf(p.facts.candidacy.find((c) => String(c.data.office).endsWith('_councilor')).data.district_id);
+      assert.ok(['pif', 'hsq', 'cyq', 'cha'].includes(iso), `${p.name} ${iso}`);
+      assert.ok(x.data.link_label && x.source_url && x.data.title.includes('書面內容議會未公開'), p.name);
+    }
+  }
+  assert.ok(n > 0);
+});
+
+test('wrapText never starts a line with a closing bracket or punctuation', () => {
+  assert.deepEqual(wrapText('紀錄（份）', 40, (t) => fakeMeasure(t, 10)), ['紀錄（', '份）']);
+  assert.deepEqual(wrapText('甲乙丙，丁', 30, (t) => fakeMeasure(t, 10)), ['甲乙', '丙，丁']);
+  assert.deepEqual(wrapText('甲乙丙丁', 20, (t) => fakeMeasure(t, 10)), ['甲乙', '丙丁']);
 });

@@ -55,11 +55,11 @@ def new_conn(tmp):
 VOLUMES = [{"sn": 17608, "session": "第20屆第7次定期會", "nth": 7, "files": [("下冊.pdf", URL)]}]
 
 
-def build(pages=PAGES):
+def build(pages=PAGES, written=False):
     with tempfile.TemporaryDirectory() as tmp:
         logs = []
         out = cyq_book.build(new_conn(tmp), VOLUMES, {URL: pages}, logs.append)
-    return out, logs
+    return (out[-1] if written else out[:-1]), logs  # written：只回「改採書面質詢」facts
 
 
 class TestCyqDays(unittest.TestCase):
@@ -147,3 +147,43 @@ class TestCyqList(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+MINUTES_PAGE = ("嘉義縣議會第 20 屆第 7 次定期會第 9 次會議紀錄\n時間：中華民國115年5月26日上午9時13分\n地點：本會議事廳\n"
+                "出席：陳副議長怡岳等28人\n貳、縣政總質詢與業務質詢：蔡奇璋、黃嫈珺（書面質詢）、詹琬蓁（書面質詢）等議員。\n參、散會：上午11時\n")
+WRITTEN_PAGES = PAGES[:5] + [
+    page(1722, turn("黃嫈珺議員", "我插一句。") + turn("蔡奇璋議員", "第三題。")
+         + turn("主席陳副議長怡岳", "好，我們黃嫈珺議員，他要書面質詢。再來蔡奇璋和林岱杰議員，他們兩位書面質詢。")
+         + turn("林岱杰議員", "謝謝副議長。") + turn("林岱杰議員", "我的部分就用書面質詢。"), even=True),
+] + PAGES[6:] + [MINUTES_PAGE]
+
+
+class TestCyqWrittenSwitch(unittest.TestCase):
+    def test_minutes_annotation_and_chair_naming_make_one_record_per_person_per_day(self):
+        wr, logs = build(WRITTEN_PAGES, written=True)
+        self.assertEqual(list(wr), ["p3"])  # 詹琬蓁不是候選人
+        [(k, d, url, date)] = wr["p3"]
+        self.assertEqual((k, date), ("cyqwr:2026-05-26:p3", "2026-05-26"))
+        self.assertEqual(d["doc_type"], cyq_book.WRITTEN_DOC)
+        self.assertEqual(url, URL + "#page=10")  # 會議紀錄優先於主席發言
+        self.assertEqual((d["link_label"], d["title"]), ("議事錄 PDF 第 10 頁", "縣政總質詢：會議紀錄記載書面質詢（書面內容議會未公開）"))
+
+    def test_member_who_also_spoke_that_day_is_not_written(self):
+        wr, logs = build(WRITTEN_PAGES, written=True)
+        self.assertNotIn("p1", wr)
+        self.assertNotIn("p2", wr)
+        self.assertTrue(any("蔡奇璋 記載書面質詢，但當天也有口頭質詢" in x for x in logs))
+
+    def test_chair_naming_forms(self):
+        d = {"date": "2026-05-26", "roc": "115.5.26", "pages": [(5, 1722, turn("主席張議長明達", "好，陳信文議員他書面質詢，換雅文。")
+                                                                    + turn("陳副議長怡岳", "我們陳福成議員，也是書面質詢。蔡政宜和武清山議員，他們三位書面質詢。")
+                                                                    + turn("江季珍議員", "我書面質詢，謝謝。"))]}
+        logs = []
+        self.assertEqual([w["name"] for w in cyq_book.chair_written(d, log=logs.append)], ["陳信文", "陳福成"])
+        self.assertTrue(any("沒有逐一點名" in x for x in logs))  # 位數與點名人數不同
+
+    def test_minutes_wrapped_in_parentheses(self):
+        p = ("時間：中華民國112年6月5日上午10時4分\n貳、縣政總質詢與業務質詢（蔡信典、黃惠汝等議員，蔡政宜議員書面質詢。）\n參、散會\n"
+             "時間：中華民國113年6月7日上午9時\n貳、縣政總質詢與業務質詢:李國勝、黃嫈珺(書面質詢)。\n參、主席裁示\n")
+        self.assertEqual([(w["date"], w["name"]) for w in cyq_book.minutes_written([p])],
+                         [("2023-06-05", "蔡政宜"), ("2024-06-07", "黃嫈珺")])

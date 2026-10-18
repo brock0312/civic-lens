@@ -107,6 +107,10 @@ export const KIN_TRANSCRIPT = '縣政總質詢紀錄';
 export const PIF_LISTED = '施政總質詢會議紀錄列名';
 export const PIF_LINK = '會議紀錄（PDF）';
 export const TRANSCRIPTS = [HUA_TRANSCRIPT, HSZ_TRANSCRIPT, KIN_TRANSCRIPT, PIF_LISTED];
+// 屏東、新竹縣、嘉義縣、彰化：官方紀錄記載議員該場「改採書面質詢」（etl 的 WRITTEN_DOC）；書面內容議會沒有公開，只連到記載的那一頁。
+// 不算進書面質詢或質詢紀錄，另列一區，避免只做書面質詢的議員顯示為 0 筆（2026-10-18 使用者決定）
+export const WRITTEN_SWITCH = '改採書面質詢（內容未公開）';
+const switchCount = (written) => written.filter((f) => f.data?.doc_type === WRITTEN_SWITCH).length;
 // 新竹縣：「議員質詢」頁沒有文字層的逐人 PDF（多為書面質詢資料，也有質詢大綱），只連結、標掃描檔；逐字紀錄同金門用 KIN_TRANSCRIPT
 export const HSQ_SCANNED = '質詢資料';
 // 南投：議事錄縣政總質詢「議員建議事項」表的一格（etl/sources/nan_book.py 的 DOC_TYPE）
@@ -175,15 +179,16 @@ export const RECORDS = {
     depts: [], written: true,
     countLine: (written) => {
       const n = (t) => written.filter((f) => f.data?.doc_type === t).length;
-      return `縣政總質詢紀錄 <span class="num">${n(KIN_TRANSCRIPT)}</span> 份、質詢資料（掃描檔）<span class="num">${n(HSQ_SCANNED)}</span> 份`;
+      return `縣政總質詢紀錄 <span class="num">${n(KIN_TRANSCRIPT)}</span> 份、質詢資料（掃描檔）<span class="num">${n(HSQ_SCANNED)}</span> 份、改採書面質詢（內容未公開）<span class="num">${n(WRITTEN_SWITCH)}</span> 次`;
     },
     note: '質詢紀錄收錄第 1 至第 7 次定期會（2023 年 5 月至 2026 年 4 月），第 4 次定期會有 2 份官方連結失效、未收錄；出席取自會議紀錄，收錄第 1 至第 24 次臨時會與第 1 至第 7 次定期會（2023 年 2 月至 2026 年 9 月）。新竹縣議會只有會議直播，沒有質詢影片，本站未收錄影片。',
     writtenHeading: '質詢資料（掃描檔）',
     writtenBlurb: '每筆是新竹縣議會「議員質詢」頁列在此人名下、沒有文字層的掃描檔（PDF），多為書面質詢資料，也有質詢大綱；本站未擷取內容。資料來源：新竹縣議會。',
     transcriptHeading: '縣政總質詢紀錄',
     transcriptBlurb: '每筆是一個定期會中本人的縣政總質詢逐字紀錄（PDF），依新竹縣議會「議員質詢」頁的連結文字列在此人名下，並與紀錄開頭的質詢議員核對；聯合質詢列在每位質詢議員名下。紀錄沒有逐場日期，日期欄顯示會期。本站未摘要內容。資料來源：新竹縣議會。',
+    switchBlurb: '每筆是一天的縣政總質詢，該日會議紀要在本人名下註記「書面另錄」或「書面」（官方紀錄記載改以書面質詢），連結至該日會議紀要（PDF）。書面質詢的內容議會沒有公開，本站無從收錄；這裡只表示官方紀錄記載本人當天以書面方式質詢，不代表沒有質詢。聯合質詢的項目、同一會期另有本人口頭總質詢逐字紀錄的不列入。收錄第 1 至第 7 次定期會（2023 年 5 月至 2026 年 5 月）。資料來源：新竹縣議會。',
     attendance: { note: HSQ_ATTENDANCE_NOTE, duty: false, leave: false },
-    noRecord: '本站目前沒有此人的質詢紀錄（收錄範圍：第20屆新竹縣議員，第 1 至第 7 次定期會「議員質詢」頁的縣政總質詢紀錄與質詢資料）。',
+    noRecord: '本站目前沒有此人的質詢紀錄（收錄範圍：第20屆新竹縣議員，第 1 至第 7 次定期會「議員質詢」頁的縣政總質詢紀錄與質詢資料，以及會議紀要記載的改採書面質詢）。',
   },
   // 臺東（V16 已定案第 3、6 點）：議事錄第四冊的書面質詢題目照官方原文；口頭縣政總質詢只連到逐字紀錄中本人開始發言的頁（主席點名＋
   // 本人發言標籤都對上才列，不擷取內文）；YouTube 頻道官網未連結，不收影片
@@ -223,12 +228,13 @@ export const RECORDS = {
   // 會議紀錄的出席寫「如議員簽到簿」、沒有書面質詢內容，都不收
   cha: {
     depts: [], written: false,
-    countLine: (written, videos) => `縣政質詢紀錄 <span class="num">${written.filter((f) => f.data?.doc_type === KIN_TRANSCRIPT).length}</span> 場、縣政質詢當天影片 <span class="num">${videos.length}</span> 支`,
-    note: '縣政質詢紀錄取自彰化縣議會議事錄電子書，收錄第 1、2、4、5、6 次定期會（2023 年 5 月至 2025 年 11 月）；第 3 次定期會的議事錄是掃描影像，第 7 次定期會以後的議事錄尚未刊出，本站未收錄。影片收錄第 1 至第 8 次定期會。議事錄的會議紀錄沒有出席名單（記載「如議員簽到簿」），出缺勤本站未收錄；議事錄只記載議員改提書面質詢，沒有書面質詢內容，本站也未收錄。',
+    countLine: (written, videos) => `縣政質詢紀錄 <span class="num">${written.filter((f) => f.data?.doc_type === KIN_TRANSCRIPT).length}</span> 場、改採書面質詢（內容未公開）<span class="num">${switchCount(written)}</span> 次、縣政質詢當天影片 <span class="num">${videos.length}</span> 支`,
+    note: '縣政質詢紀錄取自彰化縣議會議事錄電子書，收錄第 1、2、4、5、6 次定期會（2023 年 5 月至 2025 年 11 月）；第 3 次定期會的議事錄是掃描影像，第 7 次定期會以後的議事錄尚未刊出，本站未收錄。影片收錄第 1 至第 8 次定期會。議事錄的會議紀錄沒有出席名單（記載「如議員簽到簿」），出缺勤本站未收錄；議事錄只記載議員改提書面質詢，沒有書面質詢內容，本站只列出議事錄中主席宣布改採書面質詢的紀錄。',
     transcriptHeading: '縣政質詢紀錄',
     transcriptBlurb: '每筆是一天的縣政質詢中本人的質詢，依議事錄當天主席宣布的質詢議員名單歸入（聯合質詢列在每位質詢議員名下；名單上改提書面質詢、當天沒有發言的不列），連結至議事錄電子書本人開始發言的那一頁；電子書頁碼與印刷頁碼不同。本站未摘要內容。資料來源：彰化縣議會。',
+    switchBlurb: '每筆是一天的縣政質詢，議事錄中主席宣布本人「改書面質詢」「採書面質詢」（逐一點名才列入），連結至議事錄電子書該頁。書面質詢的內容議事錄沒有收錄，本站無從收錄；這裡只表示官方紀錄記載本人當天以書面方式質詢，不代表沒有質詢。主席以外的人說的、沒有逐一點名的、同一句點名的人當天其實有口頭質詢的，都不列入。收錄第 1、2、4、5、6 次定期會（2023 年 5 月至 2025 年 11 月）。資料來源：彰化縣議會。',
     videoBlurb: '連結至彰化縣議會發布在 YouTube 的議事影片，一天一支，依影片說明欄列出的當天質詢議員歸入；本人質詢時段未標示。議事錄已刊出的日期（第 1、2、4、5、6 次定期會），議事錄顯示當天改提書面質詢、沒有口頭質詢的議員不列入；議事錄未刊出的日期（第 3、7、8 次定期會），名單只取自影片說明欄，可能包含當天改提書面質詢的議員。本站只提供連結，不轉錄或剪輯影片。影片來源：彰化縣議會。',
-    noRecord: '本站目前沒有此人的縣政質詢紀錄（收錄範圍：第20屆彰化縣議員，議事錄已刊出的第 1、2、4、5、6 次定期會縣政質詢紀錄與第 1 至第 8 次定期會的縣政質詢影片）。出缺勤與書面質詢本站未收錄。',
+    noRecord: '本站目前沒有此人的縣政質詢紀錄（收錄範圍：第20屆彰化縣議員，議事錄已刊出的第 1、2、4、5、6 次定期會縣政質詢紀錄與第 1 至第 8 次定期會的縣政質詢影片，以及議事錄記載的改採書面質詢）。出缺勤與書面質詢內容本站未收錄。',
   },
   // 苗栗（V16 已定案第 5、6、10 點）：會議紀錄 PDF 只連到本人縣政總質詢開始發言的頁（不擷取內文）；部門工作報告日沒有主席點名，不收；
   // 只有直播、沒有影片與書面質詢；出席只有出席名單（2025-03 起才逐人列名）
@@ -256,20 +262,22 @@ export const RECORDS = {
   // 會議紀錄只記出席人數、沒有影片與書面質詢章，都不收
   cyq: {
     depts: [], written: false,
-    countLine: (written) => `縣政總質詢紀錄 <span class="num">${written.filter((f) => f.data?.doc_type === KIN_TRANSCRIPT).length}</span> 場`,
-    note: '縣政總質詢紀錄取自嘉義縣議會議事錄「質詢與答覆」，收錄第 2 至第 7 次定期會（2023 年 11 月至 2026 年 5 月）；第 1 次定期會的質詢與答覆是掃描影像，第 8 次定期會以後的議事錄尚未刊出，本站未收錄。議事錄的會議紀錄只記出席人數、沒有出席名單，出缺勤本站未收錄；議會官網只有會議直播、未見質詢影片存檔，議事錄也沒有書面質詢內容，本站都未收錄。',
+    countLine: (written) => `縣政總質詢紀錄 <span class="num">${written.filter((f) => f.data?.doc_type === KIN_TRANSCRIPT).length}</span> 場、改採書面質詢（內容未公開）<span class="num">${switchCount(written)}</span> 次`,
+    note: '縣政總質詢紀錄取自嘉義縣議會議事錄「質詢與答覆」，收錄第 2 至第 7 次定期會（2023 年 11 月至 2026 年 5 月）；第 1 次定期會的質詢與答覆是掃描影像，第 8 次定期會以後的議事錄尚未刊出，本站未收錄。議事錄的會議紀錄只記出席人數、沒有出席名單，出缺勤本站未收錄；議會官網只有會議直播、未見質詢影片存檔，議事錄也沒有書面質詢內容，本站都未收錄；議事錄記載議員改採書面質詢的，另列「改採書面質詢」。',
     transcriptHeading: '縣政總質詢紀錄',
+    switchBlurb: '每筆是一天的縣政總質詢，議事錄的會議紀錄在本人姓名後註記「（書面質詢）」，或「質詢與答覆」中主席逐一點名本人書面質詢，連結至議事錄 PDF 該頁。書面質詢的內容議事錄沒有收錄，本站無從收錄；這裡只表示官方紀錄記載本人當天以書面方式質詢，不代表沒有質詢。同一天本人另有口頭質詢的不列入。收錄第 1 至第 7 次定期會（2023 年 6 月至 2026 年 5 月）。資料來源：嘉義縣議會。',
     transcriptBlurb: '每筆是一天的質詢與答覆中本人的質詢，依議事錄的發言標籤「○○○議員」歸入（當天只插話一兩句的不列入），連結至議事錄 PDF 本人當天第一個發言標籤所在的那一頁；頁碼是議事錄的印刷頁。議事錄「質詢與答覆」章是議會依錄音整理的摘要，不是逐字稿。本站未摘要內容。資料來源：嘉義縣議會。',
-    noRecord: '本站目前沒有此人的縣政總質詢紀錄（收錄範圍：第20屆嘉義縣議員，議事錄第 2 至第 7 次定期會的「質詢與答覆」）。出缺勤、質詢影片與書面質詢本站未收錄。',
+    noRecord: '本站目前沒有此人的縣政總質詢紀錄（收錄範圍：第20屆嘉義縣議員，議事錄第 2 至第 7 次定期會的「質詢與答覆」，以及議事錄記載的改採書面質詢）。出缺勤、質詢影片與書面質詢內容本站未收錄。',
   },
   // 屏東（V16 已定案第 12 點）：只收每日會議紀錄明文「質詢議員：」行；施政總質詢內容官方記為「另錄」未公開，出席「詳如簽到簿」，都不收
   pif: {
     depts: [], written: false,
-    countLine: (written) => `${PIF_LISTED} <span class="num">${written.filter((f) => f.data?.doc_type === PIF_LISTED).length}</span> 天`,
+    countLine: (written) => `${PIF_LISTED} <span class="num">${written.filter((f) => f.data?.doc_type === PIF_LISTED).length}</span> 天、改採書面質詢（內容未公開）<span class="num">${switchCount(written)}</span> 次`,
     note: '施政總質詢列名取自屏東縣議會「議事日程表及會議紀錄」的每日會議紀錄，收錄第 20 屆第 1 至第 7 次定期會（2023 年 5 月至 2026 年 7 月）；第 8 次定期會的會議紀錄尚未刊出。會議紀錄的出席記載「詳如簽到簿」，簽到簿沒有公開，出缺勤本站未收錄；屏東縣議會沒有公開質詢內容、質詢影片與書面質詢內容，本站都未收錄。',
     transcriptHeading: PIF_LISTED,
+    switchBlurb: '每筆是一天的施政總質詢，該日會議紀錄寫明本人「採書面質詢」（例如「原排定施政總質詢之○○○議員皆採書面質詢」），連結至該日會議紀錄（1–2 頁 PDF）。書面質詢的內容議會沒有公開，本站無從收錄；這裡只表示官方紀錄記載本人當天以書面方式質詢，不代表沒有質詢。記載「不質詢」的不列入；名單無法逐一切開的句子不列入。收錄第 20 屆第 1–7 次定期會（2023 年 5 月至 2026 年 7 月）。資料來源：屏東縣議會。',
     transcriptBlurb: '屏東縣議會只公開每日會議紀錄摘要；施政總質詢內容官方記為「另錄」未公開，這裡只列會議紀錄寫明的質詢議員。每筆附該日會議紀錄連結（1–2 頁 PDF）。收錄第 20 屆第 1–7 次定期會。',
-    noRecord: '本站目前沒有此人的施政總質詢會議紀錄列名（收錄範圍：第20屆屏東縣議員，第 1 至第 7 次定期會每日會議紀錄寫明的「質詢議員」；只列原排定質詢議員或記載改採書面質詢的日子不列入）。出缺勤、質詢影片與書面質詢本站未收錄。',
+    noRecord: '本站目前沒有此人的施政總質詢會議紀錄列名（收錄範圍：第20屆屏東縣議員，第 1 至第 7 次定期會每日會議紀錄寫明的「質詢議員」，以及會議紀錄記載的改採書面質詢）。出缺勤、質詢影片與書面質詢內容本站未收錄。',
   },
   // 連江（V16 已定案第 3 點）：官網「質詢影音」依議員列的總質詢頁，只連議會詳細頁（YouTube 剪輯頻道顯示名稱是個人，不直接連）；
   // 簽到簿是手寫掃描、沒有書面質詢，都不收
@@ -901,8 +909,8 @@ export function interpellationRows(list) {
   return list.map((f) => {
     const u = safeUrl(f.source_url);
     const title = esc(String(f.data?.title || f.data?.doc_no || ''));
-    const link = f.data?.doc_type === PIF_LISTED  // 屏東：標題只是列名說明，連結文字講清楚是會議紀錄
-      ? `${title}<span class="video">${u ? ext(u, PIF_LINK) : ''}</span>` : u ? ext(u, title) : title;
+    const label = f.data?.doc_type === PIF_LISTED ? PIF_LINK : f.data?.link_label;  // 標題只是說明，連結文字講清楚連到哪份官方紀錄
+    const link = label ? `${title}<span class="video">${u ? ext(u, label) : ''}</span>` : u ? ext(u, title) : title;
     return `<li>${dateCell(f)}
       <span class="dept">${esc(f.data?.dept || '')}</span>
       <span class="title">${link}${moreFiles(f.data?.files)}</span></li>`;
@@ -1128,12 +1136,13 @@ export function summaryCard(facts, { offices, inters, written, videos, jump, rec
 
 // 可勾選的維度（整組勾選，不開放子項）；順序就是圖卡上的順序
 export const CARD_DIMS = {
-  attendance: '出缺勤', video: '質詢影片', written: '書面質詢', transcript: '質詢紀錄', oral: '口頭質詢答覆',
+  attendance: '出缺勤', video: '質詢影片', written: '書面質詢', transcript: '質詢紀錄', switched: '改採書面質詢', oral: '口頭質詢答覆',
   suggestion: '議員建議事項', dept: '質詢部門分布', issues: '質詢議題',
 };
 const isVideo = (f) => Boolean(f.data?.video_id);
 const docIs = (t) => (f) => !isVideo(f) && f.data?.doc_type === t;
-const isWrittenOnly = (f) => !isVideo(f) && ![HUA_ORAL, ...TRANSCRIPTS].includes(f.data?.doc_type);
+const isWrittenOnly = (f) => !isVideo(f) && ![HUA_ORAL, WRITTEN_SWITCH, ...TRANSCRIPTS].includes(f.data?.doc_type);
+const SWITCH_LABEL = '改採書面質詢';  // 卡上的加註寫明「內容未公開」與依據
 const anyWritten = (f) => !isVideo(f);
 
 // 各縣市的計數項目（與摘要卡 countLine 同口徑）；[維度, 標籤, 單位, 篩選, 收錄期間, 加註（選填）]。收錄期間逐項標示（verifier 2026-10-18：
@@ -1164,7 +1173,8 @@ export const CARD_SPECS = {
   },
   hsq: {
     term: '第20屆', attendance: '2023/02–2026/09',
-    counts: [['transcript', KIN_TRANSCRIPT, '份', docIs(KIN_TRANSCRIPT), '2023/05–2026/04'], ['written', `${HSQ_SCANNED}（掃描檔）`, '份', docIs(HSQ_SCANNED), '2023/05–2026/04']],
+    counts: [['transcript', KIN_TRANSCRIPT, '份', docIs(KIN_TRANSCRIPT), '2023/05–2026/04'], ['written', `${HSQ_SCANNED}（掃描檔）`, '份', docIs(HSQ_SCANNED), '2023/05–2026/04'],
+      ['switched', SWITCH_LABEL, '次', docIs(WRITTEN_SWITCH), '2023/05–2026/05', '內容未公開；依會議紀要記載']],
   },
   // 臺東：口頭縣政總質詢（議事錄第四冊逐字紀錄，本人開始發言的頁）與改以書面提出的總質詢分列；第 2 次定期會官網第四冊放錯檔，兩項都缺
   ttt: {
@@ -1179,12 +1189,21 @@ export const CARD_SPECS = {
   kee: { term: '第20屆', counts: [['video', '市長施政總質詢影片', '支', isVideo, '2023/05–2026/10']] },
   cha: {
     term: '第20屆',
-    counts: [['video', '縣政質詢當天影片', '支', isVideo, '2023/05–2026/10'], ['transcript', '縣政質詢紀錄', '場', docIs(KIN_TRANSCRIPT), '2023/05–2025/11（缺第3次定期會）']],
+    counts: [['video', '縣政質詢當天影片', '支', isVideo, '2023/05–2026/10'], ['transcript', '縣政質詢紀錄', '場', docIs(KIN_TRANSCRIPT), '2023/05–2025/11（缺第3次定期會）'],
+      ['switched', SWITCH_LABEL, '次', docIs(WRITTEN_SWITCH), '2023/05–2025/11（缺第3次定期會）', '內容未公開；依議事錄主席宣布']],
   },
   mia: { term: '第20屆', attendance: '2025/03–2026/10', counts: [['transcript', KIN_TRANSCRIPT, '場', docIs(KIN_TRANSCRIPT), '2023/05–2026/06']] },
   cyi: { term: '第11屆', attendance: '2024/09–2026/04（部分會期）', counts: [['transcript', '市政總質詢紀錄', '場', docIs(KIN_TRANSCRIPT), '2023/05–2026/05（缺第3次定期會）']] },
-  cyq: { term: '第20屆', counts: [['transcript', KIN_TRANSCRIPT, '場', docIs(KIN_TRANSCRIPT), '2023/11–2026/05']] },
-  pif: { term: '第20屆', counts: [['transcript', PIF_LISTED, '天', docIs(PIF_LISTED), '2023/05–2026/07']] },
+  cyq: {
+    term: '第20屆',
+    counts: [['transcript', KIN_TRANSCRIPT, '場', docIs(KIN_TRANSCRIPT), '2023/11–2026/05'],
+      ['switched', SWITCH_LABEL, '次', docIs(WRITTEN_SWITCH), '2023/06–2026/05', '內容未公開；依議事錄記載']],
+  },
+  pif: {
+    term: '第20屆',
+    counts: [['transcript', PIF_LISTED, '天', docIs(PIF_LISTED), '2023/05–2026/07'],
+      ['switched', SWITCH_LABEL, '次', docIs(WRITTEN_SWITCH), '2023/05–2026/07', '內容未公開；依會議紀錄記載']],
+  },
   lie: { term: '第8屆', counts: [['video', '縣政總質詢與施政報告質詢影片', '筆', isVideo, '第1–7次定期大會']] },
   ila: { term: '第20屆', counts: [['video', '業務質詢與縣長施政總質詢影片', '支', isVideo, '2023/05–2026/10']] },
   yun: { term: '第20屆', counts: [['video', '標記本人發言的議事影片', '支', isVideo, '2025/05–2026/10']] },
@@ -1349,7 +1368,7 @@ async function renderPerson(main, ctx, id) {
   const videos = inters.filter((f) => f.data?.video_id);
   const written = inters.filter((f) => !f.data?.video_id);
   const docs = (t) => written.filter((f) => f.data?.doc_type === t);
-  const writtenOnly = written.filter((f) => ![HUA_ORAL, ...TRANSCRIPTS].includes(f.data?.doc_type));
+  const writtenOnly = written.filter((f) => ![HUA_ORAL, WRITTEN_SWITCH, ...TRANSCRIPTS].includes(f.data?.doc_type));
   // 議員、縣市長選區連到選區頁；立委選區沒有頁面，只寫選區名稱；不分區、原住民立委沒有選區 id，用 fallback 文字
   const districtLink = (districtId, fallback = '') => {
     const m = districtMeta(ctx, districtId);
@@ -1366,6 +1385,7 @@ async function renderPerson(main, ctx, id) {
     written: { list: writtenOnly, rows: interpellationRows, blurb: rec?.writtenBlurb || '標題連結至臺北市議會公報原文。' },
     oral: { list: docs(HUA_ORAL), rows: interpellationRows, blurb: rec?.oralBlurb || '' },
     transcript: { list: written.filter((f) => TRANSCRIPTS.includes(f.data?.doc_type)), rows: interpellationRows, blurb: rec?.transcriptBlurb || '' },
+    switched: { list: docs(WRITTEN_SWITCH), rows: interpellationRows, blurb: rec?.switchBlurb || '' },
     video: { list: videos, rows: videoRows, blurb: rec?.videoBlurb || videoBlurb(videos) },
     ...Object.fromEntries(Object.entries(LY_KINDS).map(([k, m]) => [k, { list: facts[k] || [], rows: lyRows, blurb: m.blurb }])),
   };
@@ -1392,7 +1412,8 @@ async function renderPerson(main, ctx, id) {
       ${interSection('written', rec?.writtenHeading || '書面質詢', kinds.written)}
       ${interSection('oral', '口頭質詢答覆', kinds.oral)}
       ${interSection('video', '口頭質詢（影片）', kinds.video)}
-      ${interSection('transcript', rec?.transcriptHeading || '質詢（錄音）紀錄', kinds.transcript)}</section>` : '';
+      ${interSection('transcript', rec?.transcriptHeading || '質詢（錄音）紀錄', kinds.transcript)}
+      ${interSection('switched', WRITTEN_SWITCH, kinds.switched)}</section>` : '';
   const ly = lyCounts(facts).length ? `<section aria-labelledby="k-ly"><h2 id="k-ly">立法院問政紀錄</h2>
       <p class="count">${esc(LY_NOTE)}</p>
       ${Object.entries(LY_KINDS).map(([k, m]) => interSection(k, m.heading, kinds[k])).join('')}</section>` : '';

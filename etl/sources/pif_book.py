@@ -12,6 +12,11 @@
   每人每天一筆。不收：「發言議員：」（部門報告日）、「原排定質詢議員：」、整句敘述（停會、皆不質詢）；
   同一天有「○○議員採書面質詢」的，列名者若出現在提到書面質詢的那一句就排除；只寫職稱（周議長、盧副議長）或不像姓名的不收。
 - PDF 第一個「時間：中華民國 115 年 7 月 2 日」要與檔名日期相同，不同整天不收（印 log）。會期取 PDF 表頭。
+- **改採書面質詢**（2026-10-18 使用者決定）：會議紀錄「（二）蔣家煌議員採書面質詢」「原排定施政總質詢之林明順議員、劉孟君議員、
+  何春美議員皆採書面質詢」「林郁虹、鄭張常敏2位議員皆採書面質詢」：「採書面質詢」往前到最近的編號項目、標點或「原排定施政總質詢之」
+  是名單，以頓號或「及」切開，每段去掉「議員」後都要是姓名才收（有一段不是，例如名單黏在原排定名單後面，整句不收、印 log），
+  每人每天一筆另一種 doc_type（WRITTEN_DOC，書面內容官方沒有公開），連到該日會議紀錄。同一天也列為「質詢議員」的不收（印 log）。
+  「不質詢」（停會、皆不質詢）不是書面質詢，不收。
 
 UA civic-lens-etl/0.1、同主機間隔 ≥ 1.1 秒、循序。只寫給有屏東縣議員任職 fact 且有 2026 candidacy 的人；
 姓名以 etl.match 的正規化對全部屏東縣議員名錄，同名或對不到的不收（印 log）；官方錯字只照 NAME_FIX。
@@ -40,6 +45,7 @@ LIST_URL = HOST + "/?GoStartPage={start}&Page=Schedule&Guid=0fbef497-8774-a8d4-a
 DETAIL_URL = HOST + "/?Page=ScheduleDetail&Guid={guid}"
 FILE_URL = HOST + "/lib/GetFile.php?fil_guid={guid}"
 DOC_TYPE = "施政總質詢會議紀錄列名"
+WRITTEN_DOC = "改採書面質詢（內容未公開）"  # 與 site/app.js 的 WRITTEN_SWITCH 相同
 
 LIST_ITEM = re.compile(r'<a href="\?Page=ScheduleDetail&Guid=([0-9a-f-]{36})">\s*([^<]+?)\s*<')
 ATTACH = re.compile(r"href=/lib/GetFile\.php\?fil_guid=([0-9a-f-]{36}) title='(\d{7})會議[紀記]錄(?:-pdf|\(第\d天\))?\.pdf_PDF格式")  # 官方檔名異寫：「-pdf」「(第1天)」
@@ -49,6 +55,10 @@ WHEN = re.compile(r"時間:中華民國(\d+)年(\d+)月(\d+)日")
 ASKERS = re.compile(r"^\s*(?:\([一二三四五六七八九十]+\))?\s*質詢議員:(.*)$")
 ITEM = re.compile(r"^\s*(?:\([一二三四五六七八九十]+\)|[一二三四五六七八九十]+、)")  # 下一個編號項目：名單到此為止
 NAME = re.compile(r"[一-鿿]{2,4}(?: [A-Za-z]+)*")  # 原住民姓名的羅馬拼音（「李紀財 Mulaneng Paliuliu」）
+SWITCH = re.compile(r"皆?採書面質詢")
+# 名單往前到這些標記為止：編號項目「(二)」、「本(17)日」的括號、標點、「原排定施政總質詢之」
+SWITCH_START = re.compile(r"\([一二三四五六七八九十\d]+\)|[。;:,]|原排定施政總質詢之|\(另錄\)")
+WRITTEN_NAME = re.compile(r"[一-鿿]{2,4}(?:[A-Za-z]+)*")  # 攤平後原住民姓名的羅馬拼音沒有空白（「李紀財MulanengPaliuliu」）
 # 官方錯字（人工審閱，逐鍵）：(檔名日期, 寫法) → 姓名
 NAME_FIX = {}
 
@@ -167,8 +177,27 @@ def asker_lines(lines):
     return out
 
 
+def switched_names(roc, f, log=print):
+    """攤平的會議紀錄 → [記載採書面質詢的姓名]（見模組說明）；名單有一段不是姓名時整句不收。"""
+    out = []
+    for m in SWITCH.finditer(f):
+        head = f[:m.start()]
+        start = max((b.end() for b in SWITCH_START.finditer(head)), default=0)
+        body = head[start:]
+        toks = [re.sub(r"(?:\d+位)?議員$", "", t) for t in re.split(r"、|及", body)]
+        names = [NAME_FIX.get((roc, t), t) for t in toks]
+        if not body or not all(WRITTEN_NAME.fullmatch(n) and "議長" not in n for n in names):
+            log(f"pif_book：{roc} 「{body}採書面質詢」名單切不開或含職稱，整句不收")
+            continue
+        out += [n for n in names if n not in out]
+    for m in re.finditer(r"書面質詢", f):
+        if not SWITCH.search(f[max(0, m.start() - 2):m.end()]):
+            log(f"pif_book：{roc} 另有提到書面質詢的寫法「{f[max(0, m.start() - 20):m.end()]}」，不收（待人工審閱）")
+    return out
+
+
 def parse_minutes(roc, text, log=print):
-    """→ {date, session, names: [列名且沒採書面的姓名]}；日期對不上或讀不到表頭回 None。"""
+    """→ {date, session, names: [列名且沒採書面的姓名], written: [記載採書面質詢的姓名]}；日期對不上或讀不到表頭回 None。"""
     text = unicodedata.normalize("NFKC", text)
     f = flat(text)
     h, w = HEADER.search(f), WHEN.search(f)
@@ -182,7 +211,7 @@ def parse_minutes(roc, text, log=print):
     session = f"第{TERM}屆第{h[2]}次{h[3]}會"
     lines = text.split("\n")
     written = written_sentences(lines)
-    names = []
+    names, listed = [], set()  # listed：列在「質詢議員：」的全部姓名（含因採書面而排除的）
     for line in asker_lines(lines):
         for m in re.finditer(r"([^、,]*)\(([^)]*)\)", line):
             log(f"pif_book：{roc} 質詢議員「{m[0]}」含括號說明，整段不收")
@@ -193,6 +222,7 @@ def parse_minutes(roc, text, log=print):
             if "議長" in tok or not NAME.fullmatch(n):
                 log(f"pif_book：{roc} 質詢議員「{tok}」不是姓名（職稱或敘述），不收")
                 continue
+            listed.add(n)
             if any(flat(n) in x for x in written):
                 log(f"pif_book：{roc} {n} 列為質詢議員但同日採書面質詢，不收")
                 continue
@@ -200,7 +230,13 @@ def parse_minutes(roc, text, log=print):
                 names.append(n)
     if not names and "原排定" in f:
         log(f"pif_book：{roc} 只有原排定質詢議員或敘述，沒有「質詢議員：」行，不收")
-    return {"date": date, "roc": roc, "session": session, "names": names}
+    written = []
+    for n in switched_names(roc, f, log):
+        if n in listed:
+            log(f"pif_book：{roc} {n} 同日列為質詢議員又記載採書面質詢，書面不收")
+        else:
+            written.append(n)
+    return {"date": date, "roc": roc, "session": session, "names": names, "written": written}
 
 
 def facts(days, files, roster, pids, log=print):
@@ -223,6 +259,24 @@ def facts(days, files, roster, pids, log=print):
     return out
 
 
+def written_facts(days, files, roster, pids, log=print):
+    """會議紀錄記載採書面質詢：每人每天一筆（書面內容官方沒有公開，只連該日會議紀錄）。"""
+    out = {}
+    for d in days:
+        for n in d["written"]:
+            pid, why = resolve(n, roster)
+            if not pid:
+                log(f"pif_book：{d['roc']} 採書面質詢 {n}：{why}，不收")
+                continue
+            if pid not in pids:
+                continue
+            data = {"term": TERM, "session": d["session"], "doc_type": WRITTEN_DOC, "dept": None,
+                    "title": "施政總質詢：會議紀錄記載採書面質詢（書面內容議會未公開）", "link_label": "會議紀錄（PDF）",
+                    "councillors": [n], "group_size": 1}
+            out.setdefault(pid, []).append((f"pifwr:{d['date']}:{pid}", data, FILE_URL.format(guid=files[d["roc"]]), d["date"]))
+    return out
+
+
 def build(conn, files, texts, log=print):
     ts = targets(conn, OFFICE)
     roster = roster_index(conn, OFFICE)
@@ -241,7 +295,7 @@ def build(conn, files, texts, log=print):
         d = parse_minutes(roc, texts[roc], log)
         if d:
             days.append(d)
-    return ts, days, facts(days, files, roster, pids, log)
+    return ts, days, facts(days, files, roster, pids, log), written_facts(days, files, roster, pids, log)
 
 
 def load_all(refresh=True, progress=False):
@@ -262,11 +316,22 @@ def _print_logs(logs, indent=""):
 def run(conn):
     files, texts = load_all()
     logs = []
-    ts, days, by_pid = build(conn, files, texts, logs.append)
+    ts, days, by_pid, wr = build(conn, files, texts, logs.append)
     _print_logs(logs)
     n, stale = write(conn, "pifmin", by_pid, "interpellation")
+    nw, sw = write(conn, "pifwr", wr, "interpellation")
     print(f"pif_book：會議紀錄 {len(files)} 天，有質詢議員列名 {sum(bool(d['names']) for d in days)} 天；"
-          f"對象 {len(ts)} 人，有紀錄 {len(by_pid)} 人 {n} 筆（刪除 {stale}）")
+          f"對象 {len(ts)} 人，有紀錄 {len(by_pid)} 人 {n} 筆（刪除 {stale}）；記載採書面質詢 {len(wr)} 人 {nw} 筆（刪除 {sw}）")
+
+
+def run_written(conn):
+    """局部補跑只寫「記載採書面質詢」（不動列名紀錄）：只讀快取。"""
+    files, texts = load_all(refresh=False)
+    logs = []
+    ts, days, _, wr = build(conn, files, texts, logs.append)
+    _print_logs(logs)
+    nw, sw = write(conn, "pifwr", wr, "interpellation")
+    print(f"pif_book：記載採書面質詢 {len(wr)} 人 {nw} 筆（刪除 {sw}）")
 
 
 # ---------- 自我檢查 ----------
@@ -275,7 +340,7 @@ def check(samples=()):
     from etl.sources.nwt_book import dump_conn
     files, texts = load_all(refresh=False)
     logs = []
-    ts, days, by_pid = build(dump_conn(), files, texts, logs.append)
+    ts, days, by_pid, wr = build(dump_conn(), files, texts, logs.append)
     _print_logs(logs, "  ")
     listed = [d for d in days if d["names"]]
     print(f"會議紀錄 {len(files)} 天（快取 {sum(t is not None for t in texts.values())}），有質詢議員列名 {len(listed)} 天 "
@@ -288,7 +353,8 @@ def check(samples=()):
         if samples and not any(s in names[pid] for s in samples):
             continue
         rows = sorted(by_pid.get(pid, []), key=lambda x: x[3])
-        print(f"  {names[pid]} {len(rows)}：" + "、".join(date for _, _, _, date in rows))
+        print(f"  {names[pid]} {len(rows)}：" + "、".join(date for _, _, _, date in rows)
+              + (f"；採書面 {len(wr[pid])}：" + "、".join(date for _, _, _, date in sorted(wr[pid], key=lambda x: x[3])) if pid in wr else ""))
         if samples:
             for k, d, u, date in rows:
                 print(f"    {k} {d['session']} {d['title']} {u}")

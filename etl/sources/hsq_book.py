@@ -11,6 +11,10 @@
   改以：名單每個詞都要是名錄上唯一的議員（或遞補前的前議員 FORMER）、不重複、紀要表頭的會期與清單標題相同，否則整次會議不收（印 log）。
   同一會議時間的紀要重複上架時只算一次；沒有出席名單的紀錄（總預算審議聯席會的下午場次等）、會議日期在任期前（官方誤植）的不列入。
   程序委員會不列入。任期中遞補的人（任職 fact 沒有起日）從第一次列名的會議起算。每人每會期一筆 fact。
+- **改採書面質詢**（2026-10-18 使用者決定）：縣政總質詢日的會議紀要逐項列出「一、黃豪杰議員。（書面另錄）」「二、王副議長炳漢（書面）」
+  「三、鄭美琴議員。（另錄）」；註記「書面另錄」或「書面」的項目，項目本身要是一位議員（「○○○議員」「王副議長炳漢」「張鎮榮議長」）才收，
+  聯合質詢等多人項目不收。每人每天一筆另一種 doc_type（WRITTEN_DOC，書面內容官方沒有公開），連到該份會議紀要，標題照錄註記。
+  同一會期另有本人縣政總質詢逐字紀錄的不收（印 log）。
 
 robots.txt 404；隱私宣告沒有著作權或擷取限制（V16）。UA civic-lens-etl/0.1、同主機間隔 ≥ 1.1 秒、循序。
 只寫給有新竹縣議員任職 fact 且有 2026 candidacy 的人；姓名以 etl.match 的漢字正規化對全部新竹縣議員名錄，同名或對不到的不收（印 log）。
@@ -62,6 +66,8 @@ ANNOUNCE = re.compile(r"主席[（(][^）)]*[）)]：.{0,20}?現在(?:開始|起
 COVER_VARIANTS = str.maketrans("柏", "栢")
 NAME = re.compile(r"^[一-鿿]{2,5}$")
 GOV_DOC = "縣政總質詢紀錄"
+SWITCH_DOC = "改採書面質詢（內容未公開）"  # 與 site/app.js 的 WRITTEN_SWITCH 相同
+SWITCH_ITEM = re.compile(r"([一二三四五六七八九十]+)、([^、，。（()）]{2,12}?)。?[（(](書面另錄|書面|另錄)[)）]")
 WRITTEN_DOC = "質詢資料"  # 掃描檔：多數是「書面質詢資料」，也有「質詢大綱」（第 5 次定期會林秉君），所以不稱書面質詢
 # 會議紀要名單上已離職的前議員（不在現任名錄）：{姓名: 遞補者}。只在遞補者第一次列名之前的會議接受，之後出現就整次會議不收。
 # 2026-10 實測：鄭昱芸列名至 2024-03-13，陳星宏 2024-06-17 起列名；陳德木只見於 2023-02-06、范振龍見於 2023-07-03～08-18，
@@ -252,6 +258,52 @@ def question_facts(docs, roster, pids, starts, log=print):
     return out
 
 
+# ---------- 改採書面質詢 ----------
+
+def switch_items(text):
+    """會議紀要 → [(姓名或 None, 原文項目, 註記)]：縣政總質詢逐項註記「書面另錄」「書面」的項目；項目不是一位議員時姓名為 None。"""
+    s, out, used = norm(text or ""), [], set()
+    for m in SWITCH_ITEM.finditer(s):
+        used.add(m.end(3))
+        if "書面" not in m[3]:
+            continue
+        name = bare(m[2])
+        out.append((name if NAME.match(name) and name != m[2] else None, m[2], m[3]))
+    for m in re.finditer(r"[（(](書面另錄|書面)(?=[)）])", s):  # 沒有被逐項解析到的註記（聯合質詢等）：印 log 不收
+        if m.end() not in used:
+            out.append((None, s[max(0, m.start() - 20):m.start()], m[1]))
+    return out
+
+
+def switch_facts(records, texts, roster, pids, docs, log=print):
+    """→ {person_id: [(fact_key, data, url, date)]}：每人每天一筆；同會期有本人逐字紀錄的不收。"""
+    spoke = {(d["session"], n) for d in docs if d["kind"] == "transcript" for n in d["names"]}
+    out, seen = {}, set()
+    for r in records:
+        m = parse_minutes(texts.get(r["url"]))
+        if not m or m["date"] < TERM_START or m["session"] != list_session(r["title"]):
+            continue
+        for name, raw, note in switch_items(texts.get(r["url"])):
+            if not name:
+                log(f"hsq_book：會議紀要 {r['title']}（{m['date']}）「{raw}（{note}）」不是一位議員，不收")
+                continue
+            pid, why = resolve(name, roster)
+            if not pid:
+                log(f"hsq_book：會議紀要 {m['date']} {note} {name}：{why}，不收")
+                continue
+            if pid not in pids or (m["date"], pid) in seen:
+                continue
+            if (m["session"], name) in spoke:
+                log(f"hsq_book：會議紀要 {m['date']} {name} 註記{note}，但同會期有本人縣政總質詢逐字紀錄，書面不收")
+                continue
+            seen.add((m["date"], pid))
+            data = {"term": TERM, "session": m["session"], "doc_type": SWITCH_DOC, "dept": None,
+                    "title": f"縣政總質詢：會議紀要註記「{note}」（書面內容議會未公開）", "link_label": "會議紀要（PDF）",
+                    "councillors": [name], "group_size": 1}
+            out.setdefault(pid, []).append((f"hsqwr:{m['date']}:{pid}", data, quote(r["url"]), m["date"]))
+    return out
+
+
 # ---------- 出席 ----------
 
 def parse_records(page):
@@ -384,7 +436,8 @@ def build(conn, details, records, texts, log=print):
     replacements = {r[0] for r in conn.execute(
         "SELECT person_id FROM fact WHERE kind = 'office' AND json_extract(data, '$.office') = ? AND date IS NULL", (OFFICE,))}
     qf = question_facts(docs, roster, pids, session_starts(records, texts), log)
-    return ts, docs, meetings, qf, attendance_facts(meetings, pids, replacements)
+    return (ts, docs, meetings, qf, attendance_facts(meetings, pids, replacements),
+            switch_facts(records, texts, roster, pids, docs, log))
 
 
 def load_all(refresh=True):
@@ -415,13 +468,26 @@ def load_all(refresh=True):
 def run(conn):
     details, records, texts = load_all()
     logs = Counter()
-    ts, docs, meetings, qf, att = build(conn, details, records, texts, lambda s: logs.update([s]))
+    ts, docs, meetings, qf, att, sw = build(conn, details, records, texts, lambda s: logs.update([s]))
     for line, n in sorted(logs.items()):
         print(f"{line}（{n} 次）" if n > 1 else line)
     nq, dq = write(conn, "hsqq", qf, "interpellation")
     na, da = write(conn, "hsqattend", att, "attendance")
+    nw, dw = write(conn, "hsqwr", sw, "interpellation")
     print(f"hsq_book：質詢 PDF {sum(len(i) for _, i in details)} 份（收錄 {len(docs)}），{len(qf)} 人 {nq} 筆（刪除 {dq}）；"
-          f"會議紀要 {len(records)} 份、收錄大會 {len(meetings)} 次；對象 {len(ts)} 人；出席 {len(att)} 人 {na} 筆（刪除 {da}）")
+          f"會議紀要 {len(records)} 份、收錄大會 {len(meetings)} 次；對象 {len(ts)} 人；出席 {len(att)} 人 {na} 筆（刪除 {da}）；"
+          f"改採書面質詢 {len(sw)} 人 {nw} 筆（刪除 {dw}）")
+
+
+def run_written(conn):
+    """局部補跑只寫「改採書面質詢」（不動質詢 PDF 與出席）：只讀快取。"""
+    details, records, texts = load_all(refresh=False)
+    logs = Counter()
+    *_, sw = build(conn, details, records, texts, lambda s: logs.update([s]))
+    for line, n in sorted(logs.items()):
+        print(f"{line}（{n} 次）" if n > 1 else line)
+    nw, dw = write(conn, "hsqwr", sw, "interpellation")
+    print(f"hsq_book：改採書面質詢 {len(sw)} 人 {nw} 筆（刪除 {dw}）")
 
 
 # ---------- 自我檢查 ----------
@@ -430,7 +496,7 @@ def check(samples=()):
     from etl.sources.nwt_book import dump_conn
     details, records, texts = load_all(refresh=False)
     logs = []
-    ts, docs, meetings, qf, att = build(dump_conn(), details, records, texts, logs.append)
+    ts, docs, meetings, qf, att, sw = build(dump_conn(), details, records, texts, logs.append)
     for line, n in sorted(Counter(logs).items()):
         print(" ", line, f"（{n} 次）" if n > 1 else "")
     print("會期：", sorted(Counter(m["session"] for m in meetings).items(), key=lambda x: x[0]))
@@ -441,7 +507,8 @@ def check(samples=()):
         a, q = att.get(pid, []), qf.get(pid, [])
         p, m = sum(d["present"] for _, d, _, _ in a), sum(d["meetings"] for _, d, _, _ in a)
         print(f"  {name}（{pid}）出席 {p}／{m}；縣政總質詢紀錄 {sum(d['doc_type'] == GOV_DOC for _, d, _, _ in q)}、"
-              f"掃描檔 {sum(d['doc_type'] == WRITTEN_DOC for _, d, _, _ in q)}")
+              f"掃描檔 {sum(d['doc_type'] == WRITTEN_DOC for _, d, _, _ in q)}；改採書面 {len(sw.get(pid, []))}："
+              + "、".join(dt for _, _, _, dt in sorted(sw.get(pid, []), key=lambda x: x[3])))
         if any(s in name for s in samples):
             for _, d, url, dt in a:
                 print(f"    {d['session']:<12} {dt} {d['present']:>2}／{d['meetings']:<2} {urllib.parse.unquote(url)}")

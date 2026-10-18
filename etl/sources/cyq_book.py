@@ -16,6 +16,13 @@ PDF 一冊 20–290 MB，用 curl 串流下載到 data/cache/cyq/pdf/，pdftotex
 - 序言寫明「本刊質詢及答覆，係依據錄音摘要彙整，未克一一送請發言人校閱」：標題稱「質詢與答覆紀錄」，不稱逐字稿。
   只放標題與 PDF 頁連結，不擷取內文、不摘要（V16 已定案第 6 點）。出缺勤只有「出席：張議長明達等 31 人」，不做。
 - 文字層亂碼或掃描的冊（第 7 次定期會上冊：亂碼，沒有質詢章）不收，印 log；check() 列出每冊狀態與每會期是否有質詢章。
+- **改採書面質詢**（2026-10-18 使用者決定；書面內容議事錄沒有收錄）：每人每天一筆另一種 doc_type（WRITTEN_DOC），兩個來源：
+  ①會議紀錄「貳、縣政總質詢與業務質詢：姜梅紅、蔡政宜（書面質詢）、簡嘉億（書面質詢）等議員」，名字緊接「（書面質詢）」才收，
+  也收「（…等議員，蔡政宜議員書面質詢。）」；日期是該份會議紀錄的「時間：中華民國…」，連到紀錄所在 PDF 頁。
+  ②質詢與答覆章裡主席（「主席張議長明達：」「陳副議長怡岳：」）的發言：以句號、逗號、頓號切開，一段裡只有一位「○○○議員」接著
+  「（他）（要／用／是／也是）書面質詢」（或下一段緊接「他要書面質詢」）才收，連到該頁；「蔡政宜和武清山議員，他們兩位書面質詢」
+  要逐一點名且人數與宣布的位數相同才收。「我們副議長的質詢，用書面質詢」這種沒點名的、
+  議員自己說「其他的再用書面質詢」都不收。同一天本人有口頭質詢（發言標籤 ≥ MIN_TURNS）的不收書面（印 log）。
 
 UA civic-lens-etl/0.1、同主機間隔 ≥ 1.1 秒、循序。只寫給有嘉義縣議員任職 fact 且有 2026 candidacy 的人；
 姓名以 etl.match 的漢字正規化（啟／啓 同字）對全部嘉義縣議員名錄，同名或對不到的不收（印 log）；官方錯字只照 NAME_FIX。
@@ -49,6 +56,21 @@ DIVIDER = re.compile(r"^(\d{3})\.(\d{1,2})\.(\d{1,2})口頭質詢與答覆$")  #
 HEADER = re.compile(r"^\s*(?:(\d+)\s+質詢與答覆|質詢與答覆\s+(\d+))\s*$")
 RECORDER = re.compile(r"(\d{3})\.(\d{1,2})\.(\d{1,2})\s*記錄人")
 LABEL = re.compile(r"(?m)^[ \t]{0,3}([一-鿿]{2,4})議員[：:][ \t]*$")
+# 改採書面質詢（見模組說明）
+MINUTES = re.compile(r"時間：中華民國(\d+)年(\d+)月(\d+)日")
+ASK_LIST = re.compile(r"貳、縣政總質詢與業務質詢[：:]?(.*?)(?:參、|$)")
+ANNOTATED = re.compile(r"^([一-鿿]{2,4})(?:[（(]書面質詢[)）]|議員書面質詢)(?:等議員)?$")
+CHAIR = re.compile(r"^(?:主席)?[一-鿿]?副?議長[一-鿿]{2,3}$")
+TURN = re.compile(r"(?m)^[ \t]{0,3}((?:主席)?[一-鿿]{2,10})[：:]")
+FILLER = r"(?:(?:好|那|再來是?|接著是?|接下來是?|另外|所以|我們|是|今天)，?)*"
+SAY_WRITTEN = r"(?:他|她)?(?:說)?(?:要|是|也是)?(?:用|改用|改)?書面質詢"
+CHAIR_ONE = re.compile(rf"^{FILLER}([一-鿿]{{2,4}})議員{SAY_WRITTEN}$")
+CHAIR_NAME = re.compile(rf"^{FILLER}([一-鿿]{{2,4}})議員$")
+CHAIR_SAY = re.compile(rf"^{SAY_WRITTEN}$")
+# 「蔡政宜和武清山議員，他們兩位書面質詢」「今天蔡奇璋議員、林秀琴議員、賴瓊如議員，三位都書面質詢」：點名人數要與宣布的位數相同
+CHAIR_GROUP = re.compile(rf"^{FILLER}(?:今天)?((?:[一-鿿]{{2,4}}?(?:議員)?(?:、|和|跟|及))+[一-鿿]{{2,4}}議員)，(?:他們)?(兩|二|三|四)位都?書面質詢$")
+COUNT = {"兩": 2, "二": 2, "三": 3, "四": 4}
+WRITTEN_DOC = "改採書面質詢（內容未公開）"  # 與 site/app.js 的 WRITTEN_SWITCH 相同
 TOC = re.compile(r"(\d{3})\.(\d{1,2})\.(\d{1,2})\s*口頭質詢與答覆\s*\.{3,}")
 # 官方錯字（人工審閱，逐鍵）：(檔名 uuid, 標籤寫法) → 姓名
 NAME_FIX = {
@@ -222,14 +244,71 @@ def day_entries(day, file_id, label="", log=print):
     return out
 
 
+def minutes_written(pages, label="", log=print):
+    """會議紀錄 →[{date, roc, page, name}]：縣政總質詢名單上緊接「（書面質詢）」的議員。"""
+    out = []
+    for i, p in enumerate(pages):
+        f = flat(p)
+        heads = list(MINUTES.finditer(f))
+        for k, h in enumerate(heads):
+            block = f[h.end():heads[k + 1].start() if k + 1 < len(heads) else len(f)]
+            m = ASK_LIST.search(block)
+            if not m or "書面" not in m[1]:
+                continue
+            body = m[1].rstrip("。")
+            if body[:1] in "（(":  # 整段括起來：「（蔡信典…等議員，蔡政宜議員書面質詢。）」
+                body = re.sub(r"。?[）)]$", "", body[1:])
+            for tok in re.split(r"[、，,]", body):
+                if "書面" not in tok:
+                    continue
+                n = ANNOTATED.match(re.sub(r"等議員$", "", tok))
+                if not n:
+                    log(f"cyq_book：{label} PDF 第 {i + 1} 頁會議紀錄「{tok}」切不出姓名，不收")
+                    continue
+                out.append({"date": roc_iso(*h.groups()), "roc": ".".join(h.groups()), "page": i + 1, "name": n[1], "how": "會議紀錄"})
+    return out
+
+
+def chair_written(day, label="", log=print):
+    """質詢與答覆章當天主席發言中逐一點名改採書面質詢的議員 → [{date, roc, page, name}]。"""
+    out = []
+    for pg, _, text in day["pages"]:
+        turns = list(TURN.finditer(text))
+        for k, t in enumerate(turns):
+            if not CHAIR.match(t[1]):
+                continue
+            body = flat(text[t.end():turns[k + 1].start() if k + 1 < len(turns) else len(text)])
+            for sent in re.split(r"[。！？；]", body):
+                if "書面" not in sent:
+                    continue
+                g = CHAIR_GROUP.match(sent)
+                if g:
+                    names = [re.sub(r"議員$", "", x) for x in re.split(r"、|和|跟|及", g[1])]
+                    if len(names) == COUNT[g[2]] and all(re.fullmatch(r"[一-鿿]{2,4}", n) for n in names):
+                        out += [{"date": day["date"], "roc": day["roc"], "page": pg, "name": n, "how": "主席"} for n in names]
+                        continue
+                parts = re.split(r"[，、,]", sent)
+                found = False
+                for j, part in enumerate(parts):
+                    one = CHAIR_ONE.match(part)
+                    name = CHAIR_NAME.match(part)
+                    if one or (name and j + 1 < len(parts) and CHAIR_SAY.match(parts[j + 1])):
+                        out.append({"date": day["date"], "roc": day["roc"], "page": pg, "name": (one or name)[1], "how": "主席"})
+                        found = True
+                if not found and "書面質詢" in sent:
+                    log(f"cyq_book：{label} {day['roc']} 主席提到書面質詢「{sent[:60]}」但沒有逐一點名，不收")
+    return out
+
+
 def toc_days(pages):
     """目錄（前 20 頁）列的質詢日期；沒有乾淨目錄回空集合。"""
     return {roc_iso(*m.groups()) for p in pages[:20] for m in TOC.finditer(p)}
 
 
 def collect(volumes, texts, log=print):
-    """→ (entries [{session, date, roc, url, file, name, page, printed, turns}], status {url: 狀態})。"""
-    entries, status = [], {}
+    """→ (entries [{session, date, roc, url, file, name, page, printed, turns}], status {url: 狀態},
+    written [{session, date, roc, url, page, name, how}])。"""
+    entries, status, written = [], {}, []
     for v in volumes:
         found, listed = set(), set()
         for fname, url in v["files"]:
@@ -240,6 +319,7 @@ def collect(volumes, texts, log=print):
                 log(f"cyq_book：{label} 沒有快取，不收")
                 continue
             listed |= toc_days(pages)
+            written += [{**w, "session": v["session"], "url": url} for w in minutes_written(pages, label, log)]
             days = parse_days(pages, label, log)
             if not days:
                 status[url] = text_status(pages)
@@ -249,13 +329,14 @@ def collect(volumes, texts, log=print):
             file_id = url.rsplit("/", 1)[1][:-4]
             for d in days:
                 found.add(d["date"])
+                written += [{**w, "session": v["session"], "url": url} for w in chair_written(d, label, log)]
                 for e in day_entries(d, file_id, label, log):
                     entries.append({**e, "session": v["session"], "date": d["date"], "roc": d["roc"], "url": url, "file": fname})
         if not found:
             log(f"cyq_book：{v['session']} 每一冊都沒有可讀的質詢與答覆章，整個會期不收")
         for d in sorted(listed - found):
             log(f"cyq_book：{v['session']} 目錄列有 {d} 口頭質詢與答覆，但沒有解析到")
-    return entries, status
+    return entries, status, written
 
 
 def facts(entries, roster, pids, log=print):
@@ -280,6 +361,29 @@ def facts(entries, roster, pids, log=print):
     return out
 
 
+def written_facts(written, entries, roster, pids, log=print):
+    """記載改採書面質詢：每人每天一筆（會議紀錄優先，其次主席發言）；同一天本人有口頭質詢的不收。"""
+    oral = {(e["date"], resolve(e["name"], roster)[0]) for e in entries}
+    out, seen = {}, set()
+    for w in sorted(written, key=lambda w: (w["date"], w["how"] != "會議紀錄")):
+        pid, why = resolve(w["name"], roster)
+        if not pid:
+            log(f"cyq_book：{w['roc']} 書面質詢 {w['name']}：{why}，不收")
+            continue
+        if pid not in pids or (w["date"], pid) in seen:
+            continue
+        if (w["date"], pid) in oral:
+            log(f"cyq_book：{w['roc']} {w['name']} 記載書面質詢，但當天也有口頭質詢的發言標籤，書面不收")
+            continue
+        seen.add((w["date"], pid))
+        src = "會議紀錄記載書面質詢" if w["how"] == "會議紀錄" else "主席宣布改採書面質詢"
+        data = {"term": TERM, "session": w["session"], "doc_type": WRITTEN_DOC, "dept": None,
+                "title": f"縣政總質詢：{src}（書面內容議會未公開）", "link_label": f"議事錄 PDF 第 {w['page']} 頁",
+                "councillors": [w["name"]], "group_size": 1, "page": w["page"]}
+        out.setdefault(pid, []).append((f"cyqwr:{w['date']}:{pid}", data, f"{w['url']}#page={w['page']}", w["date"]))
+    return out
+
+
 def build(conn, volumes, texts, log=print):
     ts = targets(conn, OFFICE)
     roster = roster_index(conn, OFFICE)
@@ -290,8 +394,8 @@ def build(conn, volumes, texts, log=print):
             log(f"cyq_book：對象 {t['name']}（{t['person_id']}）{why or '名錄對到別人'}，不收")
             continue
         pids.add(pid)
-    entries, status = collect(volumes, texts, log)
-    return ts, entries, status, facts(entries, roster, pids, log)
+    entries, status, written = collect(volumes, texts, log)
+    return ts, entries, status, facts(entries, roster, pids, log), written_facts(written, entries, roster, pids, log)
 
 
 def load_all(refresh=True, progress=False):
@@ -313,11 +417,22 @@ def _print_logs(logs, indent=""):
 def run(conn):
     volumes, texts = load_all()
     logs = []
-    ts, entries, status, by_pid = build(conn, volumes, texts, logs.append)
+    ts, entries, status, by_pid, wr = build(conn, volumes, texts, logs.append)
     _print_logs(logs)
     n, stale = write(conn, "cyqbook", by_pid, "interpellation")
+    nw, sw = write(conn, "cyqwr", wr, "interpellation")
     print(f"cyq_book：議事錄 {len(volumes)} 個會期 {len(texts)} 冊；質詢場次 {len(entries)} 筆；對象 {len(ts)} 人，"
-          f"有紀錄 {len(by_pid)} 人 {n} 筆（刪除 {stale}）")
+          f"有紀錄 {len(by_pid)} 人 {n} 筆（刪除 {stale}）；記載改採書面質詢 {len(wr)} 人 {nw} 筆（刪除 {sw}）")
+
+
+def run_written(conn):
+    """局部補跑只寫「記載改採書面質詢」（不動口頭質詢紀錄）：只讀快取。"""
+    volumes, texts = load_all(refresh=False)
+    logs = []
+    *_, wr = build(conn, volumes, texts, logs.append)
+    _print_logs(logs)
+    nw, sw = write(conn, "cyqwr", wr, "interpellation")
+    print(f"cyq_book：記載改採書面質詢 {len(wr)} 人 {nw} 筆（刪除 {sw}）")
 
 
 # ---------- 自我檢查 ----------
@@ -337,7 +452,7 @@ def check(samples=()):
     from etl.sources.nwt_book import dump_conn
     volumes, texts = load_all(refresh=False)
     logs = []
-    ts, entries, status, by_pid = build(dump_conn(), volumes, texts, logs.append)
+    ts, entries, status, by_pid, wr = build(dump_conn(), volumes, texts, logs.append)
     _print_logs(logs, "  ")
     for v in volumes:
         for fname, url in v["files"]:
@@ -356,7 +471,8 @@ def check(samples=()):
         if samples and not any(s in names[pid] for s in samples):
             continue
         rows = sorted(by_pid.get(pid, []), key=lambda x: x[3])
-        print(f"  {names[pid]} {len(rows)}：" + "、".join(f"{date}#{d['page']}({d['printed_page']})" for _, d, _, date in rows))
+        print(f"  {names[pid]} {len(rows)}：" + "、".join(f"{date}#{d['page']}({d['printed_page']})" for _, d, _, date in rows)
+              + (f"；書面 {len(wr[pid])}：" + "、".join(f"{date}#{d['page']}{d['title'][6:8]}" for _, d, _, date in sorted(wr[pid], key=lambda x: x[3])) if pid in wr else ""))
         if samples:
             for _, d, u, date in rows:
                 print(f"    {date} {d['session']} {d['title']} {u}")

@@ -14,6 +14,10 @@
   議員發言的段落，取最前面那段的頁（避免把當天稍早「針對同一問題」的補充發言當成起點）。名單上但當天沒有本人發言標籤的
   （改書面質詢、未到）不收、印 log。不在名單、當天發言 ≥ 8 段的名錄議員只印 log 供人工審閱，不掛人。
 - 只放標題與連結（電子書該頁），不擷取內文（V16 已定案第 6 點）。
+- **改採書面質詢**（2026-10-18 使用者決定；議事錄沒有書面內容）：當天紀錄中主席（「主席(劉議員淑芳)：」到下一個「：」）的發言，
+  以句號、逗號切開，一段是「○○○議員（質詢／個人質詢）（他）（改／採／用／以／改為）書面質詢」，或「A議員跟B議員書面質詢」
+  「A議員、B議員及C議員書面質詢」（每位都寫全名＋議員）才收；每人每天一筆另一種 doc_type（WRITTEN_DOC），連到電子書該頁。
+  主席以外的人說的、「其他的可以書面質詢」這種沒點名的、錯碼讀不出的名字都不收；同一天本人有口頭質詢的不收書面（印 log）。
 
 robots：ep.chcc.gov.tw/robots.txt 404、www.chcc.gov.tw 沒有 robots（V16）。UA civic-lens-etl/0.1、同主機間隔 ≥ 1.1 秒、循序。
 只寫給有彰化縣議員任職 fact 且有 2026 candidacy 的人；姓名以 etl.match 的漢字正規化對全部彰化縣議員名錄，同名或對不到的不收。
@@ -53,6 +57,14 @@ LIST_END = re.compile(r"首先|現在時間|現在的時間|現在是|現場時�
 LIST_MAX = 300  # 名單之後找不到結束語時，只看這麼長（避免把整天內文當名單）
 GROUP = re.compile(r"(.*?)(個人質詢|聯合質詢)")
 LIST_NAME = re.compile(r"([一-鿿\ufffd]{2,4}?)議員")
+
+WRITTEN_DOC = "改採書面質詢（內容未公開）"  # 與 site/app.js 的 WRITTEN_SWITCH 相同
+CHAIR_TURN = re.compile(r"主席[（(][^）)：]{2,10}[）)]：((?:(?!主席[（(])[^：])*)")  # 到下一個發言標籤的「：」或下一段主席發言
+SW_FILLER = r"(?:接下來是?|再來是?|那|好|第[一二三四]輪(?:的是)?|所以|我們)*"
+SW_VERB = r"(?:質詢|個人質詢)?(?:他|她|他們|兩位|都)*(?:是|要)?(?:改|採|用|以|採用|改為|改用|改成|要用)?書面質詢"
+SW_PRONOUN = re.compile(r"^(?:他|她)(?:是|要)?(?:改|採|用|以|採用|改為|改用|改成)書面質詢$")  # 「張雪如議員個人質詢，她改成書面質詢」
+SW_ONE = re.compile(rf"^{SW_FILLER}([一-鿿\ufffd]{{2,4}}?)議員{SW_VERB}$")
+SW_GROUP = re.compile(rf"^{SW_FILLER}((?:[一-鿿\ufffd]{{2,4}}?議員(?:、|跟|和|及|與))+[一-鿿\ufffd]{{2,4}}?議員){SW_VERB}$")
 
 _last = 0.0
 
@@ -274,6 +286,32 @@ def day_entries(day, roster_names, aliases=None, log=print):
     return out, skipped
 
 
+def chair_written(day, log=print):
+    """當天主席發言中逐一點名改採書面質詢的議員 → [(電子書頁, 寫法, 句子編號)]（見模組說明）；同一句的人共用句子編號，
+    written_facts 據以在其中有人當天其實口頭質詢時整句不收。"""
+    out = []
+    for page, text in day["chunks"]:
+        for t in CHAIR_TURN.finditer(text):
+            for sent in re.split(r"[。！？；]", t[1]):
+                if "書面質詢" not in sent:
+                    continue
+                hit, sid = False, f"{page}:{sent[:30]}"
+                clauses = re.split(r"[，,]", sent)
+                for j, clause in enumerate(clauses):
+                    g = SW_GROUP.match(clause)
+                    one = None if g else SW_ONE.match(clause)
+                    if not (g or one) and j + 1 < len(clauses) and SW_PRONOUN.match(clauses[j + 1]):
+                        one = re.match(rf"^{SW_FILLER}([一-鿿\ufffd]{{2,4}}?)議員(?:個人質詢)?$", clause)
+                    if g:
+                        out += [(page, n, sid) for n in re.split(r"議員(?:、|跟|和|及|與)?", g[1]) if n]
+                    elif one:
+                        out.append((page, one[1], sid))
+                    hit = hit or bool(g or one)
+                if not hit and "議員" in sent:
+                    log(f"cha_book：{day['date']} 主席提到書面質詢「{sent[:60]}」但沒有逐一點名，不收")
+    return out
+
+
 def load_names(path=NAMES):
     """data/cha_names.csv（人工審閱：電子書頁面影像上的真名＋當天影片說明欄有列名）→ {(冊, 錯碼寫法): {page, name}}。"""
     out = {}
@@ -290,9 +328,10 @@ def load_names(path=NAMES):
 
 
 def collect(books, texts, roster_names, names=None, log=print):
-    """→ (entries [{book, session, date, page, name, listed, group}], covered {有名單的日期}, skipped {(日期, 姓名)})。"""
+    """→ (entries [{book, session, date, page, name, listed, group}], covered {有名單的日期}, skipped {(日期, 姓名)},
+    written [{book, session, date, page, name}])。"""
     names = load_names() if names is None else names
-    out, covered, skipped = [], set(), set()
+    out, covered, skipped, written = [], set(), set(), []
     for b in books:
         if b["id"] in SKIP_BOOKS:
             log(f"cha_book：{b['id']} {SKIP_BOOKS[b['id']]}，不收")
@@ -302,6 +341,8 @@ def collect(books, texts, roster_names, names=None, log=print):
             log(f"cha_book：{b['id']} 找不到縣政質詢的會議標題，不收")
         aliases = {g: v["name"] for (book, g), v in names.items() if book == b["id"]}
         for day in days:
+            written += [{"book": b["id"], "session": f"第{TERM}屆第{b['nth']}次定期會", "date": day["date"], "page": pg, "name": n,
+                         "sid": f"{b['id']}:{sid}"} for pg, n, sid in chair_written(day, log)]
             entries, skip = day_entries(day, roster_names, aliases, log)
             if entries is None:
                 continue
@@ -309,7 +350,7 @@ def collect(books, texts, roster_names, names=None, log=print):
             skipped |= {(day["date"], n) for n in skip}
             for e in entries:
                 out.append({**e, "book": b["id"], "session": f"第{TERM}屆第{b['nth']}次定期會", "date": day["date"]})
-    return out, covered, skipped
+    return out, covered, skipped, written
 
 
 # 議事錄把「陳玉姬」打成日式字形「陳玉姫」；只在本模組比對時視為同字（etl.match.VARIANTS 是全站共用，不動）
@@ -369,6 +410,33 @@ def facts(entries, roster, pids, names=None, videos=None, log=print):
     return out
 
 
+def written_facts(written, entries, roster, pids, log=print):
+    """主席宣布改採書面質詢：每人每天一筆；同一天本人有口頭質詢（名單場次）的不收，同一句點名的其他人也不收
+    （例：2025-11-04 主席先說三位都書面質詢、接著改口其中一位要質詢）。"""
+    oral = {(e["date"], resolve(e["name"].translate(NAME_VARIANTS), roster)[0]) for e in entries}
+    bad = {w["sid"] for w in written if (w["date"], resolve(w["name"].translate(NAME_VARIANTS), roster)[0]) in oral}
+    out, seen = {}, set()
+    for w in written:
+        if w["sid"] in bad:
+            log(f"cha_book：{w['date']} {w['name']} 主席宣布書面質詢的同一句有人當天其實口頭質詢，整句不收")
+            continue
+        pid, why = resolve(w["name"].translate(NAME_VARIANTS), roster)
+        if not pid:
+            log(f"cha_book：{w['date']} 書面質詢 {w['name']}：{why}，不收")
+            continue
+        if pid not in pids or (w["date"], pid) in seen:
+            continue
+        if (w["date"], pid) in oral:
+            log(f"cha_book：{w['date']} {w['name']} 主席宣布書面質詢，但當天也有口頭質詢紀錄，書面不收")
+            continue
+        seen.add((w["date"], pid))
+        data = {"term": TERM, "session": w["session"], "doc_type": WRITTEN_DOC, "dept": None,
+                "title": "縣政質詢：主席宣布改採書面質詢（書面內容議會未公開）", "link_label": f"議事錄電子書第 {w['page']} 頁",
+                "councillors": [w["name"].translate(NAME_VARIANTS)], "group_size": 1, "page": w["page"], "book": w["book"]}
+        out.setdefault(pid, []).append((f"chawr:{w['book']}:{w['date']}:{pid}", data, book_url(w["book"], w["page"]), w["date"]))
+    return out
+
+
 def roster_names(conn):
     return [r["name"] for r in conn.execute(
         "SELECT DISTINCT p.name FROM fact o JOIN person p USING (person_id) "
@@ -386,8 +454,8 @@ def build(conn, books, texts, log=print, names=None, videos=None):
             log(f"cha_book：對象 {t['name']}（{t['person_id']}）{why or '名錄對到別人'}，不收")
             continue
         pids.add(pid)
-    entries, _, _ = collect(books, texts, roster_names(conn), names, log)
-    return ts, entries, facts(entries, roster, pids, names, videos, log)
+    entries, _, _, written = collect(books, texts, roster_names(conn), names, log)
+    return ts, entries, facts(entries, roster, pids, names, videos, log), written_facts(written, entries, roster, pids, log)
 
 
 def _log_lines(logs):
@@ -398,12 +466,25 @@ def run(conn):
     books = load_books()
     texts = {b["id"]: book_pages(b["id"], refresh=b["id"] not in SKIP_BOOKS) for b in books if b["id"] not in SKIP_BOOKS}
     logs = []
-    ts, entries, by_pid = build(conn, books, texts, logs.append)
+    ts, entries, by_pid, wr = build(conn, books, texts, logs.append)
     for line in _log_lines(logs):
         print(line)
     n, stale = write(conn, "chabook", by_pid, "interpellation")
+    nw, sw = write(conn, "chawr", wr, "interpellation")
     print(f"cha_book：電子書 {len(books)} 冊；名單場次 {len(entries)} 筆；對象 {len(ts)} 人，有紀錄 {len(by_pid)} 人，"
-          f"{n} 筆（刪除 {stale}）")
+          f"{n} 筆（刪除 {stale}）；主席宣布改採書面質詢 {len(wr)} 人 {nw} 筆（刪除 {sw}）")
+
+
+def run_written(conn):
+    """局部補跑只寫「主席宣布改採書面質詢」（不動口頭質詢紀錄，不需要影片快取）：只讀快取。"""
+    books = load_books(refresh=False)
+    texts = {b["id"]: book_pages(b["id"]) for b in books if b["id"] not in SKIP_BOOKS}
+    logs = []
+    *_, wr = build(conn, books, texts, logs.append, videos={})
+    for line in _log_lines(logs):
+        print(line)
+    nw, sw = write(conn, "chawr", wr, "interpellation")
+    print(f"cha_book：主席宣布改採書面質詢 {len(wr)} 人 {nw} 筆（刪除 {sw}）")
 
 
 def check(samples=()):
@@ -411,7 +492,7 @@ def check(samples=()):
     books = load_books(refresh=False)
     texts = {b["id"]: book_pages(b["id"]) for b in books if b["id"] not in SKIP_BOOKS}
     logs = []
-    ts, entries, by_pid = build(dump_conn(), books, texts, logs.append)
+    ts, entries, by_pid, wr = build(dump_conn(), books, texts, logs.append)
     for line in _log_lines(logs):
         print(" ", line)
     print(f"名單場次 {len(entries)}；對象 {len(ts)} 人，有紀錄 {len(by_pid)} 人 {sum(map(len, by_pid.values()))} 筆")
@@ -419,7 +500,8 @@ def check(samples=()):
     for pid in sorted(names, key=names.get):
         if samples and not any(s in names[pid] for s in samples):
             continue
-        print(f"  {names[pid]} {len(by_pid.get(pid, []))}：" + "、".join(f"{date}#{d['page']}" for _, d, _, date in sorted(by_pid.get(pid, []), key=lambda x: x[3])))
+        print(f"  {names[pid]} {len(by_pid.get(pid, []))}：" + "、".join(f"{date}#{d['page']}" for _, d, _, date in sorted(by_pid.get(pid, []), key=lambda x: x[3]))
+              + (f"；書面 {len(wr[pid])}：" + "、".join(f"{date}#{d['page']}" for _, d, _, date in sorted(wr[pid], key=lambda x: x[3])) if pid in wr else ""))
 
 
 if __name__ == "__main__":

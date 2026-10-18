@@ -124,7 +124,7 @@ def book_days(conn):
     from etl.sources import cha_book
     books = cha_book.load_books(refresh=False)
     texts = {b["id"]: cha_book.book_pages(b["id"]) for b in books if b["id"] not in cha_book.SKIP_BOOKS}
-    _, covered, skipped = cha_book.collect(books, texts, cha_book.roster_names(conn), log=lambda s: None)
+    _, covered, skipped, _ = cha_book.collect(books, texts, cha_book.roster_names(conn), log=lambda s: None)
     return covered, skipped
 
 

@@ -51,13 +51,13 @@ def new_conn(tmp, people=PEOPLE):
     return conn
 
 
-def build(pages=PAGES, people=PEOPLE, names=None, videos=None):
+def build(pages=PAGES, people=PEOPLE, names=None, videos=None, written=False):
     books = [{"id": "no20_r06_t1418", "nth": 6}, {"id": "no20_r03_t0708", "nth": 3}]
     with tempfile.TemporaryDirectory() as tmp:
         logs = []
         out = cha_book.build(new_conn(tmp, people), books, {"no20_r06_t1418": pages}, logs.append,
                              names=names or {}, videos=videos or {})
-    return out, logs
+    return (out[-1] if written else out[:-1]), logs  # written：只回「改採書面質詢」facts
 
 
 GARBLED_DAY = PAGES[:1] + [day("114 年 11 月 3 日", "質詢議員有陳摙摙議員、楊竣程議員聯合質詢。",
@@ -273,3 +273,36 @@ class VideoTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+WRITTEN_PAGES = PAGES[:5] + [
+    day("114 年 10 月 29 日", "質詢議員有王小明議員個人質詢。",
+        TURN.format("王議員小明") * 3 + "主席(劉議員淑芳)：好，王小明議員質詢結束。接下來是周君綾議員他採書面質詢。"
+        "賴清美議員跟王小明議員書面質詢，現在是11點。李議員成濟：其他的我用書面質詢。"
+        "主席(許副議長原龍)：好，接下來是李成濟議員個人質詢，他改成書面質詢。主席(許副議長原龍)：其他的可以書面質詢。"),
+]
+
+
+class TestChaWrittenSwitch(unittest.TestCase):
+    def test_chair_named_members_get_one_record_per_day_on_that_page(self):
+        wr, logs = build(WRITTEN_PAGES, written=True)
+        [(k, d, url, date)] = wr["p2"]
+        self.assertEqual((k, date), ("chawr:no20_r06_t1418:2025-10-29:p2", "2025-10-29"))
+        self.assertEqual(url, cha_book.book_url("no20_r06_t1418", 6))
+        self.assertEqual((d["doc_type"], d["link_label"]), (cha_book.WRITTEN_DOC, "議事錄電子書第 6 頁"))
+        self.assertEqual([x[3] for x in wr["p4"]], ["2025-10-29"])  # 「…個人質詢，他改成書面質詢」
+
+    def test_sentence_naming_someone_who_spoke_orally_is_dropped_whole(self):
+        wr, logs = build(WRITTEN_PAGES, written=True)
+        self.assertNotIn("p5", wr)
+        self.assertNotIn("p1", wr)  # 同一句的王小明當天有口頭質詢：賴清美也不收
+        self.assertTrue(any("賴清美 主席宣布書面質詢的同一句有人當天其實口頭質詢" in x for x in logs))
+
+    def test_only_the_chair_counts_and_unnamed_mentions_are_ignored(self):
+        day_ = cha_book.parse_days(WRITTEN_PAGES)[-1]
+        self.assertEqual([n for _, n, _ in cha_book.chair_written(day_)], ["周君綾", "賴清美", "王小明", "李成濟"])
+
+    def test_group_forms_split_into_full_names(self):
+        d = {"chunks": [(9, "主席(曹議員嘉豪)：第二輪的是曹嘉豪議員、施嘉華議員及黃俊源議員書面質詢，接著。"
+                            "主席(曹議員嘉豪)：張國棟議員質詢改書面質詢，現在時間是下午1時43分。")], "date": "2023-05-08"}
+        self.assertEqual([n for _, n, _ in cha_book.chair_written(d)], ["曹嘉豪", "施嘉華", "黃俊源", "張國棟"])

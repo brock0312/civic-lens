@@ -100,7 +100,7 @@ def new_conn(tmp, people=PEOPLE):
     return conn
 
 
-def build(people=PEOPLE, former=None):
+def build(people=PEOPLE, former=None, written=False):
     details = [hsq_book.parse_detail(DETAIL)]
     records = hsq_book.parse_records(RECORDS_PAGE)
     old = hsq_book.FORMER
@@ -111,7 +111,7 @@ def build(people=PEOPLE, former=None):
             out = hsq_book.build(new_conn(tmp, people), details, records, TEXTS, logs.append)
     finally:
         hsq_book.FORMER = old
-    return out, logs
+    return (out[-1] if written else out[:-1]), logs  # written：只回「改採書面質詢」facts
 
 
 class TestHsqQuestions(unittest.TestCase):
@@ -255,3 +255,38 @@ class TestHsqAttendance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestHsqWrittenSwitch(unittest.TestCase):
+    AGENDA = ("今日議程：上午：縣政總質詢一、邱靖雅議員。（書面另錄）二、王副議長炳漢（書面）三、何建樺議員。（另錄）"
+              "四、張珈源議員、吳傳地議員聯合質詢。（書面另錄）下午：審查議案")
+
+    def test_switch_items_take_single_members_annotated_written(self):
+        items = hsq_book.switch_items(self.AGENDA)
+        self.assertEqual([(n, note) for n, _, note in items], [("邱靖雅", "書面另錄"), ("王炳漢", "書面"), (None, "書面另錄")])
+
+    def test_written_records_link_to_the_minutes(self):
+        url = U + "2023/05/02/m5.pdf"
+        old = TEXTS[url]
+        TEXTS[url] = old + self.AGENDA
+        try:
+            sw, logs = build(written=True)
+        finally:
+            TEXTS[url] = old
+        [(k, d, link, date)] = sw["p3"]
+        self.assertEqual((k, link, date), ("hsqwr:2023-05-02:p3", url, "2023-05-02"))
+        self.assertEqual(d["doc_type"], hsq_book.SWITCH_DOC)
+        self.assertEqual(d["title"], "縣政總質詢：會議紀要註記「書面另錄」（書面內容議會未公開）")
+        self.assertEqual([x[3] for x in sw["p2"]], ["2023-05-02"])
+        self.assertNotIn("p4", sw)  # 另錄 = 口頭
+        self.assertNotIn("p5", sw)  # 聯合質詢項目不收
+        self.assertTrue(any("不是一位議員" in x for x in logs))
+
+    def test_same_session_transcript_wins(self):
+        records = [{"title": "第20屆第7次定期會第9次會", "url": U + "x.pdf"}]
+        texts = {U + "x.pdf": minutes("張鎮榮", 4, nth=7, kind="定 期 會", m=5) + "一、王副議長炳漢（書面）"}
+        docs = [{"session": "第20屆第7次定期會", "kind": "transcript", "names": ["王炳漢"]}]
+        logs = []
+        out = hsq_book.switch_facts(records, texts, {"王炳漢": ["p2"]}, {"p2"}, docs, logs.append)
+        self.assertEqual(out, {})
+        self.assertTrue(any("同會期有本人縣政總質詢逐字紀錄" in x for x in logs))
