@@ -2,6 +2,7 @@ import sys
 import traceback
 from pathlib import Path
 
+from etl import cec_review
 from etl.db import open_db, dump
 from etl.export import export
 from etl.sources import (
@@ -15,6 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # 每個模組提供 run(conn)；districts 要先跑（FK）；公報要在 tcc_councilors（寫生日）與 tpe_candidates（登記冊對照）之後
 # national_candidates 要在 national_districts（名額核對）與 tpe_candidates（臺北交叉核對）之後
+# cec_review（中選會 10/16 審定，不連網）要在 tpe_candidates、national_candidates 之後，移除不合格者並核對合格人數
 # national_heads、national_councilors 要在 national_candidates 之後（串接 2026 候選人）
 # khh_videos、txg_videos、tnn_videos、khh_attendance、nwt_book、nwt_videos、hua_book、hua_videos、hsz_book、hsz_videos、ttt_book、kin_book、kin_videos、kee_videos、hsq_book、cha_book、cha_videos、nan_book、nan_minutes、lie_videos、ila_videos、yun_videos、pen_videos、mia_book、cyi_book、cyq_book、pif_book 要在 national_councilors 之後（現任議員的任職 fact 與 person_id）
 # national_bulletin_2022 要在 national_heads、national_councilors 之後（掛到有任職 fact 的人）
@@ -26,7 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # cyi_book 只讀 data/cache/cyi/ 的快取（議事錄 PDF 約 2.6 GB，抓取另跑 python3 -m etl.sources.cyi_book --fetch）
 # nwt_videos 只列清單、連新北議會影音網首頁：單支影片網址依賴 session，官方 YouTube 沒有逐人對應（V15 已定案第 6 點）
 SOURCES = [
-    tpe_districts, tpe_candidates, national_districts, national_legislators, national_candidates, national_heads,
+    tpe_districts, tpe_candidates, national_districts, national_legislators, national_candidates, cec_review, national_heads,
     national_councilors, khh_videos, txg_videos, tnn_videos, khh_attendance, nwt_book, nwt_videos, hua_book, hua_videos,
     hsz_book, hsz_videos, ttt_book, kin_book, kin_videos, kee_videos, hsq_book, cha_book, cha_videos, nan_book, nan_minutes, lie_videos, ila_videos, yun_videos, pen_videos, mia_book, cyi_book, cyq_book, pif_book, national_bulletin_2022,
     tcc_councilors, tcc_interpellations, tcc_videos, tcc_attendance, tcc_summaries, tpe_bulletin_2022, ly_legislators, ly_records,

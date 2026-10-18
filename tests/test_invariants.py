@@ -12,6 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from etl import cec_review
 from etl.db import SCHEMA_PATH
 from etl.export import export
 
@@ -122,6 +123,32 @@ class DataInvariants(unittest.TestCase):
         exported = {k.split("/", 1)[1].removesuffix(".json") for k in self.people()}
         self.assertEqual(len(exported), len(self.candidates))
         self.assertEqual(exported, self.candidates)
+
+    # HANDOFF §5 第 3 項：中選會 2026-10-16 審定不合格者不出現在任何匯出資料，合格人數與公告相符
+    def test_disqualified_candidates_are_not_exported(self):
+        disq = cec_review.disqualified()
+        self.assertEqual(len(disq), 10)
+        listed = {(e["data"]["district_id"], e["name"]) for f, d in self.json.items() if f.startswith("districts/")
+                  for e in d["people"]}
+        filed = {(c["data"]["district_id"], p["name"]) for p in self.people().values()
+                 for c in p["facts"].get("candidacy", [])}
+        bad = [k for k in sorted((cec_review.district_of(a), n) for a, n in disq) if k in listed or k in filed]
+        self.assertEqual(bad, [], "審定不合格者仍出現在匯出資料")
+
+    def test_exported_candidates_match_the_review_totals(self):
+        counts = {}
+        for f, d in self.json.items():
+            if not f.startswith("districts/"):
+                continue
+            for e in d["people"]:
+                key = cec_review.table_of(e["data"]["office"])
+                counts[key] = counts.get(key, 0) + 1
+        self.assertEqual(counts, {k: q for k, (_, q) in cec_review.TOTALS.items()})
+
+    def test_every_exported_candidacy_is_marked_reviewed(self):
+        bad = [(f, c["data"].get("status")) for f, p in self.people().items() for c in p["facts"].get("candidacy", [])
+               if c["data"].get("status") != "qualified" or c["data"].get("review_url") != cec_review.REVIEW_URL]
+        self.assertEqual(bad[:20], [], f"{len(bad)} 筆候選資格未標審定")
 
     def test_district_files_list_only_candidacy_entries(self):
         bad = [(f, e.get("person_id"), e.get("kind")) for f, d in self.json.items() if f.startswith("districts/")

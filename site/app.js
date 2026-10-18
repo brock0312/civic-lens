@@ -845,8 +845,10 @@ async function renderDistrict(main, ctx, id) {
   track(d.fetched_at, ...d.people.map((p) => p.fetched_at));
   const notes = footnotes();
   const cands = candidateOrder(d.people.filter((p) => p.kind === 'candidacy'));
-  const registered = cands.some((p) => p.data.status === 'registered');
+  const status = rosterStatus(cands);
+  const reviewed = cands.find((p) => p.data.status === 'qualified');
   const seatsFn = notes.ref(d.source_url, d.fetched_at, '應選名額公告');
+  const reviewFn = status === 'qualified' ? notes.ref(reviewed.data.review_url, reviewed.data.review_fetched_at || reviewed.fetched_at, REVIEW_LABEL, PUBLISHER_CEC) : '';
   const candRows = cands.map((p) => rosterRow(p, notes.ref(p.source_url, p.fetched_at, '候選人登記名冊', p.data.publisher), ctx.parties, candidateTag(p.incumbent, id, ctx.counties))).join('');
   const title = districtTitle(d, county);
 
@@ -860,13 +862,24 @@ async function renderDistrict(main, ctx, id) {
     </dl>
     <section aria-labelledby="cand-h">
       <h2 id="cand-h">2026 候選人</h2>
-      ${registered ? `<p class="status" role="note">${REGISTERED_NOTE}</p>` : ''}
+      ${status ? `<p class="status" role="note">${ROSTER_NOTES[status]}${reviewFn}</p>` : ''}
       ${cands.length ? `<ol class="roster">${candRows}</ol><p class="small muted">依官方登記名冊順序排列，非選票號次。</p>` : '<p class="muted">尚無候選人資料。</p>'}
     </section>
     ${notes.render()}`;
 }
 
 export const REGISTERED_NOTE = '名單依選舉委員會公告的候選人登記冊，尚未經審定；號次將於官方名單公告（縣市長 11/12、議員 11/17）後補上。';
+// 中選會 2026-10-16 審定（article 65212）：不合格者由 ETL 移除，不出現在任何匯出資料；公告中的不合格原因本站不轉載
+export const QUALIFIED_NOTE = '名單依選舉委員會公告的候選人登記冊，並已經中選會 10/16 審定，審定不合格者不列入；號次 10/23 抽籤，將於官方名單公告（縣市長 11/12、議員 11/17）後補上。';
+export const ROSTER_NOTES = { registered: REGISTERED_NOTE, qualified: QUALIFIED_NOTE };
+const REVIEW_LABEL = '中選會候選人資格審定公告';
+const PUBLISHER_CEC = '中央選舉委員會';
+// 選區名單說明：只要有一位還是「已登記」就用未審定的說法（保守）；全部已審定才說已審定
+export function rosterStatus(cands) {
+  if (!cands.length) return '';
+  if (cands.some((p) => p.data.status !== 'qualified')) return cands.some((p) => p.data.status === 'registered') ? 'registered' : '';
+  return 'qualified';
+}
 
 // 影片區塊說明：議會名稱依影片網址的網域（臺北 tccvideo、高雄 ivod.kcc）
 export function videoBlurb(videos) {
@@ -1403,6 +1416,7 @@ async function renderPerson(main, ctx, id) {
       <dt>選區</dt><dd>${districtLink(f.data.district_id)}</dd>
       <dt>推薦政黨</dt><dd>${party(f.data.party, ctx.parties)}</dd>
       <dt>登記日期</dt><dd class="num">${esc(f.date || '')}</dd>
+      ${f.data.status === 'qualified' ? `<dt>資格審定</dt><dd>已審定（<span class="num">${esc(f.data.review_date || '')}</span>）${notes.ref(f.data.review_url, f.data.review_fetched_at || f.fetched_at, REVIEW_LABEL, PUBLISHER_CEC)}</dd>` : ''}
     </dl>`).join('');
 
   const office = offices.map((f) => (f.data.elected_on ? headOfficeItem(f, districtLink(f.data.district_id)) : `<li><span class="name">${esc(officeTitle(f.data, label(f.data.office)))}</span>

@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, BULLETIN_DATED, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTags, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
+import { fmtDate, emblemFor, NO_PARTY, splitLatest, publisherOf, hms, videoNote, DEPTS, deptCounts, attendanceRates, needsDistrict01Note, DISTRICT01_BULLETIN, bulletinGaps, bulletinLink, bulletinSection, BULLETIN_DATED, NOT_ELECTED_2022, criminalRecordSection, JUDICIAL_SEARCH, TAIWANGOGO_NOTE, candidateTag, officeSourceLabel, summarySection, SUMMARY_DISCLAIMER, NO_SPEECH, noRecordNote, REGISTERED_NOTE, QUALIFIED_NOTE, ROSTER_NOTES, rosterStatus, headOfficeItem, suspensionOf, hasSuspension, SUSPENSION_NOTE, countyNote, homeNote, partyOf, officeExtraRefs, officeDistrict, countyTags, BULLETIN_TAG, pendingRecordNotes, officeTitle, lyCounts, LY_NOTE } from './app.js';
 import { videoBlurb, KHH_DEPTS, RECORDS, attendanceTotals, khhAttendanceBlock, KHH_ATTENDANCE_NOTE, attendanceExcludedNote } from './app.js';
 import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoRows, NWT_VOD_HOME } from './app.js';
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows, WRITTEN_SWITCH } from './app.js';
@@ -101,6 +101,31 @@ test('non-deep counties get a neutral note, never implying the person did nothin
   assert.match(note, /新竹縣議會的問政紀錄仍在建置中/);
   assert.doesNotMatch(note, /沒有問政|無問政/);
   assert.doesNotMatch(REGISTERED_NOTE, /臺北/);
+});
+
+test('roster note says reviewed only when every candidate is qualified, and gives the dates', () => {
+  const c = (status) => ({ data: { status } });
+  assert.equal(rosterStatus([]), '');
+  assert.equal(rosterStatus([c('qualified'), c('qualified')]), 'qualified');
+  assert.equal(rosterStatus([c('qualified'), c('registered')]), 'registered');
+  assert.equal(rosterStatus([c('qualified'), c(undefined)]), '');
+  assert.equal(ROSTER_NOTES.qualified, QUALIFIED_NOTE);
+  for (const s of ['10/16', '10/23', '11/12', '11/17']) assert.ok(QUALIFIED_NOTE.includes(s), s);
+  assert.doesNotMatch(QUALIFIED_NOTE, /尚未經審定|臺北|判決|前科/);
+});
+
+const disqualified = new Set(['p40231b5386', 'pbd8573ee2d', 'pba8970e174', 'pb520d0300f', 'pc0bb7da89f',
+  'pc67be9c22f', 'p5ea04aeac6', 'p61ef3c7a52', 'p88f9ffbe16', 'pdc038109e9']);
+test('candidates disqualified on 2026-10-16 are absent from the exported site data', { skip: !existsSync(new URL('./data/districts/', import.meta.url)) && 'site/data 未產生' }, () => {
+  for (const id of disqualified) assert.ok(!existsSync(new URL(`./data/people/${id}.json`, import.meta.url)), id);
+  const dir = new URL('./data/districts/', import.meta.url);
+  for (const f of readdirSync(dir)) {
+    const d = JSON.parse(readFileSync(new URL(f, dir), 'utf8'));
+    for (const p of d.people) {
+      assert.ok(!disqualified.has(p.person_id), `${f} ${p.person_id}`);
+      assert.equal(p.data.status, 'qualified', `${f} ${p.person_id}`);
+    }
+  }
 });
 
 test('council links never point to the third-party site and cover all 22 counties', () => {

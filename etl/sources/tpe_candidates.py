@@ -2,10 +2,11 @@
 import hashlib
 import re
 
+from etl import cec_review
 from etl.db import upsert, upsert_fact
 from etl.fetch import get, get_json, now_utc, pdf_text
 
-# ponytail: 登記冊是 115-09-08 製表的定稿文件；10/16 審定後的不合格者要另寫來源處理（刪除或標記屆時再定）
+# 登記冊是 115-09-08 製表的定稿文件；10/16 審定不合格者依 data/cec_review_2026.csv 不寫 candidacy（etl/cec_review.py）
 ARTICLES = {
     "tpe_mayor": "https://web.cec.gov.tw/api/mect/article/64441",
     "tpe_councilor": "https://web.cec.gov.tw/api/mect/article/64447",
@@ -99,16 +100,23 @@ def person_id_for(conn, source_key):
 
 def run(conn):
     fetched_at = now_utc()
+    disqualified = {k for k in cec_review.disqualified() if k[0].startswith("臺北市")}
+    matched = set()
     for office, article_url in ARTICLES.items():
         pdf_url = roster_pdf_url(get_json(article_url))
         for r in parse_roster(pdf_text(get(pdf_url))):
             expected_office = "tpe_mayor" if r["district_id"] == "tpe-mayor" else "tpe_councilor"
             if expected_office != office:
                 raise ValueError(f"{article_url} 的登記冊出現其他選舉的選舉區：{r['area']}")
-            write_row(conn, office, pdf_url, r, fetched_at)
+            qualified = (r["area"], r["name"]) not in disqualified
+            if not qualified:
+                matched.add((r["area"], r["name"]))
+            write_row(conn, office, pdf_url, r, fetched_at, qualified)
+    if matched != disqualified:
+        raise ValueError(f"審定不合格者在臺北登記冊找不到：{sorted(disqualified - matched)}")
 
 
-def write_row(conn, office, pdf_url, r, fetched_at):
+def write_row(conn, office, pdf_url, r, fetched_at, qualified=True):
     source_key = f"{r['district_id']}:{r['name']}"
     person_id = person_id_for(conn, source_key)
     # 只寫 name：登記冊沒有生日，不能把其他來源補上的 birth_date／birth_year 蓋成 NULL
@@ -118,6 +126,10 @@ def write_row(conn, office, pdf_url, r, fetched_at):
         {"source": SOURCE, "source_key": source_key, "person_id": person_id, "verified_by": VERIFIED_BY},
         ("source", "source_key"),
     )
+    if not qualified:
+        # 審定不合格：person 與對照照留（national_candidates 的臺北交叉核對要用），只拿掉 candidacy
+        cec_review.drop_candidacy(conn, person_id)
+        return
     upsert_fact(
         conn,
         f"candidacy:2026-local:{person_id}",
@@ -129,7 +141,7 @@ def write_row(conn, office, pdf_url, r, fetched_at):
             "district_id": r["district_id"],
             "party": r["party"],
             "reg_no": r["reg_no"],
-            "status": "registered",
+            **cec_review.status_data(),
             # 登記冊由臺北市選委會發布，只是放在中選會的共用平台 web.cec.gov.tw 上；前端腳註不能依網域推論
             "publisher": "臺北市選舉委員會",
         },

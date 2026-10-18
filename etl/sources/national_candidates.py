@@ -8,7 +8,7 @@ import hashlib
 import re
 import time
 
-from etl import cec_pdf
+from etl import cec_pdf, cec_review
 from etl.db import upsert, upsert_fact
 from etl.fetch import get, get_json, now_utc, pdf_text
 from etl.sources.national_districts import ISO, council_id
@@ -179,17 +179,34 @@ def person_id_for(conn, source_key):
     return "p" + hashlib.sha1(f"{SOURCE}:{source_key}".encode()).hexdigest()[:10]
 
 
-def write_row(conn, r, pdf_url, fetched_at):
+def check_review(parsed, disqualified):
+    """審定表每一列都要恰好對到登記彙總表一列；各表扣掉不合格者要等於公告的合格人數。"""
+    seen = set()
+    for prefix, rows in parsed:
+        keys = {(r["area"], r["name"]) for r in rows}
+        hit = keys & disqualified
+        seen |= hit
+        registered, qualified = cec_review.TOTALS[prefix]
+        if (len(rows), len(rows) - len(hit)) != (registered, qualified):
+            raise ValueError(f"{prefix} 登記 {len(rows)}、合格 {len(rows) - len(hit)}，審定公告為 {registered}、{qualified}")
+    if seen != disqualified:
+        raise ValueError(f"審定不合格者在登記彙總表找不到：{sorted(disqualified - seen)}")
+
+
+def write_row(conn, r, pdf_url, fetched_at, qualified=True):
     source_key = f"{r['district_id']}:{r['name']}"
     person_id = person_id_for(conn, source_key)
     upsert(conn, "person", {"person_id": person_id, "name": r["name"]}, ("person_id",))
     upsert(conn, "person_source_id",
            {"source": SOURCE, "source_key": source_key, "person_id": person_id, "verified_by": VERIFIED_BY},
            ("source", "source_key"))
+    if not qualified:
+        cec_review.drop_candidacy(conn, person_id)
+        return
     upsert_fact(
         conn, f"candidacy:2026-local:{person_id}", person_id, "candidacy",
         {"election": "2026-local", "office": r["office"], "district_id": r["district_id"], "party": r["party"],
-         "status": "registered", "list_order": r["list_order"], "publisher": PUBLISHER},
+         **cec_review.status_data(), "list_order": r["list_order"], "publisher": PUBLISHER},
         pdf_url, fetched_at, date=roc_to_iso(r["date"]),
     )
 
@@ -212,15 +229,20 @@ def run(conn):
         rows = parse_roster(cec_pdf.bbox_html(get(reg_url)))
         time.sleep(1.1)
         check_counts(rows, parse_summary(pdf_text(get(summ_url))), seats)
-        parsed.append((reg_url, with_order(rows, kind)))
+        parsed.append((reg, reg_url, with_order(rows, kind)))
 
-    n_tpe = check_taipei(conn, [r for _, rows in parsed for r in rows])
+    disqualified = cec_review.disqualified()
+    check_review([(reg, rows) for reg, _, rows in parsed], disqualified)
+    n_tpe = check_taipei(conn, [r for _, _, rows in parsed for r in rows])
     counts = {}
-    for pdf_url, rows in parsed:
+    for _, pdf_url, rows in parsed:
         for r in rows:
             if r["district_id"].startswith("tpe-"):
                 continue
-            write_row(conn, r, pdf_url, fetched_at)
+            qualified = (r["area"], r["name"]) not in disqualified
+            write_row(conn, r, pdf_url, fetched_at, qualified)
+            if not qualified:
+                continue
             key = (r["district_id"].split("-")[0], r["office"].split("_")[1])
             counts[key] = counts.get(key, 0) + 1
-    print(f"全國候選人：臺北交叉核對 {n_tpe} 人相符；寫入 {sum(counts.values())} 人 {sorted(counts.items())}")
+    print(f"全國候選人：臺北交叉核對 {n_tpe} 人相符；審定不合格 {len(disqualified)} 人未寫入；寫入 {sum(counts.values())} 人 {sorted(counts.items())}")
