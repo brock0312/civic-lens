@@ -1659,6 +1659,8 @@ test('very long names wrap instead of running off the card, and the alt text rea
       if (o.t === 'rect') assert.ok(o.x + o.w <= lay.w, `${fmt} rect`);
     }
     assert.ok(cardAlt(lay).includes('現任') && cardAlt(lay).includes('75.0%'));
+    const alt = cardAlt(lay);
+    assert.ok(alt.indexOf('75.0%') < alt.indexOf(CARD_NOTE) && alt.endsWith('完整紀錄與原始出處 →'), fmt);
   }
 });
 

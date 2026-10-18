@@ -299,7 +299,7 @@ export function drawCard(canvas, content, fmt) {
 }
 
 // 預覽圖的替代文字：照圖卡上的文字順序（讀螢幕的使用者也能知道卡上的數字與議題）
-export const cardAlt = (lay) => lay.ops.filter((o) => o.t === 'text').map((o) => o.text).join('，');
+export const cardAlt = (lay) => lay.ops.filter((o) => o.t === 'text').sort((a, b) => a.y - b.y || a.x - b.x).map((o) => o.text).join('，');  // 依畫面由上而下、由左而右（頁尾是先排版的）
 
 const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const dimLabel = (d) => ('n' in d ? d.label : CARD_DIMS[d.id]);
