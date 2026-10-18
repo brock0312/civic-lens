@@ -106,7 +106,9 @@ export const KIN_TRANSCRIPT = '縣政總質詢紀錄';
 // 屏東：每日會議紀錄寫明的施政總質詢「質詢議員」（etl/sources/pif_book.py 的 DOC_TYPE）；質詢內容官方「另錄」未公開，只連會議紀錄 PDF
 export const PIF_LISTED = '施政總質詢會議紀錄列名';
 export const PIF_LINK = '會議紀錄（PDF）';
-export const TRANSCRIPTS = [HUA_TRANSCRIPT, HSZ_TRANSCRIPT, KIN_TRANSCRIPT, PIF_LISTED];
+// 南投：議事錄「各次會議紀錄」縣政總質詢列名的聯合質詢（etl/sources/nan_minutes.py 的 DOC_TYPE）；內容在「質詢及答覆」，這裡只連會議紀錄那一頁
+export const NAN_LISTED = '縣政總質詢會議紀錄列名';
+export const TRANSCRIPTS = [HUA_TRANSCRIPT, HSZ_TRANSCRIPT, KIN_TRANSCRIPT, PIF_LISTED, NAN_LISTED];
 // 屏東、新竹縣、嘉義縣、彰化：官方紀錄記載議員該場「改採書面質詢」（etl 的 WRITTEN_DOC）；書面內容議會沒有公開，只連到記載的那一頁。
 // 不算進書面質詢或質詢紀錄，另列一區，避免只做書面質詢的議員顯示為 0 筆（2026-10-18 使用者決定）
 export const WRITTEN_SWITCH = '改採書面質詢（內容未公開）';
@@ -318,7 +320,9 @@ export const RECORDS = {
   // 會議紀錄的出席寫「如簽到簿」、影片一場一支且標題沒有姓名、沒有書面質詢，都不收
   nan: {
     depts: [], written: true,
-    countLine: (written) => `縣政總質詢議員建議事項 <span class="num">${written.filter((f) => f.data?.doc_type === NAN_SUGGESTION).length}</span> 筆`,
+    countLine: (written) => `縣政總質詢議員建議事項 <span class="num">${written.filter((f) => f.data?.doc_type === NAN_SUGGESTION).length}</span> 筆、${NAN_LISTED} <span class="num">${written.filter((f) => f.data?.doc_type === NAN_LISTED).length}</span> 天`,
+    transcriptHeading: NAN_LISTED,
+    transcriptBlurb: '每筆是一天的縣政總質詢，該日會議紀錄寫明本人列名於「等 N 位議員聯合質詢」（列名人數須與宣告人數相符，不符的整頁不收；只寫「共同聯合質詢」或個別質詢的日子本站未收），連結至議事錄 PDF 該次會議紀錄的那一頁；同日全部列名議員標在標題。質詢內容在議事錄的「質詢及答覆」，本站未摘要。日期是開會日，收錄第 20 屆第 5 至第 7 次定期會（第 1 至第 4 次未收）。資料來源：南投縣議會。',
     note: '議員建議事項取自南投縣議會議事錄，收錄第 5 至第 7 次定期會（2025 年 5 月至 2026 年 5 月）；第 1 至第 4 次定期會的建議事項表是圖片（本站不做文字辨識），本站未收錄；表中的議員姓名與名錄對不上（例如誤植）、或與較早會次整段文字相同（疑為官方複製）的列，本站未收錄。議事錄的會議紀錄沒有出席名單（記載「如簽到簿」），出缺勤本站未收錄；議會網站的會議影片一場一支、未標示質詢議員，議會也沒有書面質詢紀錄，本站都未收錄。',
     writtenHeading: '縣政總質詢議員建議事項',
     writtenBlurb: '依南投縣議會議事錄縣政總質詢各會次所附的「議員建議事項」表，每筆是表上的一格（一位議員、一個類別），內容照官方原文全文，類別是表上的類別欄；同一格列有多位議員時列在每位議員名下。日期是該會次的開會日期，連結至議事錄 PDF 該頁。資料來源：南投縣議會。',
@@ -909,7 +913,7 @@ export function interpellationRows(list) {
   return list.map((f) => {
     const u = safeUrl(f.source_url);
     const title = esc(String(f.data?.title || f.data?.doc_no || ''));
-    const label = f.data?.doc_type === PIF_LISTED ? PIF_LINK : f.data?.link_label;  // 標題只是說明，連結文字講清楚連到哪份官方紀錄
+    const label = [PIF_LISTED, NAN_LISTED].includes(f.data?.doc_type) ? PIF_LINK : f.data?.link_label;  // 標題只是說明，連結文字講清楚連到哪份官方紀錄
     const link = label ? `${title}<span class="video">${u ? ext(u, label) : ''}</span>` : u ? ext(u, title) : title;
     return `<li>${dateCell(f)}
       <span class="dept">${esc(f.data?.dept || '')}</span>
@@ -1208,7 +1212,8 @@ export const CARD_SPECS = {
   ila: { term: '第20屆', counts: [['video', '業務質詢與縣長施政總質詢影片', '支', isVideo, '2023/05–2026/10']] },
   yun: { term: '第20屆', counts: [['video', '標記本人發言的議事影片', '支', isVideo, '2025/05–2026/10']] },
   pen: { term: '第20屆', counts: [['video', '縣政總質詢影片', '支', isVideo, '2025/05–2026/10']] },
-  nan: { term: '第20屆', counts: [['suggestion', '縣政總質詢議員建議事項', '筆', docIs(NAN_SUGGESTION), '2025/05–2026/05']] },
+  nan: { term: '第20屆', counts: [['suggestion', '縣政總質詢議員建議事項', '筆', docIs(NAN_SUGGESTION), '2025/05–2026/05'],
+    ['transcript', NAN_LISTED, '天', docIs(NAN_LISTED), '2025/05–2026/05']] },
 };
 
 // 2026 參選議員的現任正副議長：圖卡只寫職稱（不寫因果）。每筆依議會官網（source_url），查核日 PRESIDING_CHECKED；
