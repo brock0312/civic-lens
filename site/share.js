@@ -298,8 +298,25 @@ export function drawCard(canvas, content, fmt) {
   return lay;
 }
 
-// 預覽圖的替代文字：照圖卡上的文字順序（讀螢幕的使用者也能知道卡上的數字與議題）
-export const cardAlt = (lay) => lay.ops.filter((o) => o.t === 'text').sort((a, b) => a.y - b.y || a.x - b.x).map((o) => o.text).join('，');  // 依畫面由上而下、由左而右（頁尾是先排版的）
+// 預覽圖的替代文字：由圖卡內容組成（不依版面座標，並排的數字才不會交錯），讀螢幕的使用者也能知道卡上的數字與議題
+export function cardAlt(content) {
+  const paren = (...xs) => (xs.filter(Boolean).length ? `（${xs.filter(Boolean).join('；')}）` : '');
+  const dim = (d) => {
+    if (d.id === 'attendance') {
+      return `出席率 ${pctText(d.rate)}${paren(`${d.segs.map((x) => `${x.label} ${x.n}`).join('、')}，共 ${d.total} 次會議`, d.period && `收錄期間 ${d.period}`, d.note)}`;
+    }
+    if (d.id === 'dept') return `質詢部門分布${paren(d.period)}：${d.counts.map(([n, c]) => `${n} ${c}`).join('、')}${d.other ? `；另有 ${d.other} 筆未分部門` : ''}`;
+    if (d.id === 'issues') return `質詢議題（${d.session}，AI 摘要，經人工審閱）：${d.topics.join('、')}`;
+    return `${d.label} ${d.n} ${d.unit}${paren(d.period, d.note)}`;
+  };
+  const body = content.kind === 'new' ? [CARD_NEW] : content.kind === 'records' ? content.dims.map(dim) : [content.text];
+  return [
+    `civic-lens 2026 候選人紀錄卡：${content.name}${content.tag ? `（${content.tag}）` : ''}`, content.district, content.title, content.party, ...body,
+    content.omitted?.length && `本卡未呈現：${content.omitted.join('、')}`,
+    (content.kind === 'records' || content.kind === 'none') && CARD_NOTE,
+    `資料來源：${content.sources.join('、')}${content.term ? `（${content.term}）` : ''}`, content.url,
+  ].filter(Boolean).map((t) => String(t).replace(/。$/, '')).join('。');
+}
 
 const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const dimLabel = (d) => ('n' in d ? d.label : CARD_DIMS[d.id]);
@@ -332,14 +349,15 @@ export function openShareDialog(model) {
   const fmt = () => dlg.querySelector('input[name=fmt]:checked').value;
   async function render() {
     const f = fmt();
-    const lay = drawCard(canvas, cardContent(model, selected()), f);
+    const content = cardContent(model, selected());
+    drawCard(canvas, content, f);
     const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
     if (url) URL.revokeObjectURL(url);
     url = URL.createObjectURL(blob);
     const name = `civic-lens-${model.name}-${f}.png`;
     file = new File([blob], name, { type: 'image/png' });
     img.src = url;
-    img.alt = `分享圖卡預覽（${FORMATS[f].label}）：${cardAlt(lay)}`;
+    img.alt = `分享圖卡預覽（${FORMATS[f].label}）：${cardAlt(content)}`;
     const canShare = Boolean(navigator.canShare?.({ files: [file] }));
     const text = `${model.name}｜${model.district}｜civic-lens 候選人紀錄`;
     actions.innerHTML = `${canShare ? `<button type="button" class="more" data-share>${SHARE_LABEL}</button>` : ''}

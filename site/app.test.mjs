@@ -1658,9 +1658,11 @@ test('very long names wrap instead of running off the card, and the alt text rea
       if (o.t === 'text' && o.align === 'left') assert.ok(o.x + fakeMeasure(o.text, o.size) <= lay.w, `${fmt} ${o.text}`);
       if (o.t === 'rect') assert.ok(o.x + o.w <= lay.w, `${fmt} rect`);
     }
-    assert.ok(cardAlt(lay).includes('現任') && cardAlt(lay).includes('75.0%'));
-    const alt = cardAlt(lay);
-    assert.ok(alt.indexOf('75.0%') < alt.indexOf(CARD_NOTE) && alt.endsWith('完整紀錄與原始出處 →'), fmt);
+    const alt = cardAlt(cardContent(cardModel(p, { counties: cardCounties, base: BASE })));
+    assert.ok(alt.startsWith('civic-lens 2026 候選人紀錄卡：林秉君 kaying．kuying．kalang（現任）'), alt);
+    assert.ok(alt.includes('出席率 75.0%（出席 3、請假 1，共 4 次會議；收錄期間 2022/12–2026/09）'), alt);
+    assert.ok(alt.includes('口頭質詢影片 2 筆（2023/04–2026/09）。書面質詢 1 筆（2022/12–2026/10）'), alt);
+    assert.ok(alt.indexOf('75.0%') < alt.indexOf(CARD_NOTE.replace(/。$/, '')) && alt.endsWith(`${BASE}#/p/p1`) && !alt.includes('。。'), alt);
   }
 });
 
