@@ -1672,3 +1672,15 @@ test('per-item collection periods cover every record on the card (exported data)
     }
   }
 });
+
+test('Taitung card says the count is written-instead-of-oral questions and that oral questions are not collected', () => {
+  const counties = new Map([['ttt', { iso: 'ttt', name: '臺東縣', districts: [{ district_id: 'ttt-council-01', name: '臺東縣第1選舉區', office: 'ttt_councilor' }] }]]);
+  const p = { person_id: 'p8', name: '戊', facts: {
+    candidacy: [candidacy('ttt-council-01')], office: [officeOf('ttt-council-01')],
+    attendance: [{ data: { from_lists: true, meetings: 4, present: 4, leave: 0, duty: 0 } }],
+  } };
+  const m = cardModel(p, { counties, base: BASE });
+  assert.deepEqual(m.dims.find((d) => d.id === 'written'), { id: 'written', label: '改以書面提出的總質詢', unit: '筆', period: '2023/01–2026/06', n: 0, note: '口頭質詢本站未收錄' });
+  const t = cardText(layoutCard(cardContent(m), 'story', fakeMeasure));
+  assert.ok(t.includes('改以書面提出的總質詢（筆）') && t.includes('口頭質詢本站未收錄'));
+});

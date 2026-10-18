@@ -1130,7 +1130,7 @@ const docIs = (t) => (f) => !isVideo(f) && f.data?.doc_type === t;
 const isWrittenOnly = (f) => !isVideo(f) && ![HUA_ORAL, ...TRANSCRIPTS].includes(f.data?.doc_type);
 const anyWritten = (f) => !isVideo(f);
 
-// 各縣市的計數項目（與摘要卡 countLine 同口徑）；[維度, 標籤, 單位, 篩選, 收錄期間]。收錄期間逐項標示（verifier 2026-10-18：
+// 各縣市的計數項目（與摘要卡 countLine 同口徑）；[維度, 標籤, 單位, 篩選, 收錄期間, 加註（選填）]。收錄期間逐項標示（verifier 2026-10-18：
 // 單一總期間會過度宣稱），依 RECORDS 的 note，沒寫到的用實際資料的日期範圍；重跑 ETL 後由測試抓出過期的期間
 export const CARD_SPECS = {
   tpe: {
@@ -1160,7 +1160,8 @@ export const CARD_SPECS = {
     term: '第20屆', attendance: '2023/02–2026/09',
     counts: [['transcript', KIN_TRANSCRIPT, '份', docIs(KIN_TRANSCRIPT), '2023/05–2026/04'], ['written', `${HSQ_SCANNED}（掃描檔）`, '份', docIs(HSQ_SCANNED), '2023/05–2026/04']],
   },
-  ttt: { term: '第20屆', attendance: '2023/01–2026/06', counts: [['written', '書面質詢', '筆', anyWritten, '2023/01–2026/06']] },
+  // 臺東只收議員「改以書面提出」的總質詢；口頭總質詢（議事錄第四冊逐字紀錄）未收，卡上要註明，否則 0 筆會被讀成沒有質詢（2026-10-18 使用者決定）
+  ttt: { term: '第20屆', attendance: '2023/01–2026/06', counts: [['written', '改以書面提出的總質詢', '筆', anyWritten, '2023/01–2026/06', '口頭質詢本站未收錄']] },
   kin: {
     term: '第8屆', attendance: '2023/04–2026/07',
     counts: [['video', '縣政總質詢當天影片', '段', isVideo, '2023/05–2025/06'], ['transcript', KIN_TRANSCRIPT, '場', docIs(KIN_TRANSCRIPT), '2023/05–2025/06']],
@@ -1296,7 +1297,7 @@ export function cardModel(p, { counties, base, presiding = [] }) {
   if (att) model.dims.push({ id: 'attendance', ...att, period: spec.attendance || '' });
   const depts = RECORDS[iso]?.depts || [];
   if (depts.length && inters.length) model.dims.push({ id: 'dept', ...deptCounts(inters, depts), period: spec.dept || '' });
-  for (const [id, label, unit, pick, period] of spec.counts) model.dims.push({ id, label, unit, period, n: inters.filter(pick).length });
+  for (const [id, label, unit, pick, period, note] of spec.counts) model.dims.push({ id, label, unit, period, n: inters.filter(pick).length, ...(note && { note }) });
   const issues = cardIssues(facts.summary);
   if (issues) model.dims.push({ id: 'issues', ...issues });
   model.dims.sort((a, b) => Object.keys(CARD_DIMS).indexOf(a.id) - Object.keys(CARD_DIMS).indexOf(b.id));

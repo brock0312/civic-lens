@@ -199,7 +199,7 @@ function layoutAt(content, W, H, k, measure) {
       const cells = row.slice(r, r + per);
       const labels = cells.map((c) => wrapText(/）$/.test(c.label) ? c.label.replace(/）$/, `，${c.unit}）`) : `${c.label}（${c.unit}）`, cw - S(28), (t) => width(t, lf)));
       const pf = font(S(26));
-      const periods = cells.map((c) => (c.period ? wrapText(c.period, cw - S(28), (t) => width(t, pf)) : []));
+      const periods = cells.map((c) => [c.period, c.note].filter(Boolean).flatMap((t) => wrapText(t, cw - S(28), (x) => width(x, pf))));
       const lines = Math.max(...labels.map((l, j) => l.length + periods[j].length));
       const h = S(24) + S(104) + S(16) + lines * S(42) + S(12);
       rect(PAD, yy, CW, 2, C.line);
