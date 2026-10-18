@@ -8,7 +8,7 @@ import { TXG_DEPTS, summaryCard, nwtAttendanceBlock, NWT_ATTENDANCE_NOTE, videoR
 import { HUA_ORAL, HUA_TRANSCRIPT, HUA_ATTENDANCE_NOTE, interpellationRows } from './app.js';
 import { HSZ_TRANSCRIPT, HSZ_ATTENDANCE_NOTE, TRANSCRIPTS, TTT_ATTENDANCE_NOTE, KIN_TRANSCRIPT, KIN_ATTENDANCE_NOTE, MP4_LINK } from './app.js';
 import { HSQ_SCANNED, HSQ_ATTENDANCE_NOTE, MIA_ATTENDANCE_NOTE, CYI_ATTENDANCE_NOTE, PIF_LISTED, PIF_LINK, NAN_SUGGESTION, CRYPTO, CRYPTO_CAUTION, supportStep, KOFI_URL } from './app.js';
-import { DEEP_COUNTIES, NO_RECORD_REASONS } from './geo.js';
+import { DEEP_COUNTIES, NO_RECORD_REASONS, COUNTY_NAMES } from './geo.js';
 import { councilDistrictFor, townsOf, needsVillage, officeLabel, districtTitle, candidateOrder, districtSub, countyOrder, isoOf, COUNCIL_SITES } from './geo.js';
 
 const EXPECTED = {
@@ -1423,4 +1423,252 @@ test('bulletin shows the original "現任" as "時任" in education, experience 
   assert.ok(html.includes('<li>時任某校家長會長</li>'));
   assert.ok(html.includes('本人時任議員，政見如下'));
   assert.ok(!html.replace(BULLETIN_DATED, '').includes('現任'));
+});
+
+// ---------- 分享圖卡 ----------
+import { CARD_DIMS, CARD_SPECS, CARD_NOTE, CARD_NEW, CARD_NONE, PRESIDING, PRESIDING_CHECKED, cardAttendance, cardIssues, cardModel, cardContent, shareLinks } from './app.js';
+import { layoutCard, wrapText, cardAlt } from './share.js';
+
+const cardCounties = new Map([
+  ['tpe', { iso: 'tpe', name: '臺北市', districts: [{ district_id: 'tpe-council-06', name: '臺北市第6選舉區', office: 'tpe_councilor' }] }],
+  ['tao', { iso: 'tao', name: '桃園市', districts: [{ district_id: 'tao-council-01', name: '桃園市第1選舉區', office: 'tao_councilor' }] }],
+  ['pif', { iso: 'pif', name: '屏東縣', districts: [{ district_id: 'pif-council-01', name: '屏東縣第1選舉區', office: 'pif_councilor' }] }],
+]);
+const BASE = 'https://brock0312.github.io/civic-lens/';
+const candidacy = (district_id, party = '中國國民黨') => ({ date: '2026-09-02', data: { district_id, office: `${district_id.split('-')[0]}_councilor`, party, publisher: '臺北市選舉委員會' } });
+const officeOf = (district_id) => ({ date: '2022-12-25', data: { district_id, office: `${district_id.split('-')[0]}_councilor` } });
+const cardCite = [{ source_url: 'https://gaz.tcc.gov.tw/x', page: 3 }];
+const tpePerson = {
+  person_id: 'p1', name: '王小明',
+  facts: {
+    candidacy: [candidacy('tpe-council-06')],
+    office: [officeOf('tpe-council-06')],
+    interpellation: [
+      { data: { video_id: 'v1', dept: '教育' } }, { data: { video_id: 'v2', dept: null } },
+      { data: { doc_type: '書面質詢', dept: '交通' } },
+    ],
+    attendance: [{ data: { status: 'present' } }, { data: { status: 'present' } }, { data: { status: 'leave' } }, { data: { status: 'present' } }],
+    summary: [
+      { date: '2024-06-01', data: { session: '第3次', issues: [{ topic: '舊議題', citations: cardCite }] } },
+      { date: '2025-06-01', data: { session: '第5次', issues: [{ topic: '甲', citations: cardCite }, { topic: '沒引文', citations: [] }, { topic: '乙', citations: cardCite }] } },
+      { date: '2025-12-01', data: { session: '第6次', issues: [] } },
+    ],
+  },
+};
+
+test('every county with records has a share card spec using known dimensions', () => {
+  assert.deepEqual(Object.keys(CARD_SPECS).sort(), Object.keys(RECORDS).sort());
+  for (const [iso, s] of Object.entries(CARD_SPECS)) {
+    assert.match(s.term, /^第\d+屆$/, iso);
+    assert.ok(s.counts.length, iso);
+    for (const [dim, label, unit, pick, period] of s.counts) {
+      assert.ok(dim in CARD_DIMS && label && unit && typeof pick === 'function' && period, `${iso} ${dim}`);
+    }
+    assert.equal(Boolean(s.dept), Boolean(RECORDS[iso].depts.length), `${iso} dept period`);
+  }
+});
+
+test('card model for an incumbent: counts, attendance, own-department bars and the latest reviewed issues', () => {
+  const m = cardModel(tpePerson, { counties: cardCounties, base: BASE });
+  assert.equal(m.kind, 'records');
+  assert.equal(m.district, '臺北市議員 第6選舉區');
+  assert.equal(m.party, '中國國民黨');  // 不寫「推薦」
+  assert.equal(m.tag, '現任');
+  assert.equal(m.url, `${BASE}#/p/p1`);
+  assert.deepEqual(m.dims.map((d) => d.id), ['attendance', 'video', 'written', 'dept', 'issues']);
+  const [att, video, written, dept, issues] = m.dims;
+  assert.deepEqual(att.segs, [{ label: '出席', n: 3 }, { label: '請假', n: 1 }]);
+  assert.equal(att.rate, 0.75);
+  assert.equal(video.n, 2);
+  assert.equal(written.n, 1);
+  assert.equal(dept.other, 1);
+  assert.deepEqual(issues, { id: 'issues', session: '第5次', topics: ['甲', '乙'] });
+});
+
+test('zero counts stay on the card as zeros', () => {
+  const p = { ...tpePerson, facts: { ...tpePerson.facts, interpellation: [{ data: { video_id: 'v1' } }] } };
+  assert.equal(cardModel(p, { counties: cardCounties, base: BASE }).dims.find((d) => d.id === 'written').n, 0);
+});
+
+test('presiding officer title comes only from the sourced table', () => {
+  const presiding = [{ person_id: 'p1', title: '臺北市議會議長' }];
+  assert.equal(cardModel(tpePerson, { counties: cardCounties, base: BASE, presiding }).title, '臺北市議會議長');
+  assert.equal(cardModel({ ...tpePerson, person_id: 'p2' }, { counties: cardCounties, base: BASE, presiding }).title, '');
+});
+
+test('non-incumbents get the neutral text; no-party candidates use the CEC wording', () => {
+  const m = cardModel({ person_id: 'p9', name: '陳新人', facts: { candidacy: [candidacy('tpe-council-06', '無')] } }, { counties: cardCounties, base: BASE });
+  assert.equal(m.kind, 'new');
+  assert.equal(m.party, '無黨籍及未經政黨推薦');
+  assert.deepEqual(m.sources, ['臺北市選舉委員會候選人登記冊']);
+  assert.ok(!CARD_NEW.includes('四年') && !CARD_NEW.includes('首次'));
+});
+
+test('incumbents without records: unrecorded county vs nothing found within coverage', () => {
+  const tao = cardModel({ person_id: 'p3', name: '甲', facts: { candidacy: [candidacy('tao-council-01')], office: [officeOf('tao-council-01')] } }, { counties: cardCounties, base: BASE });
+  assert.equal(tao.kind, 'unrecorded');
+  assert.equal(tao.text, '本站未收錄桃園市議會問政紀錄。');
+  const pif = cardModel({ person_id: 'p4', name: '乙', facts: { candidacy: [candidacy('pif-council-01')], office: [officeOf('pif-council-01')] } }, { counties: cardCounties, base: BASE });
+  assert.equal(pif.kind, 'none');
+  assert.equal(pif.text, CARD_NONE);
+  assert.equal(cardModel({ person_id: 'p5', name: '丙', facts: { candidacy: [{ data: { district_id: 'tpe-mayor', office: 'tpe_mayor' } }] } }, { counties: cardCounties, base: BASE }), null);
+});
+
+test('card attendance never calls unlisted meetings absences', () => {
+  const lists = [{ data: { from_lists: true, meetings: 10, present: 8 } }, { data: { from_lists: true, meetings: 5, present: 5 } }];
+  assert.deepEqual(cardAttendance(lists, { attendance: { leave: false } }).segs, [{ label: '出席', n: 13 }, { label: '未列名', n: 2 }]);
+  const khh = [
+    { data: { meetings: 10, present: 7, leave: 2, duty: 0, absent: 1 } },
+    { data: { meetings: 6, present: 5, leave: 0, duty: 0, absent: null } },
+  ];
+  const a = cardAttendance(khh, RECORDS.khh);
+  assert.equal(a.note, '缺席 1／10 次（只計有缺席欄的統計表）');
+  assert.deepEqual(a.segs.at(-1), { label: '缺席或表上未載', n: 2 });
+  const full = cardAttendance([khh[0]], RECORDS.khh);
+  assert.deepEqual(full.segs.at(-1), { label: '缺席', n: 1 });
+  assert.equal(cardAttendance([], RECORDS.tpe), null);
+});
+
+test('issues come from the latest session that has citable issues, in original order', () => {
+  assert.equal(cardIssues([]), null);
+  assert.deepEqual(cardIssues(tpePerson.facts.summary).topics, ['甲', '乙']);
+});
+
+test('unticked dimensions are disclosed on the card', () => {
+  const m = cardModel(tpePerson, { counties: cardCounties, base: BASE });
+  const c = cardContent(m, new Set(['video', 'written']));
+  assert.deepEqual(c.dims.map((d) => d.id), ['video', 'written']);
+  assert.deepEqual(c.omitted, ['出缺勤', '質詢部門分布', '質詢議題']);
+  assert.deepEqual(cardContent(m).omitted, []);
+  assert.deepEqual(cardContent(m, new Set()).dims, []);
+});
+
+test('share links encode the page url', () => {
+  const links = Object.fromEntries(shareLinks(`${BASE}#/p/p1`, '王小明'));
+  assert.equal(links.Facebook, 'https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fbrock0312.github.io%2Fcivic-lens%2F%23%2Fp%2Fp1');
+  assert.ok(links.LINE.endsWith('url=https%3A%2F%2Fbrock0312.github.io%2Fcivic-lens%2F%23%2Fp%2Fp1'));
+  assert.ok(links.Threads.startsWith('https://www.threads.net/intent/post?text=%E7%8E%8B'));
+});
+
+const fakeMeasure = (t, size) => [...t].reduce((s, ch) => s + (ch.charCodeAt(0) > 255 ? size : size * 0.6), 0);
+const cardText = (lay) => lay.ops.filter((o) => o.t === 'text').map((o) => o.text).join('\n');
+
+test('wrapText keeps latin words whole', () => {
+  assert.deepEqual(wrapText('甲乙丙丁', 20, (t) => fakeMeasure(t, 10)), ['甲乙', '丙丁']);
+  assert.deepEqual(wrapText('甲 Paylang', 50, (t) => fakeMeasure(t, 10)), ['甲', 'Paylang']);
+});
+
+test('card layout fits both formats and carries the required wording', () => {
+  const m = cardModel(tpePerson, { counties: cardCounties, base: BASE });
+  for (const fmt of ['story', 'post']) {
+    const lay = layoutCard(cardContent(m, new Set(['attendance', 'video', 'written', 'issues'])), fmt, fakeMeasure);
+    assert.equal(lay.overflow, false, fmt);
+    const t = cardText(lay);
+    assert.ok(t.includes('75.0%') && t.includes(CARD_NOTE) && t.includes('本卡未呈現：質詢部門分布'), fmt);
+    assert.ok(t.includes('brock0312.github.io/civic-lens/#/p/p1') && t.includes('臺北市議會（第14屆'), fmt);
+    assert.ok(t.includes('收錄期間 2022/12–2026/09') && t.includes('2023/04–2026/09') && t.includes('2022/12–2026/10'), fmt);
+    assert.ok(!/推薦|無前科|排名|分數/.test(t), fmt);
+  }
+  const fresh = layoutCard(cardContent(cardModel({ person_id: 'p9', name: '陳新人', facts: { candidacy: [candidacy('tpe-council-06')] } }, { counties: cardCounties, base: BASE })), 'story', fakeMeasure);
+  assert.ok(cardText(fresh).replace(/\n/g, '').includes(CARD_NEW));
+  assert.ok(!cardText(fresh).includes('%'));
+});
+
+const sharePeople = new URL('./data/people/', import.meta.url);
+test('every council candidate card lays out without overflow (exported data)', { skip: !existsSync(sharePeople) && 'site/data 未產生' }, () => {
+  const counties = new Map(JSON.parse(readFileSync(new URL('./data/counties.json', import.meta.url), 'utf8')).counties.map((c) => [c.iso, c]));
+  let n = 0;
+  for (const f of readdirSync(sharePeople)) {
+    const m = cardModel(JSON.parse(readFileSync(new URL(f, sharePeople), 'utf8')), { counties, base: BASE });
+    if (!m) continue;
+    n++;
+    for (const fmt of ['story', 'post']) assert.equal(layoutCard(cardContent(m), fmt, fakeMeasure).overflow, false, `${m.name} ${fmt}`);
+  }
+  assert.ok(n > 1000);
+});
+
+test('presiding officer table: one entry per person, sourced, titled by council', () => {
+  assert.match(PRESIDING_CHECKED, /^\d{4}-\d\d-\d\d$/);
+  assert.equal(new Set(PRESIDING.map((x) => x.person_id)).size, PRESIDING.length);
+  for (const x of PRESIDING) {
+    assert.match(x.title, /^.{2}[市縣]議會(副)?議長$/, x.name);
+    assert.match(x.source_url, /^https:\/\//, x.name);
+  }
+});
+
+test('presiding officers are council candidates of that council with the same name (exported data)', { skip: !existsSync(sharePeople) && 'site/data 未產生' }, () => {
+  for (const x of PRESIDING) {
+    const p = JSON.parse(readFileSync(new URL(`${x.person_id}.json`, sharePeople), 'utf8'));
+    assert.equal(p.name, x.name);
+    const county = x.title.slice(0, 3);
+    const iso = Object.entries(COUNTY_NAMES).find(([, n]) => n === county)?.[0];
+    assert.ok((p.facts.office || []).some((f) => f.data.office === `${iso}_councilor`), x.name);
+    assert.ok((p.facts.candidacy || []).some((f) => f.data.office === `${iso}_councilor`), x.name);
+  }
+});
+
+test('re-districted incumbents (Hsinchu County) are tagged as incumbents of their 2026 district', () => {
+  const counties = new Map([['hsq', { iso: 'hsq', name: '新竹縣', districts: [{ district_id: 'hsq-council-03', name: '新竹縣第3選舉區', office: 'hsq_councilor' }] }]]);
+  const p = { person_id: 'p7', name: '丁', facts: {
+    candidacy: [candidacy('hsq-council-03')],
+    office: [{ date: '2022-12-25', data: { district_id: 'hsq-council-2022-02', districts_2026: ['hsq-council-03'], office: 'hsq_councilor' } }],
+  } };
+  assert.equal(cardModel(p, { counties, base: BASE }).tag, '現任');
+});
+
+test('card tags match the district page tags for every council candidate (exported data)', { skip: !existsSync(sharePeople) && 'site/data 未產生' }, () => {
+  const counties = new Map(JSON.parse(readFileSync(new URL('./data/counties.json', import.meta.url), 'utf8')).counties.map((c) => [c.iso, c]));
+  const districts = new URL('./data/districts/', import.meta.url);
+  let n = 0;
+  for (const f of readdirSync(districts)) {
+    const d = JSON.parse(readFileSync(new URL(f, districts), 'utf8'));
+    if (!String(d.office).endsWith('_councilor')) continue;
+    for (const row of d.people) {
+      const p = JSON.parse(readFileSync(new URL(`${row.person_id}.json`, sharePeople), 'utf8'));
+      assert.equal(cardModel(p, { counties, base: BASE }).tag, candidateTag(row.incumbent, d.district_id, counties), `${row.name} ${d.district_id}`);
+      n++;
+    }
+  }
+  assert.ok(n > 1000);
+});
+
+test('kaohsiung leftover meetings are called unrecorded on the table, never absences', () => {
+  const a = cardAttendance([{ data: { meetings: 10, present: 7, leave: 1, duty: 0, absent: 1 } }], RECORDS.khh);
+  assert.deepEqual(a.segs.map((x) => x.label), ['出席', '請假', '公差／公假', '缺席', '表上未載']);
+});
+
+test('very long names wrap instead of running off the card, and the alt text reads the card', () => {
+  const p = { ...tpePerson, name: '林秉君 kaying．kuying．kalang' };
+  for (const fmt of ['story', 'post']) {
+    const lay = layoutCard(cardContent(cardModel(p, { counties: cardCounties, base: BASE })), fmt, fakeMeasure);
+    assert.equal(lay.overflow, false, fmt);
+    for (const o of lay.ops) {
+      if (o.t === 'text' && o.align === 'left') assert.ok(o.x + fakeMeasure(o.text, o.size) <= lay.w, `${fmt} ${o.text}`);
+      if (o.t === 'rect') assert.ok(o.x + o.w <= lay.w, `${fmt} rect`);
+    }
+    assert.ok(cardAlt(lay).includes('現任') && cardAlt(lay).includes('75.0%'));
+  }
+});
+
+// 每項收錄期間要涵蓋實際資料的日期：重跑 ETL 後資料超出卡上寫的期間就會失敗（要更新 CARD_SPECS）
+test('per-item collection periods cover every record on the card (exported data)', { skip: !existsSync(sharePeople) && 'site/data 未產生' }, () => {
+  const counties = new Map(JSON.parse(readFileSync(new URL('./data/counties.json', import.meta.url), 'utf8')).counties.map((c) => [c.iso, c]));
+  const span = (period) => period.match(/^(\d{4})\/(\d\d)–(\d{4})\/(\d\d)/);
+  const within = (date, period, what) => {
+    const m = span(period);
+    if (!m || !date) return;  // 會期式的期間（高雄出缺勤、連江）與沒有日期的紀錄不比日期
+    const ym = date.slice(0, 7);
+    assert.ok(ym >= `${m[1]}-${m[2]}` && ym <= `${m[3]}-${m[4]}`, `${what}: ${date} 不在 ${period}`);
+  };
+  for (const f of readdirSync(sharePeople)) {
+    const p = JSON.parse(readFileSync(new URL(f, sharePeople), 'utf8'));
+    const m = cardModel(p, { counties, base: BASE });
+    if (m?.kind !== 'records') continue;
+    const spec = CARD_SPECS[isoOf(p.facts.candidacy.find((c) => String(c.data.office).endsWith('_councilor')).data.district_id)];
+    for (const d of m.dims) if (d.id !== 'issues') assert.ok(d.period, `${m.name} ${d.id} 沒有收錄期間`);
+    for (const a of p.facts.attendance || []) within(a.date, spec.attendance, `${m.name} 出缺勤`);
+    for (const [dim, , , pick, period] of spec.counts) {
+      for (const x of (p.facts.interpellation || []).filter(pick)) within(x.date, period, `${m.name} ${dim}`);
+    }
+  }
 });

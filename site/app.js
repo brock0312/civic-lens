@@ -1118,6 +1118,209 @@ export function summaryCard(facts, { offices, inters, written, videos, jump, rec
   return `<section class="summary" aria-label="摘要">${said}<div class="did"><h2>做了什麼</h2>${did}</div></section>`;
 }
 
+// ---------- 分享圖卡（P0，2026-10-18 使用者定案）：只做議員候選人；忠實計數、不評分、不跨人比較 ----------
+
+// 可勾選的維度（整組勾選，不開放子項）；順序就是圖卡上的順序
+export const CARD_DIMS = {
+  attendance: '出缺勤', video: '質詢影片', written: '書面質詢', transcript: '質詢紀錄', oral: '口頭質詢答覆',
+  suggestion: '議員建議事項', dept: '質詢部門分布', issues: '質詢議題',
+};
+const isVideo = (f) => Boolean(f.data?.video_id);
+const docIs = (t) => (f) => !isVideo(f) && f.data?.doc_type === t;
+const isWrittenOnly = (f) => !isVideo(f) && ![HUA_ORAL, ...TRANSCRIPTS].includes(f.data?.doc_type);
+const anyWritten = (f) => !isVideo(f);
+
+// 各縣市的計數項目（與摘要卡 countLine 同口徑）；[維度, 標籤, 單位, 篩選, 收錄期間]。收錄期間逐項標示（verifier 2026-10-18：
+// 單一總期間會過度宣稱），依 RECORDS 的 note，沒寫到的用實際資料的日期範圍；重跑 ETL 後由測試抓出過期的期間
+export const CARD_SPECS = {
+  tpe: {
+    term: '第14屆', attendance: '2022/12–2026/09', dept: '2022/12–2026/10',
+    counts: [['video', '口頭質詢影片', '筆', isVideo, '2023/04–2026/09'], ['written', '書面質詢', '筆', isWrittenOnly, '2022/12–2026/10']],
+  },
+  khh: {
+    term: '第4屆', attendance: '成立大會至第6次定期大會', dept: '2023/04–2026/10',
+    counts: [['video', '口頭質詢影片', '筆', isVideo, '2023/04–2026/10']],
+  },
+  txg: { term: '第4屆', dept: '2023/04–2026/10', counts: [['video', '口頭質詢影片', '筆', isVideo, '2023/04–2026/10']] },
+  tnn: { term: '第4屆', counts: [['video', '市政總質詢影片', '筆', isVideo, '2023/05–2026/09']] },
+  nwt: {
+    term: '第4屆', attendance: '2023/01–2026/07',
+    counts: [['video', '口頭質詢影片', '筆', isVideo, '2023/04–2026/09'], ['written', '書面質詢及答復（掃描檔）', '個會期', anyWritten, '2023/04–2026/06']],
+  },
+  hua: {
+    term: '第20屆', attendance: '2023/09–2026/03',
+    counts: [['video', '縣政總質詢影片', '筆', isVideo, '2023/05–2026/06'], ['written', '書面質詢', '筆', docIs('書面質詢'), '2023/09–2026/03'],
+      ['oral', HUA_ORAL, '筆', docIs(HUA_ORAL), '2023/09–2026/03']],
+  },
+  hsz: {
+    term: '第11屆', attendance: '2023/01–2026/05',
+    counts: [['video', '質詢影片', '筆', isVideo, '2023/05–2026/06'], ['transcript', HSZ_TRANSCRIPT, '筆', docIs(HSZ_TRANSCRIPT), '2023/05–2025/11']],
+  },
+  hsq: {
+    term: '第20屆', attendance: '2023/02–2026/09',
+    counts: [['transcript', KIN_TRANSCRIPT, '份', docIs(KIN_TRANSCRIPT), '2023/05–2026/04'], ['written', `${HSQ_SCANNED}（掃描檔）`, '份', docIs(HSQ_SCANNED), '2023/05–2026/04']],
+  },
+  ttt: { term: '第20屆', attendance: '2023/01–2026/06', counts: [['written', '書面質詢', '筆', anyWritten, '2023/01–2026/06']] },
+  kin: {
+    term: '第8屆', attendance: '2023/04–2026/07',
+    counts: [['video', '縣政總質詢當天影片', '段', isVideo, '2023/05–2025/06'], ['transcript', KIN_TRANSCRIPT, '場', docIs(KIN_TRANSCRIPT), '2023/05–2025/06']],
+  },
+  kee: { term: '第20屆', counts: [['video', '市長施政總質詢影片', '支', isVideo, '2023/05–2026/10']] },
+  cha: {
+    term: '第20屆',
+    counts: [['video', '縣政質詢當天影片', '支', isVideo, '2023/05–2026/10'], ['transcript', '縣政質詢紀錄', '場', docIs(KIN_TRANSCRIPT), '2023/05–2025/11（缺第3次定期會）']],
+  },
+  mia: { term: '第20屆', attendance: '2025/03–2026/10', counts: [['transcript', KIN_TRANSCRIPT, '場', docIs(KIN_TRANSCRIPT), '2023/05–2026/06']] },
+  cyi: { term: '第11屆', attendance: '2024/09–2026/04（部分會期）', counts: [['transcript', '市政總質詢紀錄', '場', docIs(KIN_TRANSCRIPT), '2023/05–2026/05（缺第3次定期會）']] },
+  cyq: { term: '第20屆', counts: [['transcript', KIN_TRANSCRIPT, '場', docIs(KIN_TRANSCRIPT), '2023/11–2026/05']] },
+  pif: { term: '第20屆', counts: [['transcript', PIF_LISTED, '天', docIs(PIF_LISTED), '2023/05–2026/07']] },
+  lie: { term: '第8屆', counts: [['video', '縣政總質詢與施政報告質詢影片', '筆', isVideo, '第1–7次定期大會']] },
+  ila: { term: '第20屆', counts: [['video', '業務質詢與縣長施政總質詢影片', '支', isVideo, '2023/05–2026/10']] },
+  yun: { term: '第20屆', counts: [['video', '標記本人發言的議事影片', '支', isVideo, '2025/05–2026/10']] },
+  pen: { term: '第20屆', counts: [['video', '縣政總質詢影片', '支', isVideo, '2025/05–2026/10']] },
+  nan: { term: '第20屆', counts: [['suggestion', '縣政總質詢議員建議事項', '筆', docIs(NAN_SUGGESTION), '2025/05–2026/05']] },
+};
+
+// 2026 參選議員的現任正副議長：圖卡只寫職稱（不寫因果）。每筆依議會官網（source_url），查核日 PRESIDING_CHECKED；
+// 只收「現任」（雲林黃凱為本屆補選接任，前任沈宗隆不列）。選前要重查一次，職稱有異動就改這裡，不能留下時任的職稱
+export const PRESIDING_CHECKED = '2026-10-18';
+export const PRESIDING = [
+  { person_id: 'p6925e37a0b', name: '戴錫欽', title: '臺北市議會議長', source_url: 'https://www.tcc.gov.tw/cp.aspx?n=13507' },
+  { person_id: 'pdbfe9d98cc', name: '葉林傳', title: '臺北市議會副議長', source_url: 'https://www.tcc.gov.tw/cp.aspx?n=13508' },
+  { person_id: 'p0bbaad845c', name: '蔣根煌', title: '新北市議會議長', source_url: 'https://www.ntp.gov.tw/about01?program=9' },
+  { person_id: 'pa5b5a879f8', name: '陳鴻源', title: '新北市議會副議長', source_url: 'https://www.ntp.gov.tw/about02?program=10' },
+  { person_id: 'pd6d0339788', name: '邱奕勝', title: '桃園市議會議長', source_url: 'https://www.tycc.gov.tw/TC/councilor-detail.aspx?mid=37' },
+  { person_id: 'p4534422a22', name: '張清照', title: '臺中市議會議長', source_url: 'https://www.tccc.gov.tw/wb_about01.asp?uno=&cno=3' },
+  { person_id: 'p021160aa59', name: '顏莉敏', title: '臺中市議會副議長', source_url: 'https://www.tccc.gov.tw/wb_about01.asp?uno=&cno=4' },
+  { person_id: 'pd551ff873c', name: '邱莉莉', title: '臺南市議會議長', source_url: 'https://www.tncc.gov.tw/page.asp?orcaid=1971B034-3DCB-410F-A6FE-232BCD36FE9B' },
+  { person_id: 'p654a11af0e', name: '林志展', title: '臺南市議會副議長', source_url: 'https://www.tncc.gov.tw/page.asp?orcaid=28F95793-E8C8-41C4-8058-83564FD71D52' },
+  { person_id: 'p3879bb14b6', name: '康裕成', title: '高雄市議會議長', source_url: 'https://www.kcc.gov.tw/Chief.aspx?n=29&type=1' },
+  { person_id: 'p5a88055433', name: '曾俊傑', title: '高雄市議會副議長', source_url: 'https://www.kcc.gov.tw/Chief.aspx?n=30&type=2' },
+  { person_id: 'pc33544a19d', name: '王炳漢', title: '新竹縣議會副議長', source_url: 'https://www.hcc.gov.tw/deputy-speaker?lang=&program=189' },
+  { person_id: 'p55f8a6b9f7', name: '李文斌', title: '苗栗縣議會議長', source_url: 'https://www.mcc.gov.tw/iframcontent_edit.php?menu=2568&typeid=2578' },
+  { person_id: 'p7ff0488a73', name: '張淑芬', title: '苗栗縣議會副議長', source_url: 'https://www.mcc.gov.tw/iframcontent_edit.php?menu=2568&typeid=2579' },
+  { person_id: 'pae7630a8af', name: '謝典霖', title: '彰化縣議會議長', source_url: 'https://www.chcc.gov.tw/member/index.aspx?Parser=99,6,40' },
+  { person_id: 'pca8b402da0', name: '許原龍', title: '彰化縣議會副議長', source_url: 'https://www.chcc.gov.tw/member/index.aspx?Parser=99,6,40' },
+  { person_id: 'p3f175f21de', name: '何勝豐', title: '南投縣議會議長', source_url: 'https://www.ntcc.gov.tw/tw/about/index.aspx' },
+  { person_id: 'p19d852fcf7', name: '黃凱', title: '雲林縣議會議長', source_url: 'https://www.ylcc.gov.tw/cp.aspx?n=22109' },
+  { person_id: 'pb2388adf20', name: '張明達', title: '嘉義縣議會議長', source_url: 'https://www.cyscc.gov.tw/CP/322' },
+  { person_id: 'p01e379e9c7', name: '陳怡岳', title: '嘉義縣議會副議長', source_url: 'https://www.cyscc.gov.tw/CP/323' },
+  { person_id: 'pd9a423ad0d', name: '盧文瑞', title: '屏東縣議會副議長', source_url: 'https://www.ptcc.gov.tw/?Guid=ac5133d1-d0a0-2803-88cc-e1e5aabad32b' },
+  { person_id: 'pfe29b8d0ab', name: '張勝德', title: '宜蘭縣議會議長', source_url: 'https://www.ilcc.gov.tw/Html/H_05/H_0501.asp?GoOut=&pic=1&clique=KMT&User_id=A2004' },
+  { person_id: 'p6dbc3c2627', name: '陳漢鍾', title: '宜蘭縣議會副議長', source_url: 'https://www.ilcc.gov.tw/Html/H_05/H_0501.asp?GoOut=&pic=1&clique=&User_id=A2017' },
+  { person_id: 'p6efd903822', name: '徐雪玉', title: '花蓮縣議會副議長', source_url: 'https://www.hlcc.gov.tw/councillor.php' },
+  { person_id: 'p507c8b7b57', name: '林琮翰', title: '臺東縣議會副議長', source_url: 'https://www.taitungcc.gov.tw/1/speaker' },
+  { person_id: 'p8b75f56220', name: '陳毓仁', title: '澎湖縣議會議長', source_url: 'https://www.phcouncil.gov.tw/meet.php?councillor=M24080001' },
+  { person_id: 'p26934fd272', name: '藍凱元', title: '澎湖縣議會副議長', source_url: 'https://www.phcouncil.gov.tw/chairman2.php' },
+  { person_id: 'paabe4fcc71', name: '洪允典', title: '金門縣議會議長', source_url: 'https://www.kmcc.gov.tw/8844/54357/55476/55483/' },
+  { person_id: 'p801af9bb5b', name: '林明揚', title: '連江縣議會副議長', source_url: 'https://www.mtcc.gov.tw/ch/content/7186' },
+  { person_id: 'pe6b713b78b', name: '楊秀玉', title: '基隆市議會副議長', source_url: 'https://www.kmc.gov.tw/index.php/dsc' },
+  { person_id: 'pfa870627b4', name: '許修睿', title: '新竹市議會議長', source_url: 'https://www.hsinchu-cc.gov.tw/tc/sir.aspx?mid=37' },
+  { person_id: 'p60b4ded880', name: '陳姿妏', title: '嘉義市議會議長', source_url: 'https://www.cycc.gov.tw/web/Introduction/Introduction.aspx?c0=4738' },
+];
+
+export const CARD_NOTE = '數字是官方紀錄筆數，不是評分；各縣市收錄範圍不同。';
+export const CARD_NEW = '非本屆議員，本站沒有其任內問政紀錄。';  // 不寫「首次參選」：可能是前幾屆議員
+export const CARD_NONE = '本站收錄範圍內尚未見此人的紀錄，不代表沒有問政。';
+export const SHARE_LABEL = '分享圖卡（IG 限動／Threads／LINE）';
+
+// 出缺勤分段：分母一律是本站收錄的會議次數；名單沒列到的不稱缺席（只有高雄統計表有缺席欄）
+export function cardAttendance(list, rec) {
+  if (!list?.length) return null;
+  const seg = (label, n) => ({ label, n });
+  let total; let segs; let note = '';
+  if (list[0].data?.from_lists) {
+    const sum = (k) => list.reduce((s, f) => s + (Number(f.data?.[k]) || 0), 0);
+    const opts = { duty: true, leave: true, ...rec?.attendance };
+    total = sum('meetings');
+    segs = [seg('出席', sum('present'))];
+    if (opts.leave) segs.push(seg('請假', sum('leave')));
+    if (opts.leave && opts.duty) segs.push(seg('公差／公假', sum('duty')));
+  } else if (typeof list[0].data?.meetings === 'number') {
+    const a = attendanceTotals(list);
+    total = a.total;
+    segs = [seg('出席', a.present), seg('請假', a.leave), seg('公差／公假', a.duty)];
+    if (a.absentTotal === a.total) segs.push(seg('缺席', a.absent));
+    else note = `缺席 ${a.absent}／${a.absentTotal} 次（只計有缺席欄的統計表）`;
+  } else {
+    const a = attendanceRates(list);
+    total = a.total;
+    segs = [seg('出席', a.present), seg('請假', a.leave)];
+  }
+  const rest = total - segs.reduce((s, x) => s + x.n, 0);
+  // 剩餘：名單式紀錄是「未列名」；高雄統計表是合計對不上或沒有缺席欄的部分
+  const khh = typeof list[0].data?.meetings === 'number' && !list[0].data?.from_lists;
+  if (rest > 0) segs.push(seg(khh ? (note ? '缺席或表上未載' : '表上未載') : '未列名', rest));
+  return { total, rate: total ? segs[0].n / total : 0, segs, note };
+}
+
+// 臺北質詢議題：最近一個有議題的已核可會期，全部題目照原順序（不挑題）
+export function cardIssues(summaries) {
+  const s = [...(summaries || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+    .find((f) => issuesOf(f.data).length);
+  return s ? { session: s.data.session, topics: issuesOf(s.data).map((i) => i.topic) } : null;
+}
+
+// 圖卡內容（純資料）：kind 為 new（新參選人）、records、none（現任但收錄範圍內無紀錄）、unrecorded（未收錄縣市）
+export function cardModel(p, { counties, base, presiding = [] }) {
+  const facts = p.facts || {};
+  const cand = (facts.candidacy || []).find((f) => String(f.data?.office).endsWith('_councilor'));
+  if (!cand) return null;
+  const iso = isoOf(cand.data.district_id);
+  const county = counties.get(iso);
+  const d = county?.districts.find((x) => x.district_id === cand.data.district_id);
+  const offices = facts.office || [];
+  // 與 etl/export.py 相同：2022 劃分與 2026 不同的選區（新竹縣）展開成對應的 2026 選區，選區頁與圖卡的「現任」才一致
+  const incumbent = offices.flatMap((f) => (f.data.districts_2026 || [f.data.district_id]).map((district_id) => ({
+    district_id, office: f.data.office, basis: f.data.basis, suspended: Boolean(suspensionOf(f.data)),
+  })));
+  const model = {
+    name: p.name,
+    district: d ? districtTitle(d, county) : '',
+    party: NO_PARTY.has(cand.data.party) ? '無黨籍及未經政黨推薦' : cand.data.party,  // 圖卡不寫「推薦」（使用者 2026-10-18 決定）
+    tag: candidateTag(incumbent, cand.data.district_id, counties),
+    title: presiding.find((x) => x.person_id === p.person_id)?.title || '',
+    url: `${base}#/p/${p.person_id}`,
+    council: `${county?.name || ''}議會`,
+    term: '',
+    dims: [],
+  };
+  if (!offices.length) return { ...model, kind: 'new', sources: [`${cand.data.publisher || '選舉委員會'}候選人登記冊`] };
+  const spec = CARD_SPECS[iso];
+  model.sources = [model.council];
+  if (!spec) return { ...model, kind: 'unrecorded', text: `本站未收錄${model.council}問政紀錄。` };
+  model.term = spec.term;
+  const inters = facts.interpellation || [];
+  const att = cardAttendance(facts.attendance, RECORDS[iso]);
+  if (!inters.length && !att) return { ...model, kind: 'none', text: CARD_NONE };
+  if (att) model.dims.push({ id: 'attendance', ...att, period: spec.attendance || '' });
+  const depts = RECORDS[iso]?.depts || [];
+  if (depts.length && inters.length) model.dims.push({ id: 'dept', ...deptCounts(inters, depts), period: spec.dept || '' });
+  for (const [id, label, unit, pick, period] of spec.counts) model.dims.push({ id, label, unit, period, n: inters.filter(pick).length });
+  const issues = cardIssues(facts.summary);
+  if (issues) model.dims.push({ id: 'issues', ...issues });
+  model.dims.sort((a, b) => Object.keys(CARD_DIMS).indexOf(a.id) - Object.keys(CARD_DIMS).indexOf(b.id));
+  return { ...model, kind: 'records' };
+}
+
+// 套用勾選：只留勾選的維度；沒勾的維度名稱列為「本卡未呈現」（揭露，避免選擇性呈現）
+export function cardContent(model, selected) {
+  if (model.kind !== 'records') return { ...model, omitted: [] };
+  const on = (x) => !selected || selected.has(x.id);
+  const label = (x) => (x.label && x.id !== 'attendance' && x.id !== 'dept' && x.id !== 'issues' ? x.label : CARD_DIMS[x.id]);
+  return { ...model, dims: model.dims.filter(on), omitted: model.dims.filter((x) => !on(x)).map(label) };
+}
+
+// 桌機的分享連結（IG 沒有網頁分享連結）
+export function shareLinks(url, text) {
+  const u = encodeURIComponent(url);
+  return [
+    ['Facebook', `https://www.facebook.com/sharer/sharer.php?u=${u}`],
+    ['LINE', `https://social-plugins.line.me/lineit/share?url=${u}`],
+    ['Threads', `https://www.threads.net/intent/post?text=${encodeURIComponent(`${text} ${url}`)}`],
+  ];
+}
+
 async function renderPerson(main, ctx, id) {
   let p;
   try {
@@ -1173,6 +1376,7 @@ async function renderPerson(main, ctx, id) {
   const bulletin = bulletinSection(facts, notes);
   const jump = facts.profile?.length || facts.platform?.length ? 'k-platform' : bulletin && 'k-bulletin';
 
+  const card = cardModel(p, { counties: ctx.counties, base: `${location.origin}${location.pathname}`, presiding: PRESIDING });
   const inter = inters.length ? `<section aria-labelledby="k-inter"><h2 id="k-inter">質詢紀錄</h2>
       ${interSection('written', rec?.writtenHeading || '書面質詢', kinds.written)}
       ${interSection('oral', '口頭質詢答覆', kinds.oral)}
@@ -1187,6 +1391,7 @@ async function renderPerson(main, ctx, id) {
       ...(leadMeta ? [[`#/d/${leadMeta.d.district_id}`, districtTitle(leadMeta.d, leadMeta.county)]] : []), ['', p.name])}
     <h1 tabindex="-1">${esc(p.name)}</h1>
     ${lead ? `<p class="byline">${partyOf(lead.data, ctx.parties)}<span>${districtLink(lead.data.district_id)}</span></p>` : ''}
+    ${card ? `<p class="share-open"><button type="button" class="more" data-share-card>${SHARE_LABEL}</button></p>` : ''}
     ${summaryCard(facts, { offices, inters, written, videos, jump, rec, pending: pendingRecordNotes(offices, ctx.counties) })}
     ${cand ? `<section aria-labelledby="k-cand"><h2 id="k-cand">2026 參選</h2>${cand}</section>` : ''}
     ${criminalRecordSection(facts)}
@@ -1197,6 +1402,11 @@ async function renderPerson(main, ctx, id) {
     ${ly}
     ${inters.length || (offices.length && !(rec && recordedCouncillor)) ? '' : `<p class="empty">${esc(noRecord)}</p>`}
     ${notes.render()}`;
+
+  // 圖卡的繪圖程式按下按鈕才載入，不影響頁面載入
+  main.querySelector('[data-share-card]')?.addEventListener('click', () => {
+    import('./share.js').then((m) => m.openShareDialog(card)).catch((err) => console.warn(err));
+  });
 
   // hash 已用於路由，頁內錨點改成捲動加聚焦
   main.querySelector('[data-jump]')?.addEventListener('click', (e) => {
