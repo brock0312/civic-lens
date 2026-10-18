@@ -41,6 +41,25 @@ QUESTIONS = [
     "丁議員戊己書面質詢事項三：\n道路。\n依建設處 115 年 6 月 1 日府建字第 4 號函\n",
 ]
 
+# 第四冊逐字紀錄：主席點名後緊接本人標籤才算；開場預告名單、「謝謝…」不算；把時間讓給別人的、登記發言（10 分鐘）、
+# 改書面質詢（議事組宣讀）都不收；標籤漏印「主席」、主席標籤被併進上一段內文、只用職稱點名「有請副議長」
+LONG = "縣長,本席要請教道路與排水的改善進度,地方鄉親非常關心這件事情。" * 8
+TRANSCRIPT = [
+    "目   錄\n臺東縣議會第 20 屆第 7 次定期會\n第四冊\n05 月20 日 ......1-46\n\n縣政總質詢\n115 年 05 月 20日\n   記錄:某某\n"
+    "主席章議員正輝: \n好!今天總質詢的議員分別是第一位甲乙丙議員、第二位丁戊己議員,首先總質詢的第一位議員是甲乙丙甲\n"
+    "議員,詢答時間40分鐘。\n甲議員乙丙: \n" + LONG + "\n縣長某某:\n是。\n丁議員戊己:\n補充一句。\n",
+    " - 1 - \n臺東縣議會第 20 屆第 7 次定期會\n甲議員乙丙: \n" + LONG + "\n主席章議員正輝: \n謝謝甲乙丙議員這麼精彩的質詢。"
+    "接下來總質詢的議員是丁戊己丁議員,詢答時間40分鐘。\n丁議員戊己:\n主席,我把時間讓給周駿宥議員。\n主席章議員正輝:\n"
+    "好,請周駿宥周議員質詢,時間有80分鐘。\n周議員駿宥:\n" + LONG + "\n章議員正輝:\n接下來第二位總質詢的是我們副議長林琮翰,"
+    "他是以書面質詢,所以我們請議事組宣讀。\n議事組宣讀:\n" + LONG + "\n",
+    "質詢\n - 2 - \n縣政總質詢\n115年5月21日\n主席周議員駿宥:\n議程一樣是縣政總質詢。上半場開放議員們登記發言,首先第一位登記發言"
+    "的議員是甲乙丙甲議員,詢答時間10分鐘。\n甲議員乙丙發言:\n" + LONG + "\n主席周議員駿宥:\n謝謝甲乙丙議員。接著,丁戊己丁議員,"
+    "詢答時間10分鐘。請。\n丁議員戊己:\n" + LONG + "\n主席周議員駿宥:\n好,下半場由我們的議長、副議長總質詢,有請副議長。\n"
+    "林副議長琮翰:\n" + LONG + "謝謝。主席周議員駿宥::好,謝謝副議長。接下來登記質詢的是章正輝章議員,詢答時間四十分鐘。\n",
+    " - 3 - \n章議員正輝:\n" + LONG + "\n",
+]
+TT_NAMES = ["丁戊己", "周駿宥", "庚辛壬", "林琮翰", "甲乙丙", "章正輝"]
+
 
 def new_conn(tmp, people):
     """people：[(person_id, name, 有 2026 candidacy)]，都是臺東縣議員。"""
@@ -93,6 +112,38 @@ class TestTttBookParse(unittest.TestCase):
         self.assertEqual([ttt_book.cn(x) for x in ("一", "十", "十一", "二十", "二十三")], [1, 10, 11, 20, 23])
 
 
+class TestTttBookTranscripts(unittest.TestCase):
+    def entries(self):
+        days = ttt_book.parse_days(TRANSCRIPT)
+        logs = []
+        return days, [[(e["name"], e["page"]) for e in ttt_book.gov_entries(d, TT_NAMES, logs.append, d["date"])] for d in days], logs
+
+    def test_days_start_at_the_day_heading_and_skip_page_furniture(self):
+        days, _, _ = self.entries()
+        self.assertEqual([(d["date"], d["page"]) for d in days], [("2026-05-20", 1), ("2026-05-21", 3)])
+        label, page, body = days[0]["turns"][4]
+        self.assertEqual((label, page), ("甲議員乙丙", 2))
+        self.assertNotIn("臺東縣議會", body)
+
+    def test_entry_needs_the_chair_call_immediately_followed_by_own_label(self):
+        _, (day1, day2), logs = self.entries()
+        # 甲乙丙：第 1 頁點名、第 1 頁開講；丁戊己預告名單有、點名後只說一句就讓出時間；周駿宥接到 80 分鐘；林琮翰書面質詢
+        self.assertEqual(day1, [("甲乙丙", 1), ("周駿宥", 2)])
+        self.assertTrue(any("丁戊己 被點名後本人發言只有" in x for x in logs))
+        # 第二天：登記發言（10 分鐘）不收；「有請副議長」以職稱點名；併在內文裡的主席標籤；「登記質詢」但宣布 40 分鐘的是總質詢
+        self.assertEqual(day2, [("林琮翰", 3), ("章正輝", 4)])
+        self.assertTrue(any("甲乙丙 是登記發言" in x for x in logs) and any("丁戊己 是登記發言" in x for x in logs))
+
+    def test_thanks_and_preview_lists_are_not_calls(self):
+        turns = [("主席章議員正輝", 1, "今天質詢的議員分別是甲乙丙議員、丁戊己議員。"), ("丁議員戊己", 1, LONG),
+                 ("主席章議員正輝", 2, "謝謝丁戊己議員。"), ("丁議員戊己", 2, LONG)]
+        self.assertEqual(ttt_book.gov_calls(turns, TT_NAMES), [])
+
+    def test_unreadable_book_is_skipped(self):
+        self.assertFalse(ttt_book.readable(["\x01\x02 abc 123 ????"]))
+        self.assertTrue(ttt_book.readable(TRANSCRIPT))
+
+
 class TestTttBookBuild(unittest.TestCase):
     def build(self, withheld=None):
         books = [{"id": "07-02", "path": "/img/download/meeting/meeting20_07/02.pdf", "kind": "regular", "title": "x"},
@@ -104,7 +155,7 @@ class TestTttBookBuild(unittest.TestCase):
         return out, logs
 
     def test_attendance_counts_only_clean_meetings(self):
-        (ts, meetings, questions, att, qs, held), logs = self.build()
+        (ts, meetings, questions, att, qs, held, _), logs = self.build()
         self.assertEqual([m["meeting"] for m in meetings], ["預備會", "第1會次", "第2會次"])
         self.assertTrue(any("第3會次" in x and "不是姓名" in x for x in logs))
         self.assertTrue(any("第4會次" in x and "同時在出席與請假" in x for x in logs))
@@ -135,22 +186,46 @@ class TestTttBookBuild(unittest.TestCase):
         self.assertEqual(out["r"][0][3], "2024-04-16")
 
     def test_questions_link_to_the_pdf_page_and_skip_bad_or_withheld_items(self):
-        (ts, meetings, questions, att, qs, held), logs = self.build()
+        (ts, meetings, questions, att, qs, held, _), logs = self.build()
         self.assertEqual([k for k, *_ in qs["p1"]], ["tttq:07-04:1:1:p1", "tttq:07-04:2:2:p1"])
         k, d, url, date = qs["p1"][1]
         self.assertEqual(url, "https://www.taitungcc.gov.tw/img/download/meeting/meeting20_07/04.pdf#page=2")
         self.assertEqual((d["session"], d["dept"], d["doc_type"], d["no_date"], date),
                          ("第20屆第7次定期會", "財政及經濟發展處", "書面質詢", True, "2026-05-06"))
         self.assertNotIn("p3", qs)  # 兩題都因編號不連續不收
-        (ts, meetings, questions, att, qs, held), logs = self.build({"07-04:1:1": "第三人"})
+        (ts, meetings, questions, att, qs, held, _), logs = self.build({"07-04:1:1": "第三人"})
         self.assertEqual([k for k, *_ in qs["p1"]], ["tttq:07-04:2:2:p1"])
         self.assertEqual(len(held), 1)
+
+    def test_transcripts_link_to_the_pdf_page_where_the_councillor_starts(self):
+        books = [{"id": "07-04", "path": "/img/download/meeting/meeting20_07/04.pdf", "kind": "questions", "title": "y"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            logs = []
+            *_, tr = ttt_book.build(new_conn(tmp, PEOPLE), books, {"07-04": TRANSCRIPT}, {}, logs.append)
+        self.assertEqual(sorted(tr), ["p1", "p2", "p5", "p6"])
+        k, d, url, date = tr["p5"][0]
+        self.assertEqual(k, "tttgov:07-04:2026-05-20:p5")
+        self.assertEqual(url, "https://www.taitungcc.gov.tw/img/download/meeting/meeting20_07/04.pdf#page=2")
+        self.assertEqual((d["doc_type"], d["session"], d["page"], d["councillors"], date),
+                         ("縣政總質詢紀錄", "第20屆第7次定期會", 2, ["周駿宥"], "2026-05-20"))
+        self.assertEqual(d["title"], "縣政總質詢紀錄（議事錄第四冊 PDF 第 2 頁起）")
+
+    def test_replacement_transcripts_start_from_first_listed_meeting(self):
+        day = {**ttt_book.parse_days(TRANSCRIPT)[0], "session": "第20屆第7次定期會", "book": {"id": "07-04", "path": "/b.pdf"}}
+        with tempfile.TemporaryDirectory() as tmp:
+            conn = new_conn(tmp, PEOPLE)
+            roster = ttt_book.roster_index(conn, "ttt_councilor")
+        meetings = [{"date": "2026-06-01", "present_ids": {"p5"}, "leave_ids": set(), "duty_ids": set()}]
+        logs = []
+        out = ttt_book.transcript_facts([day], roster, TT_NAMES, {"p2", "p5"}, meetings, {"p5"}, logs.append)
+        self.assertEqual(sorted(out), ["p2"])
+        self.assertTrue(any("早於遞補後第一次列名" in x for x in logs))
 
     def test_same_name_in_roster_is_not_matched(self):
         books = [{"id": "07-04", "path": "/p.pdf", "kind": "questions", "title": "y"}]
         with tempfile.TemporaryDirectory() as tmp:
             logs = []
-            *_, qs, held = ttt_book.build(new_conn(tmp, PEOPLE + [("p9", "林琮翰", True)]), books, {"07-04": QUESTIONS}, {}, logs.append)
+            *_, qs, held, _ = ttt_book.build(new_conn(tmp, PEOPLE + [("p9", "林琮翰", True)]), books, {"07-04": QUESTIONS}, {}, logs.append)
         self.assertEqual(qs, {})
         self.assertTrue(any("同名" in x for x in logs))
 

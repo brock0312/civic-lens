@@ -9,7 +9,13 @@
 - 書面質詢：第四冊議員改以書面質詢時，每題標「<議員>書面質詢事項X：題目」，後附主辦單位答復。題目照官方原文全文
   （V16 已定案第 6 點、使用者 2026-10-08 決定不截斷），連到 PDF 該頁。第三人規則（HANDOFF §3 第 5 條）：
   data/ttt_withheld.csv 列出的題目不收。
-- 口頭質詢逐字紀錄：第四冊沒有逐人索引表，不做；YouTube 頻道官網未連結，不採用（V16 已定案第 3 點）。
+- 口頭縣政總質詢：第四冊是逐字紀錄（沒有逐人索引表）。每天以「縣政總質詢」＋日期開頭；主席宣布「首先第一位總質詢的議員是
+  簡維國簡議員」，緊接著就是本人發言標籤「簡議員維國：」（NFKC、去空白後）。兩者都對上才掛（比照 mia_book、cyi_book）：
+  主席發言（不含「謝謝…」開頭的句子）提到此人全名或「簡議員維國」，且主席發言的下一段就是本人標籤；連到該標籤所在的 PDF 頁。
+  每人每天一筆；被點名後本人發言不到 MIN_CHARS 字的不收。同一天「開放議員登記發言」（每人 10 分鐘，第 7 次定期會 5/29 上半場）
+  不是本人的總質詢，不收（主席句有「登記」之後到下一句「總質詢」之前的點名都算登記發言）。改以書面質詢的（主席宣布後由議事組宣讀）
+  下一段不是本人標籤，自然不收。冊名與頁首會期不符的冊（第 2 次定期會官網第四冊是第 1 次的內容）、沒有中文字層的冊都不收。
+  只放 PDF 頁連結，不擷取內文、不摘要（V16 已定案第 6 點）。YouTube 頻道官網未連結，不採用（V16 已定案第 3 點）。
 
 只寫給有臺東縣議員任職 fact 且有 2026 candidacy 的人；姓名以 etl.match 的漢字正規化對全部臺東縣議員名錄，
 名錄同名或對不到的不收（印 log）。
@@ -20,12 +26,14 @@ import re
 import subprocess
 import sys
 import time
+import unicodedata
 from collections import Counter
 from pathlib import Path
 
 from etl.fetch import get
 from etl.sources.hsz_book import download
 from etl.sources.hua_book import _join, write
+from etl.sources.kin_book import GOV_DOC
 from etl.sources.nwt_book import TITLE_AFTER, TITLE_INSIDE, resolve, roster_index, targets
 
 HOST = "https://www.taitungcc.gov.tw"
@@ -50,6 +58,17 @@ DUTY = re.compile(r"[（(][^）)]*(出差|公差|公假)[^）)]*[）)]")  # 請�
 NAME = re.compile(r"^[一-鿿]{2,5}$")
 Q_HEAD = re.compile(r"^(?:臺東縣議會第20屆第\d+次定期會)?([一-鿿]{2,8}?)書面質詢事項([一二三四五六七八九十]+)[：:]?(.*)$")
 ANSWER = re.compile(r"^依(.+?)\d{2,3}年\d{1,2}月\d{1,2}日.*字第")
+# 第四冊逐字紀錄（比對 NFKC、去空白後的行）
+DAY_HEAD = "縣政總質詢"
+DAY_DATE = re.compile(r"^(\d{2,3})年(\d{1,2})月(\d{1,2})日$")
+SPEAKER = re.compile(r"^([^:,，。、;；!?]{2,24}):$")  # 發言標籤獨占一行
+CLAUSE = re.compile(r"[^。!?;,]+")
+THANKS = ("謝謝", "感謝")
+CALLISH = re.compile(r"質詢|發言|請|詢答")
+# 主席宣布的詢答時間：登記發言每人 10 分鐘，總質詢 40 分鐘（讓出時間時 80 分鐘）；官方偶有錯字「詣答」
+TIME = re.compile(r"時間(?:有|是|為|也是)?(\d+|[一二三四五六七八九十]+)分")
+MIN_CHARS = 200  # 被點名後本人發言合計下限：只說一兩句的不算一場口頭總質詢
+CJK = re.compile(r"[一-鿿]")
 
 _last = 0.0
 
@@ -238,6 +257,147 @@ def parse_questions(pages):
     return out
 
 
+# ---------- 第四冊：口頭縣政總質詢 ----------
+
+def parse_days(pages):
+    """第四冊文字（依頁）→ [{roc, date, page, turns: [(標籤, PDF 頁, 內文)]}]：每天從「縣政總質詢」＋日期起算。
+    頁首頁尾（頁碼、會期名、「質詢」）不併入內文；第一天之前的目錄不收。"""
+    days, cur, turn, head = [], None, None, False
+    for pno, page in enumerate(pages, 1):
+        for line in page.split("\n"):
+            s = norm(unicodedata.normalize("NFKC", line))
+            if not s or FURNITURE.match(s):
+                continue
+            if s == DAY_HEAD:
+                head = True
+                continue
+            d = DAY_DATE.match(s)
+            if head and d:
+                cur, turn, head = {"roc": "-".join(d.groups()), "date": roc(d), "page": pno, "turns": []}, None, False
+                days.append(cur)
+                continue
+            if cur is None:
+                continue
+            m = SPEAKER.match(s)
+            if m:
+                turn, head = [m.group(1), pno, ""], False
+                cur["turns"].append(turn)
+            elif turn is not None and not s.startswith("記錄:"):
+                turn[2] += s
+    return days
+
+
+def speaker(label):
+    """發言標籤 → (姓名, 是否主席, 是否「發言」標籤)；「主席章議員正輝」「林議員參天發言」「簡維國議員」。不是議員回 None。"""
+    chair = label.startswith("主席")
+    body = label[2:] if chair else label
+    spoke = body.endswith("發言")
+    body = body[:-2] if spoke else body
+    if not re.search(r"議員|議長", body):
+        return None, chair, spoke
+    return asker(body), chair, spoke
+
+
+def name_forms(name):
+    """全名 → 主席點名時可能的寫法：全名、「簡議員維國」、雙姓「張全議員馨嵐」、「吳議長秀華」。"""
+    out = {name}
+    for i in (1, 2):
+        if len(name) > i + 1:
+            out |= {name[:i] + t + name[i:] for t in ("議員", "議長", "副議長")}
+    return out
+
+
+def split_inline(turns, names):
+    """主席標籤被文字層併進上一段內文（「…謝謝黃治維議員。主席吳議長秀華::好,我們下半場…」）時拆成獨立的一段。
+    只認名錄姓名組成的完整寫法（「主席」＋「吳議長秀華」等）。"""
+    forms = sorted({f for n in names for f in name_forms(n) if f != n}, key=len, reverse=True)
+    if not forms:
+        return turns
+    inline = re.compile("(主席(?:" + "|".join(map(re.escape, forms)) + ")):*")
+    out = []
+    for label, page, body in turns:
+        parts = inline.split(body)
+        out.append((label, page, parts[0]))
+        out += [(parts[i], page, parts[i + 1]) for i in range(1, len(parts), 2)]
+    return out
+
+
+def gov_calls(turns, names):
+    """一天的發言 → [(姓名, 標籤序號, 是否登記發言)]：主席發言提到此人且下一段就是本人標籤。
+
+    names：要找的全名（名錄）。是不是登記發言看主席這段發言結束時的狀態：主席宣布的詢答時間不到 20 分鐘是登記發言、30 分鐘以上是
+    總質詢；沒有宣布時間的，句中有「登記」改為登記發言、有「總質詢」（不含「議程」）改回總質詢，否則沿用前一段的狀態。
+    第 1 次定期會主席把 40 分鐘的總質詢也說成「登記質詢」，所以時間優先。點名可以只用職稱（「有請副議長」），只要下一段是
+    同職稱的本人標籤（「林副議長琮翰」）。
+    官方漏印「主席」二字時（「吳議長秀華：接下來我們最後1位總質詢的議員是…」），當天最近一位主席本人的標籤也當主席發言。"""
+    calls, mode, chair_name = [], "gov", None
+    forms = {n: name_forms(n) for n in names}
+    for k, (label, _, body) in enumerate(turns):
+        who, chair, _ = speaker(label)
+        if chair:
+            chair_name = who
+        elif who is None or who != chair_name:
+            continue
+        nxt = speaker(turns[k + 1][0]) if k + 1 < len(turns) else (None, False, False)
+        target = nxt[0] if nxt[0] in forms and not nxt[1] else None
+        title = re.search(r"副議長|議長", turns[k + 1][0]) if target else None
+        hit = False
+        for cl in CLAUSE.findall(body):
+            tm = TIME.search(cl) if "休息" not in cl else None
+            minutes = (int(tm.group(1)) if tm.group(1).isdigit() else cn(tm.group(1))) if tm else None
+            if minutes is not None and minutes < 20:
+                mode = "reg"
+            elif minutes is not None and minutes >= 30:
+                mode = "gov"
+            elif minutes is None and "登記" in cl:
+                mode = "reg"
+            elif minutes is None and "總質詢" in cl and "議程" not in cl:
+                mode = "gov"
+            others = [n for n in forms if n != target and any(f in cl for f in forms[n])]
+            if target and not cl.startswith(THANKS) and not others:  # 預告名單（同一句列多人）不算點名
+                if any(f in cl for f in forms[target]):
+                    hit = True
+                elif title and re.search(r"副議長" if title.group() == "副議長" else r"(?<!副)議長", cl):
+                    hit = True
+        if hit and CALLISH.search(body):
+            calls.append((target, k + 1, mode == "reg" or nxt[2]))
+    return calls
+
+
+def gov_entries(day, names, log=print, label=""):
+    """一天 → [{name, page, turns, chars}]：主席點名＋本人標籤都對上、不是登記發言、本人發言夠長的質詢者（每人一筆）。"""
+    turns = split_inline(day["turns"], names)
+    calls = gov_calls(turns, names)
+    starts = sorted({k for _, k, _ in calls})
+    out, seen = [], set()
+    for n, k, reg in calls:
+        if reg:
+            log(f"ttt_book：縣政總質詢 {label} {n} 是登記發言，不收")
+            continue
+        if n in seen:
+            continue
+        end = next((j for j in starts if j > k and speaker(turns[j][0])[0] != n), len(turns))
+        own = [j for j in range(k, end) if speaker(turns[j][0])[0] == n and not speaker(turns[j][0])[1]]
+        chars = sum(len(turns[j][2]) for j in own)
+        if chars < MIN_CHARS:
+            log(f"ttt_book：縣政總質詢 {label} {n} 被點名後本人發言只有 {chars} 字，不收")
+            continue
+        seen.add(n)
+        out.append({"name": n, "page": turns[k][1], "turns": len(own), "chars": chars})
+    called = {n for n, _, _ in calls}
+    spoke = Counter(speaker(l)[0] for l, _, _ in turns if speaker(l)[0] and not speaker(l)[1])
+    for n, c in spoke.items():
+        if n not in called and n in names:
+            log(f"ttt_book：縣政總質詢 {label} {n} 有發言標籤 {c} 段但沒有對上主席點名，不收")
+    return out
+
+
+def readable(pages):
+    """有中文字層：去空白後的字有一半以上是漢字。"""
+    s = norm("".join(pages))
+    return bool(s) and len(CJK.findall(s)) / len(s) > 0.5
+
+
 # ---------- 第三人規則：不收的題目 ----------
 
 def load_withheld(path=WITHHELD):
@@ -286,8 +446,9 @@ def check_meeting(m, roster):
 
 
 def collect(books, texts, roster, log=print):
-    """→ (meetings, questions)：meetings 依 (會期, 會次) 去重，名單已對到 person_id；questions 附冊別與會期。"""
-    meetings, seen, questions = [], {}, []
+    """→ (meetings, questions, days)：meetings 依 (會期, 會次) 去重，名單已對到 person_id；questions、days（第四冊每天的逐字紀錄）
+    附冊別與會期。"""
+    meetings, seen, questions, days = [], {}, [], []
     for b in sorted(books, key=lambda b: (b["id"][:2], b["kind"] != "regular")):  # 同一會期刊在兩冊時連到第二冊（定期會）
         pages = texts.get(b["id"])
         if pages is None:
@@ -300,6 +461,13 @@ def collect(books, texts, roster, log=print):
                 log(f"ttt_book：{b['title']} 頁首是 {heads.most_common(1)[0][0] if heads else '（無）'}，和冊名不符，不收")
                 continue
             questions += [{**q, "session": session, "book": b} for q in parse_questions(pages)]
+            if not readable(pages):
+                log(f"ttt_book：{b['title']} 沒有可讀的中文字層，口頭總質詢不收")
+                continue
+            got = parse_days(pages)
+            if not got:
+                log(f"ttt_book：{b['title']} 找不到「縣政總質詢」＋日期的開頭，口頭總質詢不收")
+            days += [{**d, "session": session, "book": b} for d in got]
             continue
         for m in parse_meetings(pages):
             k = (m["session"], m["meeting"])
@@ -318,7 +486,7 @@ def collect(books, texts, roster, log=print):
             if len(m["present"]) + len(m["leave"]) != SEATS:
                 log(f"ttt_book：{m['session']}{m['meeting']} 出席 {len(m['present'])}＋請假 {len(m['leave'])} 人，不是 {SEATS} 席（照收）")
             meetings.append({**m, "book": b, "present_ids": present, "leave_ids": leave, "duty_ids": duty})
-    return meetings, questions
+    return meetings, questions, days
 
 
 def session_starts(meetings):
@@ -382,6 +550,33 @@ def question_facts(questions, roster, pids, starts, withheld, log=print):
     return out, held
 
 
+def transcript_facts(days, roster, names, pids, meetings, replacements=frozenset(), log=print):
+    """{person_id: [(fact_key, data, url, date)]}：每人每天一筆縣政總質詢紀錄，連到本人開始發言的 PDF 頁。
+    replacements（遞補）只收第一次列入出席、請假名單的會議當天以後的（從上任起算）。"""
+    first = {}
+    for m in sorted(meetings, key=lambda m: m["date"]):
+        for pid in m["present_ids"] | m["leave_ids"] | m["duty_ids"]:
+            first.setdefault(pid, m["date"])
+    out = {}
+    for d in days:
+        label = f"{d['session']} {d['date']}（PDF 第 {d['page']} 頁）"
+        for e in gov_entries(d, names, log, label):
+            pid, why = resolve(e["name"], roster)
+            if not pid:
+                log(f"ttt_book：縣政總質詢 {label} {e['name']}：{why}，不收")
+                continue
+            if pid not in pids:
+                continue
+            if pid in replacements and (pid not in first or d["date"] < first[pid]):
+                log(f"ttt_book：縣政總質詢 {label} {e['name']} 早於遞補後第一次列名（{first.get(pid)}），不收")
+                continue
+            data = {"term": TERM, "session": d["session"], "doc_type": GOV_DOC, "dept": None,
+                    "title": f"縣政總質詢紀錄（議事錄第四冊 PDF 第 {e['page']} 頁起）", "councillors": [e["name"]], "group_size": 1,
+                    "page": e["page"]}
+            out.setdefault(pid, []).append((f"tttgov:{d['book']['id']}:{d['date']}:{pid}", data, pdf_url(d["book"], e["page"]), d["date"]))
+    return out
+
+
 def build(conn, books, texts, withheld, log=print):
     ts = targets(conn, OFFICE)
     roster = roster_index(conn, OFFICE)
@@ -392,7 +587,7 @@ def build(conn, books, texts, withheld, log=print):
             log(f"ttt_book：對象 {t['name']}（{t['person_id']}）{why or '名錄對到別人'}，不收")
             continue
         pids.add(pid)
-    meetings, questions = collect(books, texts, roster, log)
+    meetings, questions, days = collect(books, texts, roster, log)
     full = {}
     for m in meetings:
         full[m["session"]] = max(full.get(m["session"], 0), len(m["present"]) + len(m["leave"]))
@@ -404,20 +599,26 @@ def build(conn, books, texts, withheld, log=print):
         "SELECT person_id FROM fact WHERE kind = 'office' AND json_extract(data, '$.office') = ? AND date IS NULL", (OFFICE,))}
     att = attendance_facts(meetings, pids, replacements)
     qs, held = question_facts(questions, roster, pids, session_starts(meetings), withheld, log)
-    return ts, meetings, questions, att, qs, held
+    names = sorted({re.sub(r"\s.*", "", r[0]) for r in conn.execute(
+        "SELECT DISTINCT p.name FROM fact o JOIN person p USING (person_id) "
+        "WHERE o.kind = 'office' AND json_extract(o.data, '$.office') = ?", (OFFICE,))})
+    tr = transcript_facts(days, roster, names, pids, meetings, replacements, log)
+    return ts, meetings, questions, att, qs, held, tr
 
 
 def run(conn):
     books = load_books()
     texts = {b["id"]: book_pages(b) for b in books}
     logs = Counter()
-    ts, meetings, questions, att, qs, held = build(conn, books, texts, load_withheld(), lambda s: logs.update([s]))
+    ts, meetings, questions, att, qs, held, tr = build(conn, books, texts, load_withheld(), lambda s: logs.update([s]))
     for line, n in sorted(logs.items()):
         print(f"{line}（{n} 次）" if n > 1 else line)
     na, da = write(conn, "tttattend", att, "attendance")
     nq, dq = write(conn, "tttq", qs, "interpellation")
+    ng, dg = write(conn, "tttgov", tr, "interpellation")
     print(f"ttt_book：議事錄 {len(books)} 冊、會議 {len(meetings)} 次；對象 {len(ts)} 人；出缺勤 {len(att)} 人 {na} 筆（刪除 {da}）；"
-          f"書面質詢 {len(questions)} 題，{len(qs)} 人 {nq} 筆（刪除 {dq}，依第三人規則不收 {len(held)} 題）")
+          f"書面質詢 {len(questions)} 題，{len(qs)} 人 {nq} 筆（刪除 {dq}，依第三人規則不收 {len(held)} 題）；"
+          f"縣政總質詢紀錄 {len(tr)} 人 {ng} 筆（刪除 {dg}）")
 
 
 # ---------- 自我檢查 ----------
@@ -427,7 +628,7 @@ def check(samples=()):
     books = load_books(refresh=False)
     texts = {b["id"]: book_pages(b, fetch_missing=False) for b in books}
     logs = []
-    ts, meetings, questions, att, qs, held = build(dump_conn(), books, texts, load_withheld(), logs.append)
+    ts, meetings, questions, att, qs, held, tr = build(dump_conn(), books, texts, load_withheld(), logs.append)
     for line, n in sorted(Counter(logs).items()):
         print(" ", line, f"（{n} 次）" if n > 1 else "")
     sessions = Counter(m["session"] for m in meetings)
@@ -436,10 +637,16 @@ def check(samples=()):
     print(f"對象 {len(ts)} 人；出缺勤 {len(att)} 人；書面質詢 {len(questions)} 題，{len(qs)} 人 {sum(map(len, qs.values()))} 筆；"
           f"不收 {len(held)} 題")
     names = {t["person_id"]: t["name"] for t in ts}
+    by_session = Counter(d["session"] for f in tr.values() for _, d, _, _ in f)
+    print(f"縣政總質詢紀錄 {len(tr)} 人 {sum(by_session.values())} 筆：", sorted(by_session.items()))
+    for pid, name in sorted(names.items(), key=lambda x: x[1]):
+        print(f"  {name}（{pid}）縣政總質詢紀錄 {len(tr.get(pid, []))} 筆、書面質詢 {len(qs.get(pid, []))} 筆")
     for pid in [p for p in names if any(s in names[p] for s in samples)]:
         print(f"\n{names[pid]}（{pid}）")
         for _, d, url, date in sorted(att.get(pid, []), key=lambda x: x[3]):
             print(f"  出席 {d['session']:<14} {date} {d['present']:>2}／{d['meetings']:<2}（請假 {d['leave']}） {url}")
+        for _, d, url, date in tr.get(pid, []):
+            print(f"  縣政總質詢 {d['session']} {date} {url}")
         for _, d, url, _ in qs.get(pid, []):
             print(f"  書面質詢 {d['session']} {d['dept']}：{d['title'][:60]} {url}")
 

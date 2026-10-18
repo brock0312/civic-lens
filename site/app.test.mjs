@@ -932,16 +932,28 @@ test('Hsinchu City question-record rows show the date, the question type and lin
 
 // ---------- 臺東（V16 已定案第 3、6 點） ----------
 
-test('Taitung is a deep county whose summary card counts written questions with its coverage note', () => {
+test('Taitung is a deep county whose summary card counts oral general interpellations and written questions separately', () => {
   assert.ok(DEEP_COUNTIES.has('ttt'));
   const r = RECORDS.ttt;
   assert.deepEqual(r.depts, []);
   const w = { data: { doc_type: '書面質詢', no_date: true } };
-  const card = summaryCard({}, { offices: [], inters: [w, w], written: [w, w], videos: [], rec: r });
-  assert.match(card, /書面質詢 <span class="num">2<\/span> 筆/);
+  const t = { date: '2026-05-27', data: { doc_type: KIN_TRANSCRIPT, session: '第20屆第7次定期會', page: 298 } };
+  const card = summaryCard({}, { offices: [], inters: [w, w, t], written: [w, w, t], videos: [], rec: r });
+  assert.match(card, /縣政總質詢紀錄 <span class="num">1<\/span> 場、改以書面提出的總質詢 <span class="num">2<\/span> 筆/);
+  assert.match(card, /收錄第 1、3 至第 7 次定期會（2023 年 5 月至 2026 年 5 月）；第 2 次定期會的第四冊，議會網站上的檔案是第 1 次定期會的內容/);
   assert.match(card, /第 1 至第 7 次定期會與第 1 至第 20 次臨時會（2023 年 1 月至 2026 年 6 月）/);
-  assert.doesNotMatch(card, /部門分布|影片|<span>缺席/);
-  assert.doesNotMatch(r.noRecord + r.writtenBlurb + r.note, /沒有問政|無問政|未質詢/);
+  assert.doesNotMatch(card, /部門分布|影片 <span|<span>缺席/);
+  assert.equal(r.transcriptHeading, '縣政總質詢紀錄');
+  assert.match(r.transcriptBlurb, /主席點名後緊接著就是本人的發言才列入.*本人開始發言的那一頁.*讓給其他議員的不列入.*登記發言.*未列入.*遞補/);
+  assert.doesNotMatch(r.noRecord + r.writtenBlurb + r.note + r.transcriptBlurb, /沒有問政|無問政|未質詢|口頭總質詢的逐字紀錄與影片本站未收錄/);
+});
+
+test('Taitung oral interpellations are listed under their own heading, not as written questions', () => {
+  const t = { date: '2026-05-27', source_url: 'https://www.taitungcc.gov.tw/img/download/meeting/meeting20_07/04.pdf#page=298',
+    data: { doc_type: KIN_TRANSCRIPT, session: '第20屆第7次定期會', dept: null, page: 298, title: '縣政總質詢紀錄（議事錄第四冊 PDF 第 298 頁起）' } };
+  const html = interpellationRows([t]);
+  assert.match(html, /<time class="date" datetime="2026-05-27">2026-05-27<\/time>/);
+  assert.match(html, /href="https:\/\/www\.taitungcc\.gov\.tw\/img\/download\/meeting\/meeting20_07\/04\.pdf#page=298"[^>]*>縣政總質詢紀錄（議事錄第四冊 PDF 第 298 頁起）</);
 });
 
 test('Taitung attendance says when a session printed no leave list instead of showing zero leave', () => {
@@ -1673,14 +1685,18 @@ test('per-item collection periods cover every record on the card (exported data)
   }
 });
 
-test('Taitung card says the count is written-instead-of-oral questions and that oral questions are not collected', () => {
+test('Taitung card counts oral general interpellations and written-instead-of-oral questions as separate items', () => {
   const counties = new Map([['ttt', { iso: 'ttt', name: '臺東縣', districts: [{ district_id: 'ttt-council-01', name: '臺東縣第1選舉區', office: 'ttt_councilor' }] }]]);
+  const oral = (date) => ({ date, data: { doc_type: KIN_TRANSCRIPT, session: '第20屆第7次定期會', page: 2 } });
   const p = { person_id: 'p8', name: '戊', facts: {
     candidacy: [candidacy('ttt-council-01')], office: [officeOf('ttt-council-01')],
     attendance: [{ data: { from_lists: true, meetings: 4, present: 4, leave: 0, duty: 0 } }],
+    interpellation: [oral('2025-05-20'), oral('2026-05-20')],
   } };
   const m = cardModel(p, { counties, base: BASE });
-  assert.deepEqual(m.dims.find((d) => d.id === 'written'), { id: 'written', label: '改以書面提出的總質詢', unit: '筆', period: '2023/01–2026/06', n: 0, note: '口頭質詢本站未收錄' });
+  assert.deepEqual(m.dims.find((d) => d.id === 'transcript'), { id: 'transcript', label: KIN_TRANSCRIPT, unit: '場', period: '2023/05–2026/05', n: 2, note: '缺第2次定期會' });
+  assert.deepEqual(m.dims.find((d) => d.id === 'written'), { id: 'written', label: '改以書面提出的總質詢', unit: '筆', period: '2023/05–2026/05', n: 0, note: '缺第2次定期會' });
   const t = cardText(layoutCard(cardContent(m), 'story', fakeMeasure));
-  assert.ok(t.includes('改以書面提出的總質詢（筆）') && t.includes('口頭質詢本站未收錄'));
+  assert.ok(t.includes('縣政總質詢紀錄（場）') && t.includes('改以書面提出的總質詢（筆）') && t.includes('缺第2次定期會'));
+  assert.ok(!t.includes('口頭質詢本站未收錄'));
 });
