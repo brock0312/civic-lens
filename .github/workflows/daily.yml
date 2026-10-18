@@ -9,7 +9,7 @@ name: daily
 #
 # 資料更新以本機（臺灣網路）為準：tcc.gov.tw、內政部、中選會開票 JSON 擋海外 IP，GitHub 機器抓不到，所以不跑排程
 #
-# push 到 main（正式路徑）：test（唯讀，跑單元測試並檢查 data/civic.sql）→ deploy（只部署這次 push 的 commit）
+# push 到 main（正式路徑）：test（唯讀，跑 Python 單元測試、前端 node --test 並檢查 data/civic.sql）→ deploy（只部署這次 push 的 commit）
 # - test 失敗：不部署
 #
 # 手動觸發（workflow_dispatch，僅供備用）：etl（唯讀、處理外部輸入）→ commit（只搬 data/civic.sql）→ deploy（在 main 的程式上重建 site/data，只部署 site/）
@@ -49,6 +49,15 @@ jobs:
       - name: Install poppler (pdftotext, pdftohtml, pdftoppm)
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - run: python -m unittest -v
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '22'
+      - name: Export site/data for frontend tests
+        # 與 deploy job 同一個指令；只給前端測試的匯出資料檢查用（例如每位議員候選人的分享圖卡、現任標籤），不上傳
+        run: >-
+          python -c "import sys; from etl.db import open_db; from etl.export import export;
+          export(open_db(sys.argv[1], 'data/civic.sql'), 'site/data')" "$RUNNER_TEMP/civic.db"
+      - run: node --test site/app.test.mjs
       - name: Check data/civic.sql
         # 與 commit job 的 Check dump 相同：本機推上來的 dump 也要完整、且不含生日（B1）
         # 推上來時 dump 已在公開 repo，這裡擋不住外洩，只能擋部署並亮紅燈；推之前要先照 README 自行檢查
